@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+enapter-mcp-server = {editable = true, path = "."}
+
+[dev-packages]
+black = "*"
+isort = "*"
+mypy = "*"
+ollmcp = "*"
+pyflakes = "*"
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+setuptools = "*"
+types-setuptools = "*"
