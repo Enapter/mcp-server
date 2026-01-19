@@ -53,7 +53,7 @@ ifndef V
 endif
 	sed -E -i 's/__version__ = "$(RE_SEMVER)"/__version__ = "$(V)"/g' src/enapter_mcp_server/__init__.py
 
-DOCKER_IMAGE_TAG ?= enapter_mcp_server:latest
+DOCKER_IMAGE_TAG ?= enapter/mcp-server:dev
 
 .PHONY: docker-image
 docker-image:
