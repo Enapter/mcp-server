@@ -1,5 +1,7 @@
 FROM python:3.14
 
+ENV ENAPTER_MCP_SERVER_ADDRESS=0.0.0.0:8000
+
 WORKDIR /app
 
 ADD setup.py setup.py
