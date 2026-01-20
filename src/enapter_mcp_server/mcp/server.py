@@ -1,9 +1,10 @@
+import datetime
 from typing import Any, AsyncContextManager
 
 import enapter
 import fastmcp
 
-from .models import Device, DeviceConnectivityStatus, Site
+from .models import Device, DeviceConnectivityStatus, HistoricalTelemetryData, Site
 
 
 class Server(enapter.async_.Routine):
@@ -43,6 +44,7 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_device_manifest)
         mcp.tool(self.get_device_connectivity_status)
         mcp.tool(self.get_device_latest_telemetry_data)
+        mcp.tool(self.get_device_historical_telemetry_data)
 
     async def list_sites(self) -> list[Site]:
         "List all sites to which the authenticated user has access."
@@ -101,6 +103,34 @@ class Server(enapter.async_.Routine):
                 attribute: datapoint.value if datapoint is not None else None
                 for attribute, datapoint in telemetry[device_id].items()
             }
+
+    async def get_device_historical_telemetry_data(
+        self,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+        granularity: int = 60,
+    ) -> HistoricalTelemetryData:
+        "Get device historical telemetry data by device ID, attributes, time range, and granularity."
+        async with self._new_http_api_client() as client:
+            telemetry = await client.telemetry.wide_timeseries(
+                from_=time_from,
+                to=time_to,
+                granularity=granularity,
+                selectors=[
+                    enapter.http.api.telemetry.Selector(
+                        device=device_id, attributes=attributes
+                    )
+                ],
+            )
+            return HistoricalTelemetryData(
+                timestamps=telemetry.timestamps,
+                values={
+                    column.labels.telemetry: column.values
+                    for column in telemetry.columns
+                },
+            )
 
     def _new_http_api_client(self) -> AsyncContextManager[enapter.http.api.Client]:
         # FIXME: Client instance gets created for each request.
