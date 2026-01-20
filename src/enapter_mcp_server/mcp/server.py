@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from typing import Any, AsyncContextManager
 
@@ -15,8 +16,9 @@ class Server(enapter.async_.Routine):
         port: int,
         enapter_http_api_url: str,
         graceful_shutdown_timeout: float = 5.0,
+        task_group: asyncio.TaskGroup | None = None,
     ) -> None:
-        super().__init__()
+        super().__init__(task_group=task_group)
         self._host = host
         self._port = port
         self._enaper_http_api_url = enapter_http_api_url
