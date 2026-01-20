@@ -1,5 +1,6 @@
+import datetime
 import enum
-from typing import Self
+from typing import Any, Self
 
 import enapter
 import pydantic
@@ -53,3 +54,9 @@ class Device(pydantic.BaseModel):
             site_id=device.site_id,
             type=DeviceType(device.type.value),
         )
+
+
+class HistoricalTelemetryData(pydantic.BaseModel):
+
+    timestamps: list[datetime.datetime]
+    values: dict[str, list[Any]]
