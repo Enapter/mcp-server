@@ -1,7 +1,9 @@
-from typing import AsyncContextManager
+from typing import Any, AsyncContextManager
 
 import enapter
 import fastmcp
+
+from .models import Device, DeviceConnectivityStatus, Site
 
 
 class Server(enapter.async_.Routine):
@@ -31,77 +33,87 @@ class Server(enapter.async_.Routine):
         mcp.tool(
             self._get_site,
             name="get_site",
-            description="Get site by ID.",
+            description="Get site by site ID.",
         )
         mcp.tool(
-            self._list_devices,
-            name="list_devices",
-            description="List devices.",
+            self._list_site_devices,
+            name="list_site_devices",
+            description="List devices by site ID.",
         )
         mcp.tool(
             self._get_device,
             name="get_device",
-            description="Get device by ID.",
+            description="Get device by device ID.",
         )
         mcp.tool(
-            self._get_latest_telemetry,
-            name="get_latest_telemetry",
-            description="Get latest telemetry of multiple devices.",
+            self._get_device_properties,
+            name="get_device_properties",
+            description="Get device properties by device ID.",
+        )
+        mcp.tool(
+            self._get_device_manifest,
+            name="get_device_manifest",
+            description="Get device manifest by device ID.",
+        )
+        mcp.tool(
+            self._get_device_connectivity_status,
+            name="get_device_connectivity_status",
+            description="Get device connectivity status by device ID.",
+        )
+        mcp.tool(
+            self._get_device_latest_telemetry_data,
+            name="get_device_latest_telemetry_data",
+            description="Get device latest telemetry data by device ID and attributes.",
         )
 
-    async def _list_sites(self) -> list:
+    async def _list_sites(self) -> list[Site]:
         async with self._new_http_api_client() as client:
             async with client.sites.list() as stream:
-                return [site.to_dto() async for site in stream]
+                return [Site.from_domain(site) async for site in stream]
 
-    async def _get_site(self, site_id: str) -> dict:
+    async def _get_site(self, site_id: str) -> Site:
         async with self._new_http_api_client() as client:
             site = await client.sites.get(site_id)
-            return site.to_dto()
+            return Site.from_domain(site)
 
-    async def _list_devices(
-        self,
-        expand_manifest: bool = False,
-        expand_properties: bool = False,
-        expand_connectivity: bool = False,
-        site_id: str | None = None,
-    ) -> list:
+    async def _list_site_devices(self, site_id: str) -> list[Device]:
         async with self._new_http_api_client() as client:
-            async with client.devices.list(
-                expand_manifest=expand_manifest,
-                expand_properties=expand_properties,
-                expand_connectivity=expand_connectivity,
-                site_id=site_id,
-            ) as stream:
-                return [device.to_dto() async for device in stream]
+            async with client.devices.list(site_id=site_id) as stream:
+                return [Device.from_domain(device) async for device in stream]
 
-    async def _get_device(
-        self,
-        device_id: str,
-        expand_manifest: bool = False,
-        expand_properties: bool = False,
-        expand_connectivity: bool = False,
-    ) -> dict:
+    async def _get_device(self, device_id: str) -> Device:
         async with self._new_http_api_client() as client:
-            device = await client.devices.get(
-                device_id,
-                expand_manifest=expand_manifest,
-                expand_properties=expand_properties,
-                expand_connectivity=expand_connectivity,
-            )
-            return device.to_dto()
+            device = await client.devices.get(device_id)
+            return Device.from_domain(device)
 
-    async def _get_latest_telemetry(
-        self, attributes_by_device: dict[str, list[str]]
-    ) -> dict[str, dict[str, str | int | float | bool | None]]:
+    async def _get_device_manifest(self, device_id: str) -> dict[str, Any]:
         async with self._new_http_api_client() as client:
-            telemetry = await client.telemetry.latest(attributes_by_device)
+            device = await client.devices.get(device_id, expand_manifest=True)
+            assert device.manifest is not None
+            return device.manifest
+
+    async def _get_device_properties(self, device_id: str) -> dict[str, Any]:
+        async with self._new_http_api_client() as client:
+            device = await client.devices.get(device_id, expand_properties=True)
+            assert device.properties is not None
+            return device.properties
+
+    async def _get_device_connectivity_status(
+        self, device_id: str
+    ) -> DeviceConnectivityStatus:
+        async with self._new_http_api_client() as client:
+            device = await client.devices.get(device_id, expand_connectivity=True)
+            assert device.connectivity is not None
+            return DeviceConnectivityStatus(device.connectivity.status.value)
+
+    async def _get_device_latest_telemetry_data(
+        self, device_id: str, attributes: list[str]
+    ) -> dict[str, Any]:
+        async with self._new_http_api_client() as client:
+            telemetry = await client.telemetry.latest({device_id: attributes})
             return {
-                device: {
-                    attribute: datapoint.value if datapoint is not None else None
-                    for attribute, datapoint in attributes.items()
-                }
-                for device, attributes in telemetry.items()
+                attribute: datapoint.value if datapoint is not None else None
+                for attribute, datapoint in telemetry[device_id].items()
             }
 
     def _new_http_api_client(self) -> AsyncContextManager[enapter.http.api.Client]:
