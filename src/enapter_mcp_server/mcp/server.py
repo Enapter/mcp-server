@@ -5,6 +5,8 @@ from typing import Any, AsyncContextManager
 import enapter
 import fastmcp
 
+from enapter_mcp_server import __version__
+
 from . import models
 
 
@@ -28,7 +30,7 @@ class Server(enapter.async_.Routine):
         mcp = fastmcp.FastMCP(
             name="Enapter MCP Server",
             instructions="An MCP server exposing Enapter HTTP API functionality.",
-            version="0.1.0",
+            version=__version__,
             website_url="https://github.com/Enapter/mcp-server",
         )
         self._register_tools(mcp)
