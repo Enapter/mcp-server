@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from .call_tool_command import CallToolCommand
 from .list_tools_command import ListToolsCommand
 from .ping_command import PingCommand
 from .serve_command import ServeCommand
@@ -28,6 +29,7 @@ class App:
             PingCommand,
             ServeCommand,
             ListToolsCommand,
+            CallToolCommand,
         ]:
             command.register(subparsers)
         return cls(args=parser.parse_args())
@@ -40,5 +42,7 @@ class App:
                 await ServeCommand.run(self.args)
             case "list_tools":
                 await ListToolsCommand.run(self.args)
+            case "call_tool":
+                await CallToolCommand.run(self.args)
             case _:
                 raise NotImplementedError(self.args.command)
