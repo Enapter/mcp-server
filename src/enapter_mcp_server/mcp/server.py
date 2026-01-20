@@ -25,7 +25,12 @@ class Server(enapter.async_.Routine):
         self._graceful_shutdown_timeout = graceful_shutdown_timeout
 
     async def _run(self) -> None:
-        mcp = fastmcp.FastMCP()
+        mcp = fastmcp.FastMCP(
+            name="Enapter MCP Server",
+            instructions="An MCP server exposing Enapter HTTP API functionality.",
+            version="0.1.0",
+            website_url="https://github.com/Enapter/mcp-server",
+        )
         self._register_tools(mcp)
         await mcp.run_async(
             transport="streamable-http",
