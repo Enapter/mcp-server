@@ -52,6 +52,7 @@ ifndef V
 	$(error V is not defined)
 endif
 	sed -E -i 's/__version__ = "$(RE_SEMVER)"/__version__ = "$(V)"/g' src/enapter_mcp_server/__init__.py
+	sed -E -i 's/mcp-server:v$(RE_SEMVER)/mcp-server:v$(V)/g' README.md
 
 DOCKER_IMAGE_TAG ?= enapter/mcp-server:dev
 
