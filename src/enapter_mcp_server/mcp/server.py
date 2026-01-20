@@ -8,11 +8,18 @@ from .models import Device, DeviceConnectivityStatus, Site
 
 class Server(enapter.async_.Routine):
 
-    def __init__(self, host: str, port: int, enapter_http_api_url: str) -> None:
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        enapter_http_api_url: str,
+        graceful_shutdown_timeout: float = 5.0,
+    ) -> None:
         super().__init__()
         self._host = host
         self._port = port
         self._enaper_http_api_url = enapter_http_api_url
+        self._graceful_shutdown_timeout = graceful_shutdown_timeout
 
     async def _run(self) -> None:
         mcp = fastmcp.FastMCP()
@@ -22,6 +29,9 @@ class Server(enapter.async_.Routine):
             show_banner=False,
             host=self._host,
             port=self._port,
+            uvicorn_config={
+                "timeout_graceful_shutdown": self._graceful_shutdown_timeout
+            },
         )
 
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
