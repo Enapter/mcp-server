@@ -5,7 +5,7 @@ from typing import Any, AsyncContextManager
 import enapter
 import fastmcp
 
-from .models import Device, DeviceConnectivityStatus, HistoricalTelemetryData, Site
+from . import models
 
 
 class Server(enapter.async_.Routine):
@@ -45,32 +45,32 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_device_properties)
         mcp.tool(self.get_device_manifest)
         mcp.tool(self.get_device_connectivity_status)
-        mcp.tool(self.get_device_latest_telemetry_data)
-        mcp.tool(self.get_device_historical_telemetry_data)
+        mcp.tool(self.get_device_latest_telemetry)
+        mcp.tool(self.get_device_historical_telemetry)
 
-    async def list_sites(self) -> list[Site]:
+    async def list_sites(self) -> list[models.Site]:
         "List all sites to which the authenticated user has access."
         async with self._new_http_api_client() as client:
             async with client.sites.list() as stream:
-                return [Site.from_domain(site) async for site in stream]
+                return [models.Site.from_domain(site) async for site in stream]
 
-    async def get_site(self, site_id: str) -> Site:
+    async def get_site(self, site_id: str) -> models.Site:
         "Get site by site ID."
         async with self._new_http_api_client() as client:
             site = await client.sites.get(site_id)
-            return Site.from_domain(site)
+            return models.Site.from_domain(site)
 
-    async def list_site_devices(self, site_id: str) -> list[Device]:
+    async def list_site_devices(self, site_id: str) -> list[models.Device]:
         "List devices by site ID."
         async with self._new_http_api_client() as client:
             async with client.devices.list(site_id=site_id) as stream:
-                return [Device.from_domain(device) async for device in stream]
+                return [models.Device.from_domain(device) async for device in stream]
 
-    async def get_device(self, device_id: str) -> Device:
+    async def get_device(self, device_id: str) -> models.Device:
         "Get device by device ID."
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id)
-            return Device.from_domain(device)
+            return models.Device.from_domain(device)
 
     async def get_device_properties(self, device_id: str) -> dict[str, Any]:
         "Get device properties by device ID."
@@ -88,33 +88,41 @@ class Server(enapter.async_.Routine):
 
     async def get_device_connectivity_status(
         self, device_id: str
-    ) -> DeviceConnectivityStatus:
+    ) -> models.ConnectivityStatus:
         "Get device connectivity status by device ID."
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_connectivity=True)
             assert device.connectivity is not None
-            return DeviceConnectivityStatus(device.connectivity.status.value)
+            return models.ConnectivityStatus(device.connectivity.status.value)
 
-    async def get_device_latest_telemetry_data(
+    async def get_device_latest_telemetry(
         self, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]:
-        "Get device latest telemetry data by device ID and attributes."
+    ) -> models.LatestTelemetry:
+        "Get device latest telemetry by device ID and attributes."
         async with self._new_http_api_client() as client:
             telemetry = await client.telemetry.latest({device_id: attributes})
-            return {
-                attribute: datapoint.value if datapoint is not None else None
-                for attribute, datapoint in telemetry[device_id].items()
-            }
+            timestamp = max(
+                datapoint.timestamp
+                for datapoint in telemetry[device_id].values()
+                if datapoint is not None
+            )
+            return models.LatestTelemetry(
+                timestamp=timestamp,
+                values={
+                    attribute: datapoint.value if datapoint is not None else None
+                    for attribute, datapoint in telemetry[device_id].items()
+                },
+            )
 
-    async def get_device_historical_telemetry_data(
+    async def get_device_historical_telemetry(
         self,
         device_id: str,
         attributes: list[str],
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int = 60,
-    ) -> HistoricalTelemetryData:
-        "Get device historical telemetry data by device ID, attributes, time range, and granularity."
+    ) -> models.HistoricalTelemetry:
+        "Get device historical telemetry by device ID, attributes, time range, and granularity."
         async with self._new_http_api_client() as client:
             telemetry = await client.telemetry.wide_timeseries(
                 from_=time_from,
@@ -126,7 +134,7 @@ class Server(enapter.async_.Routine):
                     )
                 ],
             )
-            return HistoricalTelemetryData(
+            return models.HistoricalTelemetry(
                 timestamps=telemetry.timestamps,
                 values={
                     column.labels.telemetry: column.values
