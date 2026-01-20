@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any, Self
 
 import fastmcp
 
@@ -20,3 +20,6 @@ class Client:
 
     async def ping(self) -> bool:
         return await self._client.ping()
+
+    async def list_tools(self) -> Any:
+        return await self._client.list_tools()
