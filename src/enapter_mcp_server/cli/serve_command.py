@@ -27,7 +27,11 @@ class ServeCommand(Command):
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
         host, port = args.address.split(":")
-        async with mcp.Server(
-            host=host, port=int(port), enapter_http_api_url=args.enapter_http_api_url
-        ):
-            await asyncio.Event().wait()
+        async with asyncio.TaskGroup() as task_group:
+            async with mcp.Server(
+                host=host,
+                port=int(port),
+                enapter_http_api_url=args.enapter_http_api_url,
+                task_group=task_group,
+            ):
+                await asyncio.Event().wait()
