@@ -56,38 +56,83 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_device_historical_telemetry)
 
     async def list_sites(self) -> list[models.Site]:
-        "List all sites to which the authenticated user has access."
+        """List all sites to which the authenticated user has access.
+
+        Returns:
+            A list of sites.
+        """
         async with self._new_http_api_client() as client:
             async with client.sites.list() as stream:
                 return [models.Site.from_domain(site) async for site in stream]
 
     async def get_site(self, site_id: str) -> models.Site:
-        "Get site by site ID."
+        """Get site by site ID.
+
+        Args:
+            site_id: The ID of the site to retrieve.
+
+        Returns:
+            The site with the specified ID.
+        """
         async with self._new_http_api_client() as client:
             site = await client.sites.get(site_id)
             return models.Site.from_domain(site)
 
     async def list_site_devices(self, site_id: str) -> list[models.Device]:
-        "List devices by site ID."
+        """List all devices in a site.
+
+        Args:
+            site_id: The ID of the site.
+
+        Returns:
+            A list of devices in the site.
+        """
         async with self._new_http_api_client() as client:
             async with client.devices.list(site_id=site_id) as stream:
                 return [models.Device.from_domain(device) async for device in stream]
 
     async def get_device(self, device_id: str) -> models.Device:
-        "Get device by device ID."
+        """Get device by device ID.
+
+        Args:
+            device_id: The ID of the device to retrieve.
+
+        Returns:
+            The device with the specified ID.
+        """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id)
             return models.Device.from_domain(device)
 
     async def get_device_properties(self, device_id: str) -> dict[str, Any]:
-        "Get device properties by device ID."
+        """Get device properties values by device ID.
+
+        Device properties is metadata which does not change during normal
+        operation, e.g. `firmware_version`, `model`, and `serial_number`.
+
+        Args:
+            device_id: The ID of the device.
+
+        Returns:
+            A dictionary of device properties values.
+        """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_properties=True)
             assert device.properties is not None
             return device.properties
 
     async def get_device_manifest(self, device_id: str) -> dict[str, Any]:
-        "Get device manifest by device ID."
+        """Get device manifest by device ID.
+
+        Device manifest is a specification of the available telemetry
+        attributes, commands, properties and alerts.
+
+        Args:
+            device_id: The ID of the device.
+
+        Returns:
+            A dictionary representing the device manifest.
+        """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
@@ -96,7 +141,14 @@ class Server(enapter.async_.Routine):
     async def get_device_connectivity_status(
         self, device_id: str
     ) -> models.ConnectivityStatus:
-        "Get device connectivity status by device ID."
+        """Get device connectivity status by device ID.
+
+        Args:
+            device_id: The ID of the device.
+
+        Returns:
+            The connectivity status of the device.
+        """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_connectivity=True)
             assert device.connectivity is not None
@@ -105,7 +157,15 @@ class Server(enapter.async_.Routine):
     async def get_device_latest_telemetry(
         self, device_id: str, attributes: list[str]
     ) -> models.LatestTelemetry:
-        "Get device latest telemetry by device ID and attributes."
+        """Get device latest telemetry by device ID and attributes.
+
+        Args:
+            device_id: The ID of the device.
+            attributes: A list of telemetry attributes to retrieve.
+
+        Returns:
+            The latest telemetry data for the specified device and attributes.
+        """
         async with self._new_http_api_client() as client:
             telemetry = await client.telemetry.latest({device_id: attributes})
             timestamp = max(
@@ -129,7 +189,18 @@ class Server(enapter.async_.Routine):
         time_to: datetime.datetime,
         granularity: int = 60,
     ) -> models.HistoricalTelemetry:
-        "Get device historical telemetry by device ID, attributes, time range, and granularity."
+        """Get device historical telemetry by device ID, attributes, time range, and granularity.
+
+        Args:
+            device_id: The ID of the device.
+            attributes: A list of telemetry attributes to retrieve.
+            time_from: The start time of the telemetry data.
+            time_to: The end time of the telemetry data.
+            granularity: The granularity of the telemetry data in seconds.
+
+        Returns:
+            The historical telemetry data for the specified device and attributes.
+        """
         async with self._new_http_api_client() as client:
             telemetry = await client.telemetry.wide_timeseries(
                 from_=time_from,
