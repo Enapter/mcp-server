@@ -110,6 +110,7 @@ class Server(enapter.async_.Routine):
                         gateway_id = device.id
                         gateway_online = device_online
             return models.SiteContext(
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
                 site=models.Site.from_domain(site),
                 gateway_id=gateway_id,
                 gateway_online=gateway_online,
@@ -170,6 +171,7 @@ class Server(enapter.async_.Routine):
                 )
             )[device_id]
             return models.DeviceContext(
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
                 device=models.Device.from_domain(device),
                 connectivity_status=(
                     models.ConnectivityStatus(device.connectivity.status.value)
