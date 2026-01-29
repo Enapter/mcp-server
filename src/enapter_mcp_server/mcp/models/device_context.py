@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 import pydantic
@@ -16,12 +17,14 @@ class DeviceContext(pydantic.BaseModel):
     operation, e.g. `firmware_version`, `model`, and `serial_number`.
 
     Attributes:
+        timestamp: The timestamp when the context was recorded.
         device: The device information.
         connectivity_status: The connectivity status of the device.
         properties: A dictionary of device properties.
         latest_telemetry: A dictionary of the latest telemetry data from the device.
     """
 
+    timestamp: datetime.datetime
     device: Device
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
