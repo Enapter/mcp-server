@@ -235,7 +235,7 @@ class Server(enapter.async_.Routine):
         attributes: list[str],
         time_from: datetime.datetime,
         time_to: datetime.datetime,
-        granularity: int = 60,
+        granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
         """Get device historical telemetry by device ID, attributes, time range, and granularity.
 
