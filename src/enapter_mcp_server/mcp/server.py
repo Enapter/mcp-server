@@ -48,11 +48,9 @@ class Server(enapter.async_.Routine):
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
         mcp.tool(self.search_sites)
         mcp.tool(self.get_site_context)
-        mcp.tool(self.list_site_devices)
-        mcp.tool(self.get_device)
-        mcp.tool(self.get_device_properties)
+        mcp.tool(self.search_devices)
+        mcp.tool(self.get_device_context)
         mcp.tool(self.get_device_manifest)
-        mcp.tool(self.get_device_connectivity_status)
         mcp.tool(self.get_device_latest_telemetry)
         mcp.tool(self.get_device_historical_telemetry)
 
@@ -119,48 +117,71 @@ class Server(enapter.async_.Routine):
                 devices_online=devices_online,
             )
 
-    async def list_site_devices(self, site_id: str) -> list[models.Device]:
-        """List all devices in a site.
+    async def search_devices(
+        self,
+        site_id: str,
+        type: models.DeviceType | None = None,
+        name_pattern: str = ".*",
+    ) -> list[models.Device]:
+        """Search among all devices in a site.
 
         Args:
             site_id: The ID of the site.
+            type: The type of the device to filter by.
+            name_pattern: A regular expression pattern to match device names.
 
         Returns:
-            A list of devices in the site.
+            A list of devices matching the specified criteria.
         """
+        name_regexp = re.compile(name_pattern)
         async with self._new_http_api_client() as client:
             async with client.devices.list(site_id=site_id) as stream:
-                return [models.Device.from_domain(device) async for device in stream]
+                devices = []
+                async for device in stream:
+                    if (type is None or device.type == type) and name_regexp.search(
+                        device.name
+                    ):
+                        devices.append(models.Device.from_domain(device))
+                return devices
 
-    async def get_device(self, device_id: str) -> models.Device:
-        """Get device by device ID.
+    async def get_device_context(self, device_id: str) -> models.DeviceContext:
+        """Get device context by device ID.
 
         Args:
             device_id: The ID of the device to retrieve.
 
         Returns:
-            The device with the specified ID.
+            The device context including device details, connectivity status,
+            properties, and latest telemetry.
         """
         async with self._new_http_api_client() as client:
-            device = await client.devices.get(device_id)
-            return models.Device.from_domain(device)
-
-    async def get_device_properties(self, device_id: str) -> dict[str, Any]:
-        """Get device properties values by device ID.
-
-        Device properties is metadata which does not change during normal
-        operation, e.g. `firmware_version`, `model`, and `serial_number`.
-
-        Args:
-            device_id: The ID of the device.
-
-        Returns:
-            A dictionary of device properties values.
-        """
-        async with self._new_http_api_client() as client:
-            device = await client.devices.get(device_id, expand_properties=True)
+            device = await client.devices.get(
+                device_id,
+                expand_manifest=True,
+                expand_connectivity=True,
+                expand_properties=True,
+            )
+            assert device.manifest is not None
+            assert device.connectivity is not None
             assert device.properties is not None
-            return device.properties
+            latest_telemetry = (
+                await client.telemetry.latest(
+                    {device_id: list(device.manifest["telemetry"])}
+                )
+            )[device_id]
+            return models.DeviceContext(
+                device=models.Device.from_domain(device),
+                connectivity_status=(
+                    models.ConnectivityStatus(device.connectivity.status.value)
+                ),
+                properties={
+                    k: device.properties.get(k) for k in device.manifest["properties"]
+                },
+                latest_telemetry={
+                    k: v.value if v is not None else None
+                    for k, v in latest_telemetry.items()
+                },
+            )
 
     async def get_device_manifest(self, device_id: str) -> dict[str, Any]:
         """Get device manifest by device ID.
@@ -178,22 +199,6 @@ class Server(enapter.async_.Routine):
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
             return device.manifest
-
-    async def get_device_connectivity_status(
-        self, device_id: str
-    ) -> models.ConnectivityStatus:
-        """Get device connectivity status by device ID.
-
-        Args:
-            device_id: The ID of the device.
-
-        Returns:
-            The connectivity status of the device.
-        """
-        async with self._new_http_api_client() as client:
-            device = await client.devices.get(device_id, expand_connectivity=True)
-            assert device.connectivity is not None
-            return models.ConnectivityStatus(device.connectivity.status.value)
 
     async def get_device_latest_telemetry(
         self, device_id: str, attributes: list[str]
