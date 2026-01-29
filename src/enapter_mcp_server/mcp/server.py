@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import re
 from typing import Any, AsyncContextManager
 
 import enapter
@@ -45,8 +46,8 @@ class Server(enapter.async_.Routine):
         )
 
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
-        mcp.tool(self.list_sites)
-        mcp.tool(self.get_site)
+        mcp.tool(self.search_sites)
+        mcp.tool(self.get_site_context)
         mcp.tool(self.list_site_devices)
         mcp.tool(self.get_device)
         mcp.tool(self.get_device_properties)
@@ -55,28 +56,68 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_device_latest_telemetry)
         mcp.tool(self.get_device_historical_telemetry)
 
-    async def list_sites(self) -> list[models.Site]:
-        """List all sites to which the authenticated user has access.
-
-        Returns:
-            A list of sites.
-        """
-        async with self._new_http_api_client() as client:
-            async with client.sites.list() as stream:
-                return [models.Site.from_domain(site) async for site in stream]
-
-    async def get_site(self, site_id: str) -> models.Site:
-        """Get site by site ID.
+    async def search_sites(
+        self, name_pattern: str = ".*", timezone_pattern: str = ".*"
+    ) -> list[models.Site]:
+        """Search among all sites to which the authenticated user has access.
 
         Args:
-            site_id: The ID of the site to retrieve.
+            name_pattern: A regular expression pattern to match site names.
+            timezone_pattern: A regular expression pattern to match site timezones.
 
         Returns:
-            The site with the specified ID.
+            A list of sites matching the specified patterns.
+        """
+        name_regexp = re.compile(name_pattern)
+        timezone_regexp = re.compile(timezone_pattern)
+        async with self._new_http_api_client() as client:
+            async with client.sites.list() as stream:
+                sites = []
+                async for site in stream:
+                    if name_regexp.search(site.name) and (
+                        timezone_regexp.search(site.timezone)
+                    ):
+                        sites.append(models.Site.from_domain(site))
+                return sites
+
+    async def get_site_context(self, site_id: str) -> models.SiteContext:
+        """Get site context by site ID.
+
+        Args:
+            site_id: The ID of the site.
+
+        Returns:
+            The site context including site details and device statistics.
         """
         async with self._new_http_api_client() as client:
             site = await client.sites.get(site_id)
-            return models.Site.from_domain(site)
+            gateway_id: str | None = None
+            gateway_online = False
+            devices_total = 0
+            devices_online = 0
+            async with client.devices.list(
+                site_id=site_id, expand_connectivity=True
+            ) as stream:
+                async for device in stream:
+                    devices_total += 1
+                    device_online = (
+                        device.connectivity is not None
+                        and device.connectivity.status
+                        == enapter.http.api.devices.DeviceConnectivityStatus.ONLINE
+                    )
+                    if device_online:
+                        devices_online += 1
+                    if device.type == enapter.http.api.devices.DeviceType.GATEWAY:
+                        assert gateway_id is None
+                        gateway_id = device.id
+                        gateway_online = device_online
+            return models.SiteContext(
+                site=models.Site.from_domain(site),
+                gateway_id=gateway_id,
+                gateway_online=gateway_online,
+                devices_total=devices_total,
+                devices_online=devices_online,
+            )
 
     async def list_site_devices(self, site_id: str) -> list[models.Device]:
         """List all devices in a site.
