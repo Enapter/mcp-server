@@ -10,8 +10,8 @@ from .device import Device
 class DeviceContext(pydantic.BaseModel):
     """Represents the context of a device.
 
-    Device context includes information about the device itself, its connectivity
-    status, properties, and the latest telemetry data.
+    Device context includes metadata about the device, its connectivity status,
+    properties, and the latest telemetry data.
 
     Attributes:
         timestamp: The timestamp when the context was recorded.
