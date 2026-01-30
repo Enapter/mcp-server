@@ -167,7 +167,7 @@ class Server(enapter.async_.Routine):
             assert device.properties is not None
             latest_telemetry = (
                 await client.telemetry.latest(
-                    {device_id: list(device.manifest["telemetry"])}
+                    {device_id: list(device.manifest.get("telemetry", {}))}
                 )
             )[device_id]
             return models.DeviceContext(
@@ -177,7 +177,8 @@ class Server(enapter.async_.Routine):
                     models.ConnectivityStatus(device.connectivity.status.value)
                 ),
                 properties={
-                    k: device.properties.get(k) for k in device.manifest["properties"]
+                    k: device.properties.get(k)
+                    for k in device.manifest.get("properties", {})
                 },
                 latest_telemetry={
                     k: v.value if v is not None else None
