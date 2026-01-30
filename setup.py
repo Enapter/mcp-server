@@ -12,7 +12,7 @@ def main() -> None:
         author="Roman Novatorov",
         author_email="rnovatorov@enapter.com",
         install_requires=[
-            "enapter==0.14.3",
+            "enapter==0.14.4",
             "fastmcp==2.14.*",
         ],
     )
