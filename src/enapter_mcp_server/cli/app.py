@@ -5,6 +5,7 @@ from .call_tool_command import CallToolCommand
 from .list_tools_command import ListToolsCommand
 from .ping_command import PingCommand
 from .serve_command import ServeCommand
+from .version_command import VersionCommand
 
 ENAPTER_MCP_SERVER_ADDRESS = os.environ.get(
     "ENAPTER_MCP_SERVER_ADDRESS", "127.0.0.1:8000"
@@ -30,6 +31,7 @@ class App:
             ServeCommand,
             ListToolsCommand,
             CallToolCommand,
+            VersionCommand,
         ]:
             command.register(subparsers)
         return cls(args=parser.parse_args())
@@ -44,5 +46,7 @@ class App:
                 await ListToolsCommand.run(self.args)
             case "call_tool":
                 await CallToolCommand.run(self.args)
+            case "version":
+                await VersionCommand.run(self.args)
             case _:
                 raise NotImplementedError(self.args.command)
