@@ -30,4 +30,4 @@ class CallToolCommand(Command):
             url=url, enapter_auth_token=os.getenv("ENAPTER_HTTP_API_TOKEN")
         ) as client:
             result = await client.call_tool(args.name, json.loads(args.arguments))
-            print(result)
+            print(json.dumps(result.structured_content))
