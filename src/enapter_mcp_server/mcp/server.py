@@ -97,10 +97,10 @@ class Server(enapter.async_.Routine):
                 site_id=site_id, expand_connectivity=True
             ) as stream:
                 async for device in stream:
+                    assert device.connectivity is not None
                     devices_total += 1
                     device_online = (
-                        device.connectivity is not None
-                        and device.connectivity.status
+                        device.connectivity.status
                         == enapter.http.api.devices.DeviceConnectivityStatus.ONLINE
                     )
                     if device_online:
