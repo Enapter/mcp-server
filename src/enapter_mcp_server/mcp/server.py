@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 import re
-from typing import Any, AsyncContextManager
+from typing import AsyncContextManager
 
 import enapter
 import fastmcp
@@ -152,8 +152,8 @@ class Server(enapter.async_.Routine):
             device_id: The ID of the device to retrieve.
 
         Returns:
-            The device context including device details, connectivity status,
-            properties, and latest telemetry.
+            The device context including connectivity status, properties,
+            and latest telemetry.
         """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(
@@ -185,7 +185,7 @@ class Server(enapter.async_.Routine):
                 },
             )
 
-    async def get_device_manifest(self, device_id: str) -> dict[str, Any]:
+    async def get_device_manifest(self, device_id: str) -> models.DeviceManifest:
         """Get device manifest by device ID.
 
         Device manifest is a specification of the available telemetry
@@ -195,12 +195,12 @@ class Server(enapter.async_.Routine):
             device_id: The ID of the device.
 
         Returns:
-            A dictionary representing the device manifest.
+            The device manifest.
         """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
-            return device.manifest
+            return models.DeviceManifest.from_dto(device.manifest)
 
     async def get_device_latest_telemetry(
         self, device_id: str, attributes: list[str]
