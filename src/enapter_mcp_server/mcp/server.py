@@ -52,7 +52,7 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_device_context)
         mcp.tool(self.get_device_manifest)
         mcp.tool(self.get_device_latest_telemetry)
-        mcp.tool(self.get_device_historical_telemetry)
+        mcp.tool(self.get_historical_telemetry)
 
     async def search_sites(
         self, name_pattern: str = ".*", timezone_pattern: str = ".*"
@@ -229,7 +229,7 @@ class Server(enapter.async_.Routine):
                 },
             )
 
-    async def get_device_historical_telemetry(
+    async def get_historical_telemetry(
         self,
         device_id: str,
         attributes: list[str],
@@ -237,7 +237,13 @@ class Server(enapter.async_.Routine):
         time_to: datetime.datetime,
         granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
-        """Get device historical telemetry by device ID, attributes, time range, and granularity.
+        """Get historical telemetry by device ID, attributes, time range, and granularity.
+
+        Most devices send telemetry data once per second. To reduce the amount
+        of data transferred, the `granularity` parameter can be used to
+        aggregate data over a specified interval (in seconds). For example, a
+        granularity of 3600 seconds (1 hour) will return hourly averages of the
+        telemetry data.
 
         Args:
             device_id: The ID of the device.
