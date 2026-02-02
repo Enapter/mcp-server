@@ -2,7 +2,7 @@ from typing import Any, Self
 
 import pydantic
 
-from .data_type import DataType
+from .property_data_type import PropertyDataType
 
 
 class PropertyDeclaration(pydantic.BaseModel):
@@ -19,7 +19,7 @@ class PropertyDeclaration(pydantic.BaseModel):
         unit: An optional unit of measurement for the property.
     """
 
-    data_type: DataType
+    data_type: PropertyDataType
     description: str | None
     enum: list[Any] | None
     unit: str | None
@@ -27,7 +27,7 @@ class PropertyDeclaration(pydantic.BaseModel):
     @classmethod
     def from_dto(cls, dto: dict[str, Any]) -> Self:
         return cls(
-            data_type=DataType(dto["type"]),
+            data_type=PropertyDataType(dto["type"]),
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
