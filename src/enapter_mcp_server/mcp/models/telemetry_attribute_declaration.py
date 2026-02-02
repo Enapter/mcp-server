@@ -14,13 +14,13 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     Attributes:
         data_type: The data type of the telemetry attribute.
         description: A description of the telemetry attribute.
-        enum: An optional list of allowed string values for the telemetry attribute.
+        enum: An optional list of allowed values for the telemetry attribute.
         unit: An optional unit of measurement for the telemetry attribute.
     """
 
     data_type: DataType
     description: str | None
-    enum: list[str] | None
+    enum: list[Any] | None
     unit: str | None
 
     @classmethod

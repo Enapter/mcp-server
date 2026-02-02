@@ -15,13 +15,13 @@ class PropertyDeclaration(pydantic.BaseModel):
     Attributes:
         data_type: The data type of the property.
         description: A description of the property.
-        enum: An optional list of allowed string values for the property.
+        enum: An optional list of allowed values for the property.
         unit: An optional unit of measurement for the property.
     """
 
     data_type: DataType
     description: str | None
-    enum: list[str] | None
+    enum: list[Any] | None
     unit: str | None
 
     @classmethod
