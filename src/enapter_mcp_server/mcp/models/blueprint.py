@@ -7,11 +7,13 @@ from .property_declaration import PropertyDeclaration
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 
-class DeviceManifest(pydantic.BaseModel):
-    """Represents a device manifest.
+class Blueprint(pydantic.BaseModel):
+    """Represents a device blueprint.
 
-    Device manifest defines the capabilities and characteristics of a device,
-    including its properties, telemetry attributes, and alerts.
+    A blueprint is a specification that defines the integration between Enapter
+    and a device. It outlines the available telemetry attributes, commands,
+    properties, and alerts that the device supports. Every device has a
+    blueprint assigned to it.
 
     Attributes:
         properties: A dictionary mapping property names to their corresponding
@@ -20,7 +22,7 @@ class DeviceManifest(pydantic.BaseModel):
             corresponding declarations.
         alerts: A dictionary mapping alert names to their corresponding
             declarations.
-        description: A description of the device manifest.
+        description: A brief description of the device.
         vendor: The vendor of the device.
     """
 
