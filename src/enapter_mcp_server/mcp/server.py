@@ -51,7 +51,6 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.search_devices)
         mcp.tool(self.get_device_context)
         mcp.tool(self.get_blueprint)
-        mcp.tool(self.get_device_latest_telemetry)
         mcp.tool(self.get_historical_telemetry)
 
     async def search_sites(
@@ -199,33 +198,6 @@ class Server(enapter.async_.Routine):
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
             return models.Blueprint.from_dto(device.manifest)
-
-    async def get_device_latest_telemetry(
-        self, device_id: str, attributes: list[str]
-    ) -> models.LatestTelemetry:
-        """Get device latest telemetry by device ID and attributes.
-
-        Args:
-            device_id: The ID of the device.
-            attributes: A list of telemetry attributes to retrieve.
-
-        Returns:
-            The latest telemetry data for the specified device and attributes.
-        """
-        async with self._new_http_api_client() as client:
-            telemetry = await client.telemetry.latest({device_id: attributes})
-            timestamp = max(
-                datapoint.timestamp
-                for datapoint in telemetry[device_id].values()
-                if datapoint is not None
-            )
-            return models.LatestTelemetry(
-                timestamp=timestamp,
-                values={
-                    attribute: datapoint.value if datapoint is not None else None
-                    for attribute, datapoint in telemetry[device_id].items()
-                },
-            )
 
     async def get_historical_telemetry(
         self,
