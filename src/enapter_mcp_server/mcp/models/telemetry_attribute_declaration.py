@@ -2,7 +2,7 @@ from typing import Any, Self
 
 import pydantic
 
-from .data_type import DataType
+from .telemetry_attribute_data_type import TelemetryAttributeDataType
 
 
 class TelemetryAttributeDeclaration(pydantic.BaseModel):
@@ -18,7 +18,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
         unit: An optional unit of measurement for the telemetry attribute.
     """
 
-    data_type: DataType
+    data_type: TelemetryAttributeDataType
     description: str | None
     enum: list[Any] | None
     unit: str | None
@@ -26,7 +26,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     @classmethod
     def from_dto(cls, dto: dict[str, Any]) -> Self:
         return cls(
-            data_type=DataType(dto["type"]),
+            data_type=TelemetryAttributeDataType(dto["type"]),
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),

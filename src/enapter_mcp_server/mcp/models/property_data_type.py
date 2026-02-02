@@ -1,8 +1,8 @@
 import enum
 
 
-class DataType(enum.StrEnum):
-    """Represents the data type of a property or telemetry attribute."""
+class PropertyDataType(enum.StrEnum):
+    """Represents the data type of a device property."""
 
     INTEGER = "integer"
     FLOAT = "float"
