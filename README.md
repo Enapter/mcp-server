@@ -24,7 +24,7 @@ data.
 ### Install Using Docker
 
 ```bash
-docker pull enapter/mcp-server:v0.3.2
+docker pull enapter/mcp-server:v0.4.0
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ docker pull enapter/mcp-server:v0.3.2
 ### Run Using Docker
 
 ```bash
-docker run --name enapter-mcp-server -p 8000:8000 enapter/mcp-server:v0.3.2 serve
+docker run --name enapter-mcp-server -p 8000:8000 enapter/mcp-server:v0.4.0 serve
 ```
 
 ### Check Server Status
