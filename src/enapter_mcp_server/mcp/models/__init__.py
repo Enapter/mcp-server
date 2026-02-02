@@ -1,10 +1,10 @@
 from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
+from .blueprint import Blueprint
 from .connectivity_status import ConnectivityStatus
 from .data_type import DataType
 from .device import Device
 from .device_context import DeviceContext
-from .device_manifest import DeviceManifest
 from .device_type import DeviceType
 from .historical_telemetry import HistoricalTelemetry
 from .latest_telemetry import LatestTelemetry
@@ -16,6 +16,7 @@ from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 __all__ = [
     "AlertDeclaration",
     "AlertSeverity",
+    "Blueprint",
     "ConnectivityStatus",
     "DataType",
     "Device",

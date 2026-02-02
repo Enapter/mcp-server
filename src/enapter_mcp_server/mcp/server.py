@@ -50,7 +50,7 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_site_context)
         mcp.tool(self.search_devices)
         mcp.tool(self.get_device_context)
-        mcp.tool(self.get_device_manifest)
+        mcp.tool(self.get_blueprint)
         mcp.tool(self.get_device_latest_telemetry)
         mcp.tool(self.get_historical_telemetry)
 
@@ -186,22 +186,19 @@ class Server(enapter.async_.Routine):
                 },
             )
 
-    async def get_device_manifest(self, device_id: str) -> models.DeviceManifest:
-        """Get device manifest by device ID.
-
-        Device manifest is a specification of the available telemetry
-        attributes, commands, properties and alerts.
+    async def get_blueprint(self, device_id: str) -> models.Blueprint:
+        """Get device blueprint by device ID.
 
         Args:
             device_id: The ID of the device.
 
         Returns:
-            The device manifest.
+            The device blueprint.
         """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
-            return models.DeviceManifest.from_dto(device.manifest)
+            return models.Blueprint.from_dto(device.manifest)
 
     async def get_device_latest_telemetry(
         self, device_id: str, attributes: list[str]
