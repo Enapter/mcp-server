@@ -12,6 +12,7 @@ class AlertDeclaration(pydantic.BaseModel):
     the device. Alerts can indicate issues, warnings, or informational messages.
 
     Attributes:
+        name: The name of the alert.
         severity: The severity level of the alert.
         description: A description of the alert.
         troubleshooting: A list of troubleshooting steps for the alert.
@@ -19,6 +20,7 @@ class AlertDeclaration(pydantic.BaseModel):
         conditions: A list of conditions that trigger the alert.
     """
 
+    name: str
     severity: AlertSeverity
     description: str | None
     troubleshooting: list[str] | None
@@ -26,8 +28,9 @@ class AlertDeclaration(pydantic.BaseModel):
     conditions: list[str] | None
 
     @classmethod
-    def from_dto(cls, dto: dict[str, Any]) -> Self:
+    def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
         return cls(
+            name=name,
             severity=AlertSeverity(dto["severity"]),
             description=dto.get("description"),
             troubleshooting=dto.get("troubleshooting"),

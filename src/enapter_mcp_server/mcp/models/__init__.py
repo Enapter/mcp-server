@@ -1,6 +1,7 @@
 from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
-from .blueprint import Blueprint
+from .blueprint_section import BlueprintSection
+from .blueprint_summary import BlueprintSummary
 from .connectivity_status import ConnectivityStatus
 from .device import Device
 from .device_context import DeviceContext
@@ -16,7 +17,8 @@ from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 __all__ = [
     "AlertDeclaration",
     "AlertSeverity",
-    "Blueprint",
+    "BlueprintSection",
+    "BlueprintSummary",
     "ConnectivityStatus",
     "DataType",
     "Device",

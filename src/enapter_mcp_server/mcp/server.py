@@ -50,7 +50,7 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_site_context)
         mcp.tool(self.search_devices)
         mcp.tool(self.get_device_context)
-        mcp.tool(self.get_blueprint)
+        mcp.tool(self.read_blueprint_section)
         mcp.tool(self.get_historical_telemetry)
 
     async def search_sites(
@@ -147,12 +147,18 @@ class Server(enapter.async_.Routine):
     async def get_device_context(self, device_id: str) -> models.DeviceContext:
         """Get device context by device ID.
 
+        Use `read_blueprint_section` tool to read declarations of telemetry
+        attributes, properties, and alerts of a device.
+
+        Use `get_historical_telemetry` tool to get historical telemetry data
+        of a device.
+
         Args:
             device_id: The ID of the device to retrieve.
 
         Returns:
             The device context including connectivity status, properties,
-            and latest telemetry.
+            latest telemetry, and blueprint summary.
         """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(
@@ -183,21 +189,68 @@ class Server(enapter.async_.Routine):
                     k: v.value if v is not None else None
                     for k, v in latest_telemetry.items()
                 },
+                blueprint_summary=models.BlueprintSummary.from_manifest(
+                    device.manifest
+                ),
             )
 
-    async def get_blueprint(self, device_id: str) -> models.Blueprint:
-        """Get device blueprint by device ID.
+    async def read_blueprint_section(
+        self,
+        device_id: str,
+        section: models.BlueprintSection,
+        name_pattern: str = ".*",
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[
+        models.PropertyDeclaration
+        | models.TelemetryAttributeDeclaration
+        | models.AlertDeclaration
+    ]:
+        """Read a specific section of the device blueprint.
+
+        A blueprint can contain hundreds of declarations, therefore this tool
+        supports pagination via `offset` and `limit` parameters.
 
         Args:
             device_id: The ID of the device.
+            section: The section of the blueprint to read.
+            name_pattern: A regular expression pattern to match declaration names.
+            offset: The offset of the first declaration to return.
+            limit: The maximum number of declarations to return.
 
         Returns:
-            The device blueprint.
+            A list of declarations in the specified blueprint section.
         """
+        name_regexp = re.compile(name_pattern)
         async with self._new_http_api_client() as client:
             device = await client.devices.get(device_id, expand_manifest=True)
             assert device.manifest is not None
-            return models.Blueprint.from_dto(device.manifest)
+            entities: list[
+                models.PropertyDeclaration
+                | models.TelemetryAttributeDeclaration
+                | models.AlertDeclaration
+            ]
+            match section:
+                case models.BlueprintSection.PROPERTIES:
+                    entities = [
+                        models.PropertyDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("properties", {}).items()
+                    ]
+                case models.BlueprintSection.TELEMETRY:
+                    entities = [
+                        models.TelemetryAttributeDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("telemetry", {}).items()
+                    ]
+                case models.BlueprintSection.ALERTS:
+                    entities = [
+                        models.AlertDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("alerts", {}).items()
+                    ]
+                case _:
+                    raise NotImplementedError(section)
+            entities = [e for e in entities if name_regexp.search(e.name)]
+            entities.sort(key=lambda e: e.name)
+            return entities[offset : offset + limit]
 
     async def get_historical_telemetry(
         self,

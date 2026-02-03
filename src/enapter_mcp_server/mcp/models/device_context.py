@@ -3,6 +3,7 @@ from typing import Any
 
 import pydantic
 
+from .blueprint_summary import BlueprintSummary
 from .connectivity_status import ConnectivityStatus
 from .device import Device
 
@@ -11,7 +12,7 @@ class DeviceContext(pydantic.BaseModel):
     """Represents the context of a device.
 
     Device context includes metadata about the device, its connectivity status,
-    properties, and the latest telemetry data.
+    properties, latest telemetry, and a summary of its blueprint.
 
     Attributes:
         timestamp: The timestamp when the context was recorded.
@@ -21,6 +22,7 @@ class DeviceContext(pydantic.BaseModel):
             metadata which does not change during normal operation, e.g.
             `firmware_version`, `model`, and `serial_number`.
         latest_telemetry: A dictionary of the latest telemetry data from the device.
+        blueprint_summary: A summary of the device's blueprint.
     """
 
     timestamp: datetime.datetime
@@ -28,3 +30,4 @@ class DeviceContext(pydantic.BaseModel):
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
     latest_telemetry: dict[str, Any]
+    blueprint_summary: BlueprintSummary
