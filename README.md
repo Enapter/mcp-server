@@ -30,56 +30,24 @@ Additional features:
 
 ## Installation
 
-### Using Docker
-
 Pull the latest image from Docker Hub:
 
 ```bash
 docker pull enapter/mcp-server:v0.5.0
 ```
 
-### Using pip
-
-Install from source:
-
-```bash
-git clone https://github.com/Enapter/mcp-server.git
-cd mcp-server
-pip install .
-```
-
-### For Development
-
-Install with development dependencies using pipenv:
-
-```bash
-git clone https://github.com/Enapter/mcp-server.git
-cd mcp-server
-make get-pipenv  # Install pipenv if not already installed
-make install-deps
-```
-
 ## Usage
 
 ### Starting the Server
 
-#### Using Docker
-
 ```bash
-docker run --name enapter-mcp-server \
+docker run --rm --name enapter-mcp-server \
   -p 8000:8000 \
   enapter/mcp-server:v0.5.0 serve
 ```
 
-#### Using pip
-
-After installation:
-
-```bash
-python -m enapter_mcp_server serve
-```
-
-> **Note**: The server itself doesn't require `ENAPTER_HTTP_API_TOKEN` to start. 
+> [!NOTE]
+> The server itself doesn't require `ENAPTER_HTTP_API_TOKEN` to start. 
 > The token is provided by MCP clients when they make requests to the server via the `X-Enapter-Auth-Token` HTTP header.
 
 ### Available CLI Commands
@@ -97,42 +65,28 @@ The server provides several CLI commands:
 Check server health:
 
 ```bash
-# Using Docker
 docker exec -it enapter-mcp-server python -m enapter_mcp_server ping
-
-# Using pip
-python -m enapter_mcp_server ping
 ```
 
 List available tools:
 
 ```bash
-# Using Docker
 docker exec -it enapter-mcp-server python -m enapter_mcp_server list_tools
-
-# Using pip
-python -m enapter_mcp_server list_tools
 ```
 
 Call a tool (requires authentication):
 
 ```bash
-# Set your API token
-export ENAPTER_HTTP_API_TOKEN=your_api_token_here
-
-# Call a tool with arguments
-python -m enapter_mcp_server call_tool search_sites \
+docker exec -it enapter-mcp-server \
+  env ENAPTER_HTTP_API_TOKEN=your_api_token_here \
+  python -m enapter_mcp_server call_tool search_sites \
   --arguments '{"name_pattern": ".*", "limit": 5}'
 ```
 
 Display version:
 
 ```bash
-# Using Docker
 docker exec -it enapter-mcp-server python -m enapter_mcp_server version
-
-# Using pip
-python -m enapter_mcp_server version
 ```
 
 ### Configuration
@@ -151,7 +105,9 @@ python -m enapter_mcp_server version
 Example with custom configuration:
 
 ```bash
-python -m enapter_mcp_server \
+docker run --rm --name enapter-mcp-server \
+  -p 9000:9000 \
+  enapter/mcp-server:v0.5.0 \
   --address 0.0.0.0:9000 \
   --enapter-http-api-url https://custom-api.example.com \
   serve
@@ -162,13 +118,8 @@ python -m enapter_mcp_server \
 The server requires authentication via the `X-Enapter-Auth-Token` HTTP header for all tool invocations.
 MCP clients must provide this token when making requests to the server.
 
-When using the `call_tool` CLI command, you can provide your token via the `ENAPTER_HTTP_API_TOKEN` 
-environment variable:
-
-```bash
-export ENAPTER_HTTP_API_TOKEN=your_api_token_here
-python -m enapter_mcp_server call_tool search_sites
-```
+When using the `call_tool` CLI command, provide your token via the `ENAPTER_HTTP_API_TOKEN` 
+environment variable as shown in the examples above.
 
 To obtain an API token, see the [API
 reference](https://v3.developers.enapter.com/reference/http/intro#api-token).
