@@ -13,6 +13,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
 
     Attributes:
         name: The name of the telemetry attribute.
+        display_name: A user-friendly name for the telemetry attribute.
         data_type: The data type of the telemetry attribute.
         description: A description of the telemetry attribute.
         enum: An optional list of allowed values for the telemetry attribute.
@@ -20,6 +21,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     """
 
     name: str
+    display_name: str
     data_type: TelemetryAttributeDataType
     description: str | None
     enum: list[Any] | None
@@ -29,6 +31,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
         return cls(
             name=name,
+            display_name=dto["display_name"],
             data_type=TelemetryAttributeDataType(dto["type"]),
             description=dto.get("description"),
             enum=dto.get("enum"),

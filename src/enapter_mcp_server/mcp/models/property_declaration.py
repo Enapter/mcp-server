@@ -14,6 +14,7 @@ class PropertyDeclaration(pydantic.BaseModel):
 
     Attributes:
         name: The name of the property.
+        display_name: A user-friendly name for the property.
         data_type: The data type of the property.
         description: A description of the property.
         enum: An optional list of allowed values for the property.
@@ -21,6 +22,7 @@ class PropertyDeclaration(pydantic.BaseModel):
     """
 
     name: str
+    display_name: str
     data_type: PropertyDataType
     description: str | None
     enum: list[Any] | None
@@ -30,6 +32,7 @@ class PropertyDeclaration(pydantic.BaseModel):
     def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
         return cls(
             name=name,
+            display_name=dto["display_name"],
             data_type=PropertyDataType(dto["type"]),
             description=dto.get("description"),
             enum=dto.get("enum"),
