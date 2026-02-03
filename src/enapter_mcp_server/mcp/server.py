@@ -50,7 +50,7 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_site_context)
         mcp.tool(self.search_devices)
         mcp.tool(self.get_device_context)
-        mcp.tool(self.read_blueprint_section)
+        mcp.tool(self.read_blueprint)
         mcp.tool(self.get_historical_telemetry)
 
     async def search_sites(
@@ -216,7 +216,7 @@ class Server(enapter.async_.Routine):
                 ),
             )
 
-    async def read_blueprint_section(
+    async def read_blueprint(
         self,
         device_id: str,
         section: models.BlueprintSection,
