@@ -29,7 +29,7 @@ class Server(enapter.async_.Routine):
 
     async def _run(self) -> None:
         mcp = fastmcp.FastMCP(
-            name="Enapter MCP Server",
+            name=f"Enapter MCP Server v{__version__}",
             instructions="An MCP server exposing Enapter HTTP API functionality.",
             version=__version__,
             website_url="https://github.com/Enapter/mcp-server",
