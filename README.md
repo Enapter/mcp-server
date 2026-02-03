@@ -10,50 +10,38 @@ the [Enapter EMS](https://www.enapter.com/). This server enables AI assistants
 and other MCP clients to interact with Enapter sites, devices and telemetry
 data.
 
-## Features
+## Tools
 
-- **Site Management**: List all accessible sites and retrieve detailed site information
-- **Device Operations**: List and query devices with configurable data expansion
-- **Telemetry Access**: Retrieve latest telemetry data from multiple devices simultaneously
-- **Authentication**: Secure token-based authentication via HTTP headers
-- **Async Architecture**: Built on modern Python async/await patterns
-- **Docker Support**: Ready-to-use Docker images available
+The server exposes the following tools for interacting with Enapter EMS:
 
-## Installation
-
-### Install Using Docker
-
-```bash
-docker pull enapter/mcp-server:v0.5.0
-```
+- **`search_sites`**: Search sites with regex filtering (name, timezone) and pagination
+- **`get_site_context`**: Get detailed site information with device statistics
+- **`search_devices`**: Filter devices by site, type, and name pattern
+- **`get_device_context`**: Get comprehensive device data (connectivity, properties, telemetry)
+- **`read_blueprint`**: Access device blueprint sections (properties, telemetry, alerts)
+- **`get_historical_telemetry`**: Retrieve time-series telemetry with configurable granularity
 
 ## Usage
 
 ### Run Using Docker
 
 ```bash
-docker run --name enapter-mcp-server -p 8000:8000 enapter/mcp-server:v0.5.0 serve
+docker run --rm --name enapter-mcp-server \
+  -p 8000:8000 \
+  enapter/mcp-server:v0.5.0 serve
 ```
 
-### Check Server Status
+### Configure Env Variables
 
-Verify the server is running:
-
-```bash
-docker exec -it enapter-mcp-server python -m enapter_mcp_server ping
-```
-
-### Configure Environment Variables
-
-- `ENAPTER_MCP_SERVER_ADDRESS`: Server listening address (default: `127.0.0.1:8000`)
-- `ENAPTER_HTTP_API_URL`: Enapter HTTP API base URL (default: `https://api.enapter.com`)
+- **`ENAPTER_MCP_SERVER_ADDRESS`**: Server listening address (default: `127.0.0.1:8000`)
+- **`ENAPTER_HTTP_API_URL`**: Enapter HTTP API base URL (default: `https://api.enapter.com`)
 
 ## Authentication
 
-The server requires authentication via the `X-Enapter-Auth-Token` HTTP header.
-This token is provided by MCP clients when making requests to the server.
+The server requires authentication via the `X-Enapter-Auth-Token` HTTP header for all tool invocations.
+MCP clients must provide this token when making requests to the server.
 
-To obtain an API token, see [API
+To obtain an API token, see the [API
 reference](https://v3.developers.enapter.com/reference/http/intro#api-token).
 
 ## Support
