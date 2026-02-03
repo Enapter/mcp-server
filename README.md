@@ -77,8 +77,8 @@ docker exec -it enapter-mcp-server python -m enapter_mcp_server list_tools
 Call a tool (requires authentication):
 
 ```bash
-docker exec -it enapter-mcp-server \
-  env ENAPTER_HTTP_API_TOKEN=your_api_token_here \
+docker exec -it -e ENAPTER_HTTP_API_TOKEN=your_api_token_here \
+  enapter-mcp-server \
   python -m enapter_mcp_server call_tool search_sites \
   --arguments '{"name_pattern": ".*", "limit": 5}'
 ```
