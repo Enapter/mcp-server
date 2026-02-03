@@ -5,7 +5,6 @@ from typing import Any, AsyncIterator
 from unittest import mock
 
 import enapter
-import pytest
 
 from enapter_mcp_server.mcp import models, server
 
@@ -58,9 +57,7 @@ class TestServerSearchSites:
         )
 
         # Mock the HTTP client
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.list.return_value = MockAsyncStream([site1, site2])
@@ -93,9 +90,7 @@ class TestServerSearchSites:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.list.return_value = MockAsyncStream([site1, site2])
@@ -127,9 +122,7 @@ class TestServerSearchSites:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.list.return_value = MockAsyncStream([site1, site2])
@@ -158,9 +151,7 @@ class TestServerSearchSites:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.list.return_value = MockAsyncStream(sites.copy())
@@ -171,9 +162,7 @@ class TestServerSearchSites:
             assert result[0].id == "site-001"
             assert result[1].id == "site-002"
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.list.return_value = MockAsyncStream(sites.copy())
@@ -244,9 +233,7 @@ class TestServerGetSiteContext:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.sites.get = mock.AsyncMock(return_value=site)
@@ -298,9 +285,7 @@ class TestServerSearchDevices:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.list.return_value = MockAsyncStream([device1, device2])
@@ -313,7 +298,7 @@ class TestServerSearchDevices:
 
     async def test_search_devices_by_type(self) -> None:
         """Test device search with type filtering.
-        
+
         Note: This test currently documents a known limitation where device type
         filtering may not work as expected due to enum comparison issues between
         the enapter API types and the models types.
@@ -345,9 +330,7 @@ class TestServerSearchDevices:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.list.return_value = MockAsyncStream([device1, device2])
@@ -385,9 +368,7 @@ class TestServerSearchDevices:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.list.return_value = MockAsyncStream([device1, device2])
@@ -419,9 +400,7 @@ class TestServerSearchDevices:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.list.return_value = MockAsyncStream(devices.copy())
@@ -487,9 +466,7 @@ class TestServerGetDeviceContext:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -552,9 +529,7 @@ class TestServerReadBlueprint:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -598,9 +573,7 @@ class TestServerReadBlueprint:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -647,9 +620,7 @@ class TestServerReadBlueprint:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -695,9 +666,7 @@ class TestServerReadBlueprint:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -743,9 +712,7 @@ class TestServerReadBlueprint:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.devices.get = mock.AsyncMock(return_value=device)
@@ -778,15 +745,9 @@ class TestServerGetHistoricalTelemetry:
         # Mock telemetry response
         mock_response = enapter.http.api.telemetry.WideTimeseries(
             timestamps=[
-                datetime.datetime(
-                    2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
-                ),
-                datetime.datetime(
-                    2024, 1, 1, 0, 30, 0, tzinfo=datetime.timezone.utc
-                ),
-                datetime.datetime(
-                    2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc
-                ),
+                datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2024, 1, 1, 0, 30, 0, tzinfo=datetime.timezone.utc),
+                datetime.datetime(2024, 1, 1, 1, 0, 0, tzinfo=datetime.timezone.utc),
             ],
             columns=[
                 enapter.http.api.telemetry.WideTimeseriesColumn(
@@ -814,9 +775,7 @@ class TestServerGetHistoricalTelemetry:
             enapter_http_api_url="https://api.test.com",
         )
 
-        with mock.patch.object(
-            test_server, "_new_http_api_client"
-        ) as mock_client_ctx:
+        with mock.patch.object(test_server, "_new_http_api_client") as mock_client_ctx:
             mock_client = mock.MagicMock()
             mock_client_ctx.return_value.__aenter__.return_value = mock_client
             mock_client.telemetry.wide_timeseries = mock.AsyncMock(
