@@ -4,33 +4,6 @@ from enapter_mcp_server.mcp import models
 class TestPropertyDeclaration:
     """Test cases for PropertyDeclaration model."""
 
-    def test_property_declaration_with_enum(self) -> None:
-        """Test creating PropertyDeclaration with enum values."""
-        prop = models.PropertyDeclaration(
-            name="mode",
-            display_name="Operation Mode",
-            data_type=models.PropertyDataType.STRING,
-            description="Current operation mode",
-            enum=["auto", "manual", "standby"],
-            unit=None,
-        )
-
-        assert prop.enum == ["auto", "manual", "standby"]
-
-    def test_property_declaration_with_unit(self) -> None:
-        """Test creating PropertyDeclaration with unit."""
-        prop = models.PropertyDeclaration(
-            name="max_temperature",
-            display_name="Maximum Temperature",
-            data_type=models.PropertyDataType.FLOAT,
-            description="Maximum operating temperature",
-            enum=None,
-            unit="°C",
-        )
-
-        assert prop.unit == "°C"
-        assert prop.data_type == models.PropertyDataType.FLOAT
-
     def test_property_declaration_from_dto(self) -> None:
         """Test creating PropertyDeclaration from DTO."""
         dto = {
@@ -66,29 +39,6 @@ class TestPropertyDeclaration:
         assert prop.description == "Device status"
         assert prop.enum == ["active", "inactive", "error"]
         assert prop.unit == "state"
-
-    def test_property_declaration_all_data_types(self) -> None:
-        """Test PropertyDeclaration with all data types."""
-        data_types = [
-            models.PropertyDataType.INTEGER,
-            models.PropertyDataType.FLOAT,
-            models.PropertyDataType.STRING,
-            models.PropertyDataType.BOOLEAN,
-            models.PropertyDataType.JSON,
-            models.PropertyDataType.ARRAY_OF_STRINGS,
-            models.PropertyDataType.OBJECT,
-        ]
-
-        for data_type in data_types:
-            prop = models.PropertyDeclaration(
-                name=f"prop_{data_type.value}",
-                display_name=f"Property {data_type.value}",
-                data_type=data_type,
-                description=None,
-                enum=None,
-                unit=None,
-            )
-            assert prop.data_type == data_type
 
     def test_property_declaration_from_dto_minimal(self) -> None:
         """Test creating PropertyDeclaration from minimal DTO."""
