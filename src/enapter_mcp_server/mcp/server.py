@@ -54,16 +54,26 @@ class Server(enapter.async_.Routine):
         mcp.tool(self.get_historical_telemetry)
 
     async def search_sites(
-        self, name_pattern: str = ".*", timezone_pattern: str = ".*"
+        self,
+        name_pattern: str = ".*",
+        timezone_pattern: str = ".*",
+        offset: int = 0,
+        limit: int = 20,
     ) -> list[models.Site]:
         """Search among all sites to which the authenticated user has access.
 
         Args:
             name_pattern: A regular expression pattern to match site names.
             timezone_pattern: A regular expression pattern to match site timezones.
+            offset: The offset of the first site to return.
+            limit: The maximum number of sites to return.
 
         Returns:
-            A list of sites matching the specified patterns.
+            A list of sites matching the specified patterns sorted by site ID.
+
+        Related tools:
+            get_site_context: Get detailed context about a specific site.
+            search_devices: Search for devices within a specific site.
         """
         name_regexp = re.compile(name_pattern)
         timezone_regexp = re.compile(timezone_pattern)
@@ -75,7 +85,8 @@ class Server(enapter.async_.Routine):
                         timezone_regexp.search(site.timezone)
                     ):
                         sites.append(models.Site.from_domain(site))
-                return sites
+                sites.sort(key=lambda s: s.id)
+                return sites[offset : offset + limit]
 
     async def get_site_context(self, site_id: str) -> models.SiteContext:
         """Get site context by site ID.
@@ -85,6 +96,9 @@ class Server(enapter.async_.Routine):
 
         Returns:
             The site context including site details and device statistics.
+
+        Related tools:
+            search_devices: Search for devices within a specific site.
         """
         async with self._new_http_api_client() as client:
             site = await client.sites.get(site_id)
@@ -119,9 +133,11 @@ class Server(enapter.async_.Routine):
 
     async def search_devices(
         self,
-        site_id: str,
+        site_id: str | None = None,
         type: models.DeviceType | None = None,
         name_pattern: str = ".*",
+        offset: int = 0,
+        limit: int = 20,
     ) -> list[models.Device]:
         """Search among all devices in a site.
 
@@ -129,9 +145,16 @@ class Server(enapter.async_.Routine):
             site_id: The ID of the site.
             type: The type of the device to filter by.
             name_pattern: A regular expression pattern to match device names.
+            offset: The offset of the first device to return.
+            limit: The maximum number of devices to return.
 
         Returns:
-            A list of devices matching the specified criteria.
+            A list of devices matching the specified criteria sorted by device ID.
+
+        Related tools:
+            get_device_context: Get detailed context about a specific device.
+            read_blueprint_section: Read specific sections of a device's blueprint.
+            get_historical_telemetry: Get historical telemetry data of a device.
         """
         name_regexp = re.compile(name_pattern)
         async with self._new_http_api_client() as client:
@@ -142,16 +165,11 @@ class Server(enapter.async_.Routine):
                         device.name
                     ):
                         devices.append(models.Device.from_domain(device))
-                return devices
+                devices.sort(key=lambda d: d.id)
+                return devices[offset : offset + limit]
 
     async def get_device_context(self, device_id: str) -> models.DeviceContext:
         """Get device context by device ID.
-
-        Use `read_blueprint_section` tool to read declarations of telemetry
-        attributes, properties, and alerts of a device.
-
-        Use `get_historical_telemetry` tool to get historical telemetry data
-        of a device.
 
         Args:
             device_id: The ID of the device to retrieve.
@@ -159,6 +177,10 @@ class Server(enapter.async_.Routine):
         Returns:
             The device context including connectivity status, properties,
             latest telemetry, and blueprint summary.
+
+        Related tools:
+            read_blueprint_section: Read specific sections of the device's blueprint.
+            get_historical_telemetry: Get historical telemetry data of the device.
         """
         async with self._new_http_api_client() as client:
             device = await client.devices.get(
@@ -277,6 +299,10 @@ class Server(enapter.async_.Routine):
 
         Returns:
             The historical telemetry data for the specified device and attributes.
+
+        Related tools:
+            read_blueprint_section: Read the telemetry attributes declared in
+                the device's blueprint.
         """
         async with self._new_http_api_client() as client:
             telemetry = await client.telemetry.wide_timeseries(
