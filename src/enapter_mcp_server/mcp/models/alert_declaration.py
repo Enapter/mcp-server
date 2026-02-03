@@ -13,6 +13,7 @@ class AlertDeclaration(pydantic.BaseModel):
 
     Attributes:
         name: The name of the alert.
+        display_name: A user-friendly name for the alert.
         severity: The severity level of the alert.
         description: A description of the alert.
         troubleshooting: A list of troubleshooting steps for the alert.
@@ -21,6 +22,7 @@ class AlertDeclaration(pydantic.BaseModel):
     """
 
     name: str
+    display_name: str
     severity: AlertSeverity
     description: str | None
     troubleshooting: list[str] | None
@@ -31,6 +33,7 @@ class AlertDeclaration(pydantic.BaseModel):
     def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
         return cls(
             name=name,
+            display_name=dto["display_name"],
             severity=AlertSeverity(dto["severity"]),
             description=dto.get("description"),
             troubleshooting=dto.get("troubleshooting"),
