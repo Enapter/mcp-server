@@ -12,49 +12,180 @@ data.
 
 ## Features
 
-- **Site Management**: List all accessible sites and retrieve detailed site information
-- **Device Operations**: List and query devices with configurable data expansion
-- **Telemetry Access**: Retrieve latest telemetry data from multiple devices simultaneously
+The server exposes 6 MCP tools for interacting with Enapter EMS:
+
+- **`search_sites`**: Search sites with regex filtering (name, timezone) and pagination
+- **`get_site_context`**: Get detailed site information with device statistics
+- **`search_devices`**: Filter devices by site, type, and name pattern
+- **`get_device_context`**: Get comprehensive device data (connectivity, properties, telemetry)
+- **`read_blueprint`**: Access device blueprint sections (properties, telemetry, alerts)
+- **`get_historical_telemetry`**: Retrieve time-series telemetry with configurable granularity
+
+Additional features:
+
 - **Authentication**: Secure token-based authentication via HTTP headers
 - **Async Architecture**: Built on modern Python async/await patterns
 - **Docker Support**: Ready-to-use Docker images available
+- **CLI Tools**: Multiple commands for server management and testing
 
 ## Installation
 
-### Install Using Docker
+### Using Docker
+
+Pull the latest image from Docker Hub:
 
 ```bash
 docker pull enapter/mcp-server:v0.5.0
 ```
 
+### Using pip
+
+Install from source:
+
+```bash
+git clone https://github.com/Enapter/mcp-server.git
+cd mcp-server
+pip install .
+```
+
+### For Development
+
+Install with development dependencies using pipenv:
+
+```bash
+git clone https://github.com/Enapter/mcp-server.git
+cd mcp-server
+make get-pipenv  # Install pipenv if not already installed
+make install-deps
+```
+
 ## Usage
 
-### Run Using Docker
+### Starting the Server
+
+#### Using Docker
 
 ```bash
-docker run --name enapter-mcp-server -p 8000:8000 enapter/mcp-server:v0.5.0 serve
+docker run --name enapter-mcp-server \
+  -e ENAPTER_HTTP_API_TOKEN=your_api_token_here \
+  -p 8000:8000 \
+  enapter/mcp-server:v0.5.0 serve
 ```
 
-### Check Server Status
+#### Using pip
 
-Verify the server is running:
+After installation:
 
 ```bash
+export ENAPTER_HTTP_API_TOKEN=your_api_token_here
+python -m enapter_mcp_server serve
+```
+
+### Available CLI Commands
+
+The server provides several CLI commands:
+
+- **`serve`**: Start the MCP server (default address: `127.0.0.1:8000`)
+- **`ping`**: Check if the server is running and responsive
+- **`list_tools`**: List all available MCP tools with their schemas
+- **`call_tool`**: Invoke a specific tool with JSON arguments
+- **`version`**: Display the server version
+
+#### Examples
+
+Check server health:
+
+```bash
+# Using Docker
 docker exec -it enapter-mcp-server python -m enapter_mcp_server ping
+
+# Using pip
+python -m enapter_mcp_server ping
 ```
 
-### Configure Environment Variables
+List available tools:
 
-- `ENAPTER_MCP_SERVER_ADDRESS`: Server listening address (default: `127.0.0.1:8000`)
-- `ENAPTER_HTTP_API_URL`: Enapter HTTP API base URL (default: `https://api.enapter.com`)
+```bash
+# Using Docker
+docker exec -it enapter-mcp-server python -m enapter_mcp_server list_tools
+
+# Using pip
+python -m enapter_mcp_server list_tools
+```
+
+Display version:
+
+```bash
+# Using Docker
+docker exec -it enapter-mcp-server python -m enapter_mcp_server version
+
+# Using pip
+python -m enapter_mcp_server version
+```
+
+### Configuration
+
+#### Environment Variables
+
+- **`ENAPTER_MCP_SERVER_ADDRESS`**: Server listening address (default: `127.0.0.1:8000`)
+- **`ENAPTER_HTTP_API_URL`**: Enapter HTTP API base URL (default: `https://api.enapter.com`)
+- **`ENAPTER_HTTP_API_TOKEN`**: Your Enapter API token (required for authentication)
+
+#### CLI Flags
+
+- **`-a, --address`**: Override the server address
+- **`-u, --enapter-http-api-url`**: Override the Enapter API URL
+
+Example with custom configuration:
+
+```bash
+python -m enapter_mcp_server \
+  --address 0.0.0.0:9000 \
+  --enapter-http-api-url https://custom-api.example.com \
+  serve
+```
 
 ## Authentication
 
 The server requires authentication via the `X-Enapter-Auth-Token` HTTP header.
-This token is provided by MCP clients when making requests to the server.
+When using the CLI commands, you can provide your token via the `ENAPTER_HTTP_API_TOKEN` 
+environment variable.
 
-To obtain an API token, see [API
+To obtain an API token, see the [API
 reference](https://v3.developers.enapter.com/reference/http/intro#api-token).
+
+Example:
+
+```bash
+export ENAPTER_HTTP_API_TOKEN=your_api_token_here
+python -m enapter_mcp_server serve
+```
+
+## Development
+
+### Running Tests
+
+```bash
+make test
+```
+
+### Running Linters
+
+```bash
+make lint
+```
+
+### Running All Checks
+
+```bash
+make check  # Runs both lint and test
+```
+
+### Building Docker Image
+
+```bash
+make docker-image
+```
 
 ## Support
 
