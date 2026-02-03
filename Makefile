@@ -34,7 +34,11 @@ lint-mypy:
 	pipenv run mypy src/enapter_mcp_server
 
 .PHONY: test
-test: test-integration
+test: test-unit test-integration
+
+.PHONY: test-unit
+test-unit:
+	pipenv run pytest -vv --cov --cov-report term-missing tests/unit
 
 .PHONY: test-integration
 test-integration:
