@@ -1,4 +1,4 @@
-import enapter.http.api.sites
+import enapter
 
 from enapter_mcp_server.mcp import models
 

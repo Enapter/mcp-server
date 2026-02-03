@@ -1,6 +1,6 @@
 import datetime
 
-import enapter.http.api.devices
+import enapter
 
 from enapter_mcp_server.mcp import models
 
