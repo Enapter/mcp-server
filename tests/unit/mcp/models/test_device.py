@@ -69,7 +69,10 @@ class TestDevice:
             id="device-1", name="Device A", site_id="site-1", type=models.DeviceType.LUA
         )
         device3 = models.Device(
-            id="device-2", name="Device B", site_id="site-1", type=models.DeviceType.GATEWAY
+            id="device-2",
+            name="Device B",
+            site_id="site-1",
+            type=models.DeviceType.GATEWAY,
         )
 
         assert device1 == device2
