@@ -1,27 +1,15 @@
 from unittest.mock import Mock
 
-from enapter_mcp_server.mcp.models.site import Site
+from enapter_mcp_server.mcp import models
 
 
 class TestSite:
     """Test cases for Site model."""
 
-    def test_site_creation(self) -> None:
-        """Test creating Site instance."""
-        site = Site(
-            id="site-123",
-            name="Test Site",
-            timezone="Europe/Berlin",
-        )
-
-        assert site.id == "site-123"
-        assert site.name == "Test Site"
-        assert site.timezone == "Europe/Berlin"
-
     def test_site_validation(self) -> None:
         """Test pydantic validation for Site."""
         # Valid site
-        site = Site(id="uuid-123", name="My Site", timezone="America/New_York")
+        site = models.Site(id="uuid-123", name="My Site", timezone="America/New_York")
         assert isinstance(site.id, str)
         assert isinstance(site.name, str)
         assert isinstance(site.timezone, str)
@@ -34,7 +22,7 @@ class TestSite:
         domain_site.name = "Production Site"
         domain_site.timezone = "Asia/Tokyo"
 
-        site = Site.from_domain(domain_site)
+        site = models.Site.from_domain(domain_site)
 
         assert site.id == "site-456"
         assert site.name == "Production Site"
@@ -42,7 +30,7 @@ class TestSite:
 
     def test_site_with_special_characters(self) -> None:
         """Test Site with special characters in name."""
-        site = Site(
+        site = models.Site(
             id="site-789",
             name="Test Site (München)",
             timezone="Europe/Berlin",
@@ -52,9 +40,9 @@ class TestSite:
 
     def test_site_equality(self) -> None:
         """Test Site equality comparison."""
-        site1 = Site(id="site-1", name="Site A", timezone="UTC")
-        site2 = Site(id="site-1", name="Site A", timezone="UTC")
-        site3 = Site(id="site-2", name="Site B", timezone="UTC")
+        site1 = models.Site(id="site-1", name="Site A", timezone="UTC")
+        site2 = models.Site(id="site-1", name="Site A", timezone="UTC")
+        site3 = models.Site(id="site-2", name="Site B", timezone="UTC")
 
         assert site1 == site2
         assert site1 != site3

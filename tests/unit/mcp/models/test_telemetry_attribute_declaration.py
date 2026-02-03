@@ -1,38 +1,15 @@
-from enapter_mcp_server.mcp.models.telemetry_attribute_data_type import (
-    TelemetryAttributeDataType,
-)
-from enapter_mcp_server.mcp.models.telemetry_attribute_declaration import (
-    TelemetryAttributeDeclaration,
-)
+from enapter_mcp_server.mcp import models
 
 
 class TestTelemetryAttributeDeclaration:
     """Test cases for TelemetryAttributeDeclaration model."""
 
-    def test_telemetry_attribute_declaration_creation(self) -> None:
-        """Test creating TelemetryAttributeDeclaration instance."""
-        attr = TelemetryAttributeDeclaration(
-            name="temperature",
-            display_name="Temperature",
-            data_type=TelemetryAttributeDataType.FLOAT,
-            description="Current temperature reading",
-            enum=None,
-            unit="°C",
-        )
-
-        assert attr.name == "temperature"
-        assert attr.display_name == "Temperature"
-        assert attr.data_type == TelemetryAttributeDataType.FLOAT
-        assert attr.description == "Current temperature reading"
-        assert attr.enum is None
-        assert attr.unit == "°C"
-
     def test_telemetry_attribute_declaration_with_enum(self) -> None:
         """Test creating TelemetryAttributeDeclaration with enum values."""
-        attr = TelemetryAttributeDeclaration(
+        attr = models.TelemetryAttributeDeclaration(
             name="status",
             display_name="Status",
-            data_type=TelemetryAttributeDataType.STRING,
+            data_type=models.TelemetryAttributeDataType.STRING,
             description="Device status",
             enum=["idle", "running", "error"],
             unit=None,
@@ -49,11 +26,11 @@ class TestTelemetryAttributeDeclaration:
             "unit": "V",
         }
 
-        attr = TelemetryAttributeDeclaration.from_dto("voltage", dto)
+        attr = models.TelemetryAttributeDeclaration.from_dto("voltage", dto)
 
         assert attr.name == "voltage"
         assert attr.display_name == "Voltage"
-        assert attr.data_type == TelemetryAttributeDataType.FLOAT
+        assert attr.data_type == models.TelemetryAttributeDataType.FLOAT
         assert attr.description == "Measured voltage"
         assert attr.unit == "V"
 
@@ -66,11 +43,11 @@ class TestTelemetryAttributeDeclaration:
             "enum": ["auto", "manual", "off"],
         }
 
-        attr = TelemetryAttributeDeclaration.from_dto("mode", dto)
+        attr = models.TelemetryAttributeDeclaration.from_dto("mode", dto)
 
         assert attr.name == "mode"
         assert attr.display_name == "Operation Mode"
-        assert attr.data_type == TelemetryAttributeDataType.STRING
+        assert attr.data_type == models.TelemetryAttributeDataType.STRING
         assert attr.description == "Current operation mode"
         assert attr.enum == ["auto", "manual", "off"]
         assert attr.unit is None
@@ -78,18 +55,18 @@ class TestTelemetryAttributeDeclaration:
     def test_telemetry_attribute_declaration_all_data_types(self) -> None:
         """Test TelemetryAttributeDeclaration with all data types."""
         data_types = [
-            TelemetryAttributeDataType.INTEGER,
-            TelemetryAttributeDataType.FLOAT,
-            TelemetryAttributeDataType.STRING,
-            TelemetryAttributeDataType.BOOLEAN,
-            TelemetryAttributeDataType.JSON,
-            TelemetryAttributeDataType.ARRAY_OF_STRINGS,
-            TelemetryAttributeDataType.OBJECT,
-            TelemetryAttributeDataType.ALERTS,
+            models.TelemetryAttributeDataType.INTEGER,
+            models.TelemetryAttributeDataType.FLOAT,
+            models.TelemetryAttributeDataType.STRING,
+            models.TelemetryAttributeDataType.BOOLEAN,
+            models.TelemetryAttributeDataType.JSON,
+            models.TelemetryAttributeDataType.ARRAY_OF_STRINGS,
+            models.TelemetryAttributeDataType.OBJECT,
+            models.TelemetryAttributeDataType.ALERTS,
         ]
 
         for data_type in data_types:
-            attr = TelemetryAttributeDeclaration(
+            attr = models.TelemetryAttributeDeclaration(
                 name=f"attr_{data_type.value}",
                 display_name=f"Attribute {data_type.value}",
                 data_type=data_type,
@@ -106,24 +83,24 @@ class TestTelemetryAttributeDeclaration:
             "type": "boolean",
         }
 
-        attr = TelemetryAttributeDeclaration.from_dto("simple", dto)
+        attr = models.TelemetryAttributeDeclaration.from_dto("simple", dto)
 
         assert attr.name == "simple"
         assert attr.display_name == "Simple Attribute"
-        assert attr.data_type == TelemetryAttributeDataType.BOOLEAN
+        assert attr.data_type == models.TelemetryAttributeDataType.BOOLEAN
         assert attr.description is None
         assert attr.enum is None
         assert attr.unit is None
 
     def test_telemetry_attribute_declaration_alerts_type(self) -> None:
         """Test TelemetryAttributeDeclaration with alerts data type."""
-        attr = TelemetryAttributeDeclaration(
+        attr = models.TelemetryAttributeDeclaration(
             name="alerts",
             display_name="Active Alerts",
-            data_type=TelemetryAttributeDataType.ALERTS,
+            data_type=models.TelemetryAttributeDataType.ALERTS,
             description="Currently active alerts",
             enum=None,
             unit=None,
         )
 
-        assert attr.data_type == TelemetryAttributeDataType.ALERTS
+        assert attr.data_type == models.TelemetryAttributeDataType.ALERTS

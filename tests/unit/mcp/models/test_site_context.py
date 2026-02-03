@@ -1,47 +1,21 @@
 import datetime
 
-from enapter_mcp_server.mcp.models.site import Site
-from enapter_mcp_server.mcp.models.site_context import SiteContext
+from enapter_mcp_server.mcp import models
 
 
 class TestSiteContext:
     """Test cases for SiteContext model."""
 
-    def test_site_context_creation(self) -> None:
-        """Test creating SiteContext instance."""
-        timestamp = datetime.datetime(2024, 1, 1, 12, 0, 0)
-        site = Site(
-            id="site-123",
-            name="Test Site",
-            timezone="Europe/Berlin",
-        )
-
-        context = SiteContext(
-            timestamp=timestamp,
-            site=site,
-            gateway_id="gateway-456",
-            gateway_online=True,
-            devices_total=10,
-            devices_online=8,
-        )
-
-        assert context.timestamp == timestamp
-        assert context.site == site
-        assert context.gateway_id == "gateway-456"
-        assert context.gateway_online is True
-        assert context.devices_total == 10
-        assert context.devices_online == 8
-
     def test_site_context_with_no_gateway(self) -> None:
         """Test SiteContext with no gateway."""
         timestamp = datetime.datetime.now()
-        site = Site(
+        site = models.Site(
             id="site-789",
             name="Site Without Gateway",
             timezone="America/New_York",
         )
 
-        context = SiteContext(
+        context = models.SiteContext(
             timestamp=timestamp,
             site=site,
             gateway_id=None,
@@ -58,13 +32,13 @@ class TestSiteContext:
     def test_site_context_with_offline_gateway(self) -> None:
         """Test SiteContext with offline gateway."""
         timestamp = datetime.datetime.now()
-        site = Site(
+        site = models.Site(
             id="site-999",
             name="Site With Offline Gateway",
             timezone="Asia/Tokyo",
         )
 
-        context = SiteContext(
+        context = models.SiteContext(
             timestamp=timestamp,
             site=site,
             gateway_id="gateway-999",
@@ -81,13 +55,13 @@ class TestSiteContext:
     def test_site_context_with_all_devices_online(self) -> None:
         """Test SiteContext with all devices online."""
         timestamp = datetime.datetime.now()
-        site = Site(
+        site = models.Site(
             id="site-111",
             name="Fully Online Site",
             timezone="UTC",
         )
 
-        context = SiteContext(
+        context = models.SiteContext(
             timestamp=timestamp,
             site=site,
             gateway_id="gateway-111",
@@ -103,14 +77,14 @@ class TestSiteContext:
     def test_site_context_device_count_validation(self) -> None:
         """Test that devices_online does not exceed devices_total."""
         timestamp = datetime.datetime.now()
-        site = Site(
+        site = models.Site(
             id="site-222",
             name="Test Site",
             timezone="Europe/Paris",
         )
 
         # Create context where online devices <= total devices
-        context = SiteContext(
+        context = models.SiteContext(
             timestamp=timestamp,
             site=site,
             gateway_id="gateway-222",
@@ -133,8 +107,8 @@ class TestSiteContext:
         ]
 
         for tz in timezones:
-            site = Site(id=f"site-{tz}", name=f"Site {tz}", timezone=tz)
-            context = SiteContext(
+            site = models.Site(id=f"site-{tz}", name=f"Site {tz}", timezone=tz)
+            context = models.SiteContext(
                 timestamp=timestamp,
                 site=site,
                 gateway_id=f"gateway-{tz}",
