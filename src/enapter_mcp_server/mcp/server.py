@@ -10,6 +10,15 @@ from enapter_mcp_server import __version__
 
 from . import models
 
+INSTRUCTIONS = """This MCP server exposes the Enapter HTTP API, enabling management of energy systems.
+
+Workflow:
+
+- Start by searching for sites or devices if IDs are not provided.
+- Use `get_site_context` or `get_device_context` to get a comprehensive view.
+- Drill down into specific blueprint sections or historical data as needed.
+"""
+
 
 class Server(enapter.async_.Routine):
 
@@ -30,7 +39,7 @@ class Server(enapter.async_.Routine):
     async def _run(self) -> None:
         mcp = fastmcp.FastMCP(
             name=f"Enapter MCP Server v{__version__}",
-            instructions="An MCP server exposing Enapter HTTP API functionality.",
+            instructions=INSTRUCTIONS,
             version=__version__,
             website_url="https://github.com/Enapter/mcp-server",
         )
