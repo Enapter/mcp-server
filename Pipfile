@@ -10,7 +10,6 @@ enapter-mcp-server = {editable = true, path = "."}
 black = "*"
 isort = "*"
 mypy = "*"
-ollmcp = "*"
 pyflakes = "*"
 pytest = "*"
 pytest-asyncio = "*"
