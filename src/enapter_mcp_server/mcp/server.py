@@ -9,6 +9,7 @@ import fastmcp
 from enapter_mcp_server import __version__
 
 from . import models
+from .server_config import ServerConfig
 
 INSTRUCTIONS = """This MCP server exposes the Enapter HTTP API, enabling management of energy systems.
 
@@ -23,18 +24,10 @@ Workflow:
 class Server(enapter.async_.Routine):
 
     def __init__(
-        self,
-        host: str,
-        port: int,
-        enapter_http_api_url: str,
-        graceful_shutdown_timeout: float = 5.0,
-        task_group: asyncio.TaskGroup | None = None,
+        self, config: ServerConfig, task_group: asyncio.TaskGroup | None = None
     ) -> None:
         super().__init__(task_group=task_group)
-        self._host = host
-        self._port = port
-        self._enaper_http_api_url = enapter_http_api_url
-        self._graceful_shutdown_timeout = graceful_shutdown_timeout
+        self._config = config
 
     async def _run(self) -> None:
         mcp = fastmcp.FastMCP(
@@ -47,11 +40,9 @@ class Server(enapter.async_.Routine):
         await mcp.run_async(
             transport="streamable-http",
             show_banner=False,
-            host=self._host,
-            port=self._port,
-            uvicorn_config={
-                "timeout_graceful_shutdown": self._graceful_shutdown_timeout
-            },
+            host=self._config.host,
+            port=self._config.port,
+            uvicorn_config={"timeout_graceful_shutdown": 5.0},
         )
 
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
@@ -338,6 +329,6 @@ class Server(enapter.async_.Routine):
         token = headers["x-enapter-auth-token"]
         return enapter.http.api.Client(
             config=enapter.http.api.Config(
-                token=token, base_url=self._enaper_http_api_url
+                token=token, base_url=self._config.enapter_http_api_url
             )
         )
