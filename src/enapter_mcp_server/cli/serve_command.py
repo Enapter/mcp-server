@@ -8,6 +8,7 @@ from .command import Command
 from .subparsers import Subparsers
 
 ENAPTER_HTTP_API_URL = os.getenv("ENAPTER_HTTP_API_URL", "https://api.enapter.com")
+ENAPTER_OAUTH_PROXY_ENABLED = os.getenv("ENAPTER_OAUTH_PROXY_ENABLED", "0")
 ENAPTER_OAUTH_PROXY_INTROSPECTION_URL = os.getenv(
     "ENAPTER_OAUTH_PROXY_INTROSPECTION_URL", "https://sso.enapter.com/oauth/introspect"
 )
@@ -46,7 +47,8 @@ class ServeCommand(Command):
         )
         parser.add_argument(
             "--oauth-proxy-enabled",
-            action="store_true",
+            choices=["0", "1"],
+            default=ENAPTER_OAUTH_PROXY_ENABLED,
             help="Enable OAuth proxy for authentication and authorization",
         )
         parser.add_argument(
@@ -102,7 +104,7 @@ class ServeCommand(Command):
             mcp.configure_logging(level="DEBUG")
         host, port_string = args.address.split(":")
         oauth_proxy_config: mcp.OAuthProxyConfig | None = None
-        if args.oauth_proxy_enabled:
+        if args.oauth_proxy_enabled == "1":
             required_scopes = [
                 scope.strip()
                 for scope in args.oauth_proxy_required_scopes.split(",")
