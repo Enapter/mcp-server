@@ -26,6 +26,8 @@ class ServeCommand(Command):
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
+        if args.verbose:
+            mcp.configure_logging(level="DEBUG")
         host, port_string = args.address.split(":")
         config = mcp.ServerConfig(
             host=host,

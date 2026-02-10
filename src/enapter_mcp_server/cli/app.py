@@ -23,6 +23,9 @@ class App:
             "enapter_mcp_server", formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
         parser.add_argument(
+            "-v", "--verbose", action="store_true", help="Enable verbose logging"
+        )
+        parser.add_argument(
             "-a", "--address", default=ENAPTER_MCP_SERVER_ADDRESS, help="Server address"
         )
         subparsers = parser.add_subparsers(dest="command", required=True)
