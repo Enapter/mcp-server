@@ -37,7 +37,7 @@ class Server(enapter.async_.Routine):
         async with self._enapter_http_api_client:
             auth_provider = self._select_auth_provider()
             mcp = fastmcp.FastMCP(
-                name=f"Enapter MCP Server v{__version__}",
+                name="Enapter MCP Server",
                 instructions=INSTRUCTIONS,
                 version=__version__,
                 website_url="https://github.com/Enapter/mcp-server",
