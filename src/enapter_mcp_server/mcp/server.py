@@ -4,6 +4,8 @@ import re
 
 import enapter
 import fastmcp
+import fastmcp.server.auth.providers.introspection
+import httpx
 
 from enapter_mcp_server import __version__
 
@@ -33,11 +35,13 @@ class Server(enapter.async_.Routine):
 
     async def _run(self) -> None:
         async with self._enapter_http_api_client:
+            auth_provider = self._select_auth_provider()
             mcp = fastmcp.FastMCP(
                 name=f"Enapter MCP Server v{__version__}",
                 instructions=INSTRUCTIONS,
                 version=__version__,
                 website_url="https://github.com/Enapter/mcp-server",
+                auth=auth_provider,
             )
             self._register_tools(mcp)
             await mcp.run_async(
@@ -48,6 +52,27 @@ class Server(enapter.async_.Routine):
                 uvicorn_config={"timeout_graceful_shutdown": 5.0},
                 stateless_http=True,
             )
+
+    def _select_auth_provider(self) -> fastmcp.server.auth.AuthProvider | None:
+        if self._config.oauth_proxy is None:
+            return None
+        token_verifier = (
+            fastmcp.server.auth.providers.introspection.IntrospectionTokenVerifier(
+                introspection_url=self._config.oauth_proxy.introspection_endpoint_url,
+                client_id=self._config.oauth_proxy.client_id,
+                client_secret=self._config.oauth_proxy.client_secret,
+                required_scopes=self._config.oauth_proxy.required_scopes,
+            )
+        )
+        return fastmcp.server.auth.OAuthProxy(
+            upstream_authorization_endpoint=self._config.oauth_proxy.authorization_endpoint_url,
+            upstream_token_endpoint=self._config.oauth_proxy.token_endpoint_url,
+            upstream_client_id=self._config.oauth_proxy.client_id,
+            upstream_client_secret=self._config.oauth_proxy.client_secret,
+            token_verifier=token_verifier,
+            base_url=self._config.oauth_proxy.protected_resource_url,
+            forward_pkce=self._config.oauth_proxy.forward_pkce,
+        )
 
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
         mcp.tool(self.search_sites)
@@ -79,7 +104,7 @@ class Server(enapter.async_.Routine):
             get_site_context: Get detailed context about a specific site.
             search_devices: Search for devices within a specific site.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         name_regexp = re.compile(name_pattern)
         timezone_regexp = re.compile(timezone_pattern)
         async with self._enapter_http_api_client.sites(auth=auth).list() as stream:
@@ -104,7 +129,7 @@ class Server(enapter.async_.Routine):
         Related tools:
             search_devices: Search for devices within a specific site.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         site = await self._enapter_http_api_client.sites(auth=auth).get(site_id)
         gateway_id: str | None = None
         gateway_online = False
@@ -160,7 +185,7 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read specific sections of a device's blueprint.
             get_historical_telemetry: Get historical telemetry data of a device.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         name_regexp = re.compile(name_pattern)
         async with self._enapter_http_api_client.devices(auth=auth).list(
             site_id=site_id
@@ -188,7 +213,7 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read specific sections of the device's blueprint.
             get_historical_telemetry: Get historical telemetry data of the device.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         device = await self._enapter_http_api_client.devices(auth=auth).get(
             device_id,
             expand_manifest=True,
@@ -247,7 +272,7 @@ class Server(enapter.async_.Routine):
         Returns:
             A list of declarations in the specified blueprint section.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         name_regexp = re.compile(name_pattern)
         device = await self._enapter_http_api_client.devices(auth=auth).get(
             device_id, expand_manifest=True
@@ -310,7 +335,7 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read the telemetry attributes declared in
                 the device's blueprint.
         """
-        auth = self._new_enapter_http_api_auth()
+        auth = await self._new_enapter_http_api_auth()
         telemetry = await self._enapter_http_api_client.telemetry(
             auth=auth
         ).wide_timeseries(
@@ -330,8 +355,26 @@ class Server(enapter.async_.Routine):
             },
         )
 
-    def _new_enapter_http_api_auth(self) -> enapter.http.api.Auth:
+    async def _new_enapter_http_api_auth(self) -> enapter.http.api.Auth:
+        if self._config.oauth_proxy is None:
+            return self._enapter_http_api_auth_from_request_headers()
+        return await self._enapter_http_api_auth_from_access_token()
+
+    def _enapter_http_api_auth_from_request_headers(self) -> enapter.http.api.Auth:
         headers = fastmcp.server.dependencies.get_http_headers()
         token = headers.get("x-enapter-auth-token")
         user = headers.get("x-enapter-auth-user")
         return enapter.http.api.Auth(token=token, user=user)
+
+    async def _enapter_http_api_auth_from_access_token(self) -> enapter.http.api.Auth:
+        access_token = fastmcp.server.dependencies.get_access_token()
+        assert access_token is not None
+        async with httpx.AsyncClient() as client:
+            assert self._config.oauth_proxy is not None
+            response = await client.get(
+                self._config.oauth_proxy.user_info_endpoint_url,
+                headers={"Authorization": f"Bearer {access_token.token}"},
+            )
+            response.raise_for_status()
+            user_info = response.json()
+            return enapter.http.api.Auth(user=user_info["guid"])
