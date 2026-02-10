@@ -14,6 +14,7 @@ def main() -> None:
         install_requires=[
             "enapter==0.15.1",
             "fastmcp==2.14.*",
+            "httpx==0.*",
         ],
     )
 
