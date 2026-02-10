@@ -43,6 +43,7 @@ class Server(enapter.async_.Routine):
             host=self._config.host,
             port=self._config.port,
             uvicorn_config={"timeout_graceful_shutdown": 5.0},
+            stateless_http=True,
         )
 
     def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
