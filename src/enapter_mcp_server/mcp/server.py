@@ -332,5 +332,6 @@ class Server(enapter.async_.Routine):
 
     def _new_enapter_http_api_auth(self) -> enapter.http.api.Auth:
         headers = fastmcp.server.dependencies.get_http_headers()
-        token = headers["x-enapter-auth-token"]
-        return enapter.http.api.Auth(token=token)
+        token = headers.get("x-enapter-auth-token")
+        user = headers.get("x-enapter-auth-user")
+        return enapter.http.api.Auth(token=token, user=user)
