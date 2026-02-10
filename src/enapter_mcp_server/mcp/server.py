@@ -79,7 +79,7 @@ class Server(enapter.async_.Routine):
         name_regexp = re.compile(name_pattern)
         timezone_regexp = re.compile(timezone_pattern)
         async with self._new_http_api_client() as client:
-            async with client.sites.list() as stream:
+            async with client.sites().list() as stream:
                 sites = []
                 async for site in stream:
                     if name_regexp.search(site.name) and (
@@ -102,12 +102,12 @@ class Server(enapter.async_.Routine):
             search_devices: Search for devices within a specific site.
         """
         async with self._new_http_api_client() as client:
-            site = await client.sites.get(site_id)
+            site = await client.sites().get(site_id)
             gateway_id: str | None = None
             gateway_online = False
             devices_total = 0
             devices_online = 0
-            async with client.devices.list(
+            async with client.devices().list(
                 site_id=site_id, expand_connectivity=True
             ) as stream:
                 async for device in stream:
@@ -159,7 +159,7 @@ class Server(enapter.async_.Routine):
         """
         name_regexp = re.compile(name_pattern)
         async with self._new_http_api_client() as client:
-            async with client.devices.list(site_id=site_id) as stream:
+            async with client.devices().list(site_id=site_id) as stream:
                 devices = []
                 async for device in stream:
                     if (type is None or device.type == type) and name_regexp.search(
@@ -184,7 +184,7 @@ class Server(enapter.async_.Routine):
             get_historical_telemetry: Get historical telemetry data of the device.
         """
         async with self._new_http_api_client() as client:
-            device = await client.devices.get(
+            device = await client.devices().get(
                 device_id,
                 expand_manifest=True,
                 expand_connectivity=True,
@@ -194,7 +194,7 @@ class Server(enapter.async_.Routine):
             assert device.connectivity is not None
             assert device.properties is not None
             latest_telemetry = (
-                await client.telemetry.latest(
+                await client.telemetry().latest(
                     {device_id: list(device.manifest.get("telemetry", {}))}
                 )
             )[device_id]
@@ -246,7 +246,7 @@ class Server(enapter.async_.Routine):
         """
         name_regexp = re.compile(name_pattern)
         async with self._new_http_api_client() as client:
-            device = await client.devices.get(device_id, expand_manifest=True)
+            device = await client.devices().get(device_id, expand_manifest=True)
             assert device.manifest is not None
             entities: list[
                 models.PropertyDeclaration
@@ -306,7 +306,7 @@ class Server(enapter.async_.Routine):
                 the device's blueprint.
         """
         async with self._new_http_api_client() as client:
-            telemetry = await client.telemetry.wide_timeseries(
+            telemetry = await client.telemetry().wide_timeseries(
                 from_=time_from,
                 to=time_to,
                 granularity=granularity,
