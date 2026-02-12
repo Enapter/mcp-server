@@ -15,6 +15,7 @@ def main() -> None:
             "enapter==0.15.1",
             "fastmcp==2.14.*",
             "httpx==0.*",
+            "py-key-value-aio[memory,disk]=0.*",
         ],
     )
 

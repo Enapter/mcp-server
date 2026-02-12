@@ -1,11 +1,15 @@
 import asyncio
 import datetime
 import re
+import urllib.parse
 
 import enapter
 import fastmcp
 import fastmcp.server.auth.providers.introspection
 import httpx
+import key_value.aio.protocols
+import key_value.aio.stores.disk
+import key_value.aio.stores.memory
 import mcp
 
 from enapter_mcp_server import __version__
@@ -71,6 +75,7 @@ class Server(enapter.async_.Routine):
                 required_scopes=self._config.oauth_proxy.required_scopes,
             )
         )
+        jwt_store = self._select_jwt_store()
         return fastmcp.server.auth.OAuthProxy(
             upstream_authorization_endpoint=self._config.oauth_proxy.authorization_endpoint_url,
             upstream_token_endpoint=self._config.oauth_proxy.token_endpoint_url,
@@ -79,7 +84,22 @@ class Server(enapter.async_.Routine):
             token_verifier=token_verifier,
             base_url=self._config.oauth_proxy.protected_resource_url,
             forward_pkce=self._config.oauth_proxy.forward_pkce,
+            client_storage=jwt_store,
+            jwt_signing_key=self._config.oauth_proxy.jwt_signing_key,
         )
+
+    def _select_jwt_store(self) -> key_value.aio.protocols.AsyncKeyValue:
+        assert self._config.oauth_proxy is not None
+        if self._config.oauth_proxy.jwt_store_url is None:
+            return key_value.aio.stores.memory.MemoryStore()
+        jwt_store_url = urllib.parse.urlparse(self._config.oauth_proxy.jwt_store_url)
+        match jwt_store_url.scheme:
+            case "memory":
+                return key_value.aio.stores.memory.MemoryStore()
+            case "disk":
+                return key_value.aio.stores.disk.DiskStore(directory=jwt_store_url.path)
+            case _:
+                raise NotImplementedError(f"{jwt_store_url.scheme}")
 
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
         read_only_tools: list[mcp.types.AnyFunction] = [
