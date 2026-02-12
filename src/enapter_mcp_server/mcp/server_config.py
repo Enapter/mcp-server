@@ -10,6 +10,7 @@ class ServerConfig:
     port: int
     enapter_http_api_url: str
     oauth_proxy_config: OAuthProxyConfig | None = None
+    logo_url: str | None = None
 
     @property
     def address(self) -> str:
