@@ -8,6 +8,9 @@ from .command import Command
 from .subparsers import Subparsers
 
 ENAPTER_HTTP_API_URL = os.getenv("ENAPTER_HTTP_API_URL", "https://api.enapter.com")
+ENAPTER_LOGO_URL = os.getenv(
+    "ENAPTER_LOGO_URL", "https://companieslogo.com/img/orig/H2O.DE-b4a89106.png"
+)
 ENAPTER_OAUTH_PROXY_ENABLED = os.getenv("ENAPTER_OAUTH_PROXY_ENABLED", "0")
 ENAPTER_OAUTH_PROXY_INTROSPECTION_URL = os.getenv(
     "ENAPTER_OAUTH_PROXY_INTROSPECTION_URL", "https://sso.enapter.com/oauth/introspect"
@@ -44,6 +47,11 @@ class ServeCommand(Command):
             "--enapter-http-api-url",
             default=ENAPTER_HTTP_API_URL,
             help="URL of Enapter HTTP API",
+        )
+        parser.add_argument(
+            "--logo-url",
+            default=ENAPTER_LOGO_URL,
+            help="URL of logo to display when connecting to this MCP server",
         )
         parser.add_argument(
             "--oauth-proxy-enabled",
@@ -126,6 +134,7 @@ class ServeCommand(Command):
             port=int(port_string),
             enapter_http_api_url=args.enapter_http_api_url,
             oauth_proxy_config=oauth_proxy_config,
+            logo_url=args.logo_url,
         )
         async with asyncio.TaskGroup() as task_group:
             async with mcp.Server(config=config, task_group=task_group):

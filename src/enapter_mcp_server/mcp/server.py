@@ -6,6 +6,7 @@ import enapter
 import fastmcp
 import fastmcp.server.auth.providers.introspection
 import httpx
+import mcp
 
 from enapter_mcp_server import __version__
 
@@ -35,16 +36,22 @@ class Server(enapter.async_.Routine):
 
     async def _run(self) -> None:
         async with self._enapter_http_api_client:
+            icon = (
+                mcp.types.Icon(src=self._config.logo_url)
+                if self._config.logo_url is not None
+                else None
+            )
             auth_provider = self._select_auth_provider()
-            mcp = fastmcp.FastMCP(
+            fastmcp_server = fastmcp.FastMCP(
                 name="Enapter MCP Server",
                 instructions=INSTRUCTIONS,
                 version=__version__,
                 website_url="https://github.com/Enapter/mcp-server",
+                icons=[icon] if icon is not None else [],
                 auth=auth_provider,
             )
-            self._register_tools(mcp)
-            await mcp.run_async(
+            self._register_tools(fastmcp_server)
+            await fastmcp_server.run_async(
                 transport="streamable-http",
                 show_banner=False,
                 host=self._config.host,
