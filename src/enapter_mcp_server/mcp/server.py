@@ -81,13 +81,19 @@ class Server(enapter.async_.Routine):
             forward_pkce=self._config.oauth_proxy.forward_pkce,
         )
 
-    def _register_tools(self, mcp: fastmcp.FastMCP) -> None:
-        mcp.tool(self.search_sites)
-        mcp.tool(self.get_site_context)
-        mcp.tool(self.search_devices)
-        mcp.tool(self.get_device_context)
-        mcp.tool(self.read_blueprint)
-        mcp.tool(self.get_historical_telemetry)
+    def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
+        read_only_tools: list[mcp.types.AnyFunction] = [
+            self.search_sites,
+            self.get_site_context,
+            self.search_devices,
+            self.get_device_context,
+            self.read_blueprint,
+            self.get_historical_telemetry,
+        ]
+        for tool in read_only_tools:
+            fastmcp_server.tool(
+                tool, annotations=mcp.types.ToolAnnotations(readOnlyHint=True)
+            )
 
     async def search_sites(
         self,
