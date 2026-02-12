@@ -13,3 +13,5 @@ class OAuthProxyConfig:
     required_scopes: list[str]
     client_id: str
     client_secret: str
+    jwt_store_url: str | None = None
+    jwt_signing_key: str | None = None

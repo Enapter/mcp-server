@@ -33,6 +33,10 @@ ENAPTER_OAUTH_PROXY_REQUIRED_SCOPES = os.getenv(
 )
 ENAPTER_OAUTH_PROXY_CLIENT_ID = os.getenv("ENAPTER_OAUTH_PROXY_CLIENT_ID")
 ENAPTER_OAUTH_PROXY_CLIENT_SECRET = os.getenv("ENAPTER_OAUTH_PROXY_CLIENT_SECRET")
+ENAPTER_OAUTH_PROXY_JWT_STORE_URL = os.getenv(
+    "ENAPTER_OAUTH_PROXY_JWT_STORE_URL", "memory://"
+)
+ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY")
 
 
 class ServeCommand(Command):
@@ -105,6 +109,16 @@ class ServeCommand(Command):
             default=ENAPTER_OAUTH_PROXY_CLIENT_SECRET,
             help="Client secret for OAuth proxy",
         )
+        parser.add_argument(
+            "--oauth-proxy-jwt-store-url",
+            default=ENAPTER_OAUTH_PROXY_JWT_STORE_URL,
+            help="URL of JWT store for OAuth proxy (e.g. disk:///tmp/fastmcp)",
+        )
+        parser.add_argument(
+            "--oauth-proxy-jwt-signing-key",
+            default=ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY,
+            help="Signing key for JWTs issued by OAuth proxy. Will be derived from client secret if not provided",
+        )
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
@@ -128,6 +142,8 @@ class ServeCommand(Command):
                 required_scopes=required_scopes,
                 client_id=args.oauth_proxy_client_id,
                 client_secret=args.oauth_proxy_client_secret,
+                jwt_store_url=args.oauth_proxy_jwt_store_url,
+                jwt_signing_key=args.oauth_proxy_jwt_signing_key,
             )
         config = mcp.ServerConfig(
             host=host,
