@@ -117,7 +117,7 @@ class ServeCommand(Command):
         parser.add_argument(
             "--oauth-proxy-jwt-signing-key",
             default=ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY,
-            help="Signing key for JWTs issued by OAuth proxy. Will be derived from client secret if not provided",
+            help="Signing key for JWTs issued by OAuth proxy. Required if OAuth proxy is enabled",
         )
 
     @staticmethod
