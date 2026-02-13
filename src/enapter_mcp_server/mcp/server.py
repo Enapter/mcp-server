@@ -283,7 +283,7 @@ class Server(enapter.async_.Routine):
     async def read_blueprint(
         self,
         device_id: str,
-        section: models.BlueprintSection,
+        blueprint_section: models.BlueprintSection,
         name_pattern: str = ".*",
         offset: int = 0,
         limit: int = 20,
@@ -299,7 +299,7 @@ class Server(enapter.async_.Routine):
 
         Args:
             device_id: The ID of the device.
-            section: The section of the blueprint to read.
+            blueprint_section: The section of the blueprint to read.
             name_pattern: A regular expression pattern to match declaration names.
             offset: The offset of the first declaration to return.
             limit: The maximum number of declarations to return.
@@ -318,7 +318,7 @@ class Server(enapter.async_.Routine):
             | models.TelemetryAttributeDeclaration
             | models.AlertDeclaration
         ]
-        match section:
+        match blueprint_section:
             case models.BlueprintSection.PROPERTIES:
                 entities = [
                     models.PropertyDeclaration.from_dto(name, dto)
@@ -335,7 +335,7 @@ class Server(enapter.async_.Routine):
                     for name, dto in device.manifest.get("alerts", {}).items()
                 ]
             case _:
-                raise NotImplementedError(section)
+                raise NotImplementedError(blueprint_section)
         entities = [e for e in entities if name_regexp.search(e.name)]
         entities.sort(key=lambda e: e.name)
         return entities[offset : offset + limit]
