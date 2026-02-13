@@ -67,6 +67,8 @@ class Server(enapter.async_.Routine):
     def _select_auth_provider(self) -> fastmcp.server.auth.AuthProvider | None:
         if self._config.oauth_proxy is None:
             return None
+        if self._config.oauth_proxy.jwt_signing_key is None:
+            raise ValueError("jwt_signing_key must be set when oauth_proxy is enabled")
         token_verifier = (
             fastmcp.server.auth.providers.introspection.IntrospectionTokenVerifier(
                 introspection_url=self._config.oauth_proxy.introspection_endpoint_url,
