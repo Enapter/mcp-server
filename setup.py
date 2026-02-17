@@ -18,6 +18,7 @@ def main() -> None:
             "httpx==0.*",
             "py-key-value-aio[memory,disk]==0.*",
         ],
+        python_requires="==3.14.*",
     )
 
 
