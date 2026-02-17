@@ -16,3 +16,6 @@ pytest-asyncio = "*"
 pytest-cov = "*"
 setuptools = "*"
 types-setuptools = "*"
+
+[requires]
+python_version = "3.14"
