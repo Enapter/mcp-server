@@ -1,6 +1,6 @@
 from typing import Literal
 
-type TelemetryAttributeDataType = Literal[
+TelemetryAttributeDataType = Literal[
     "integer",
     "float",
     "string",
