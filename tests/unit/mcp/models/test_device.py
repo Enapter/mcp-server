@@ -27,4 +27,4 @@ class TestDevice:
         assert device.id == "device-789"
         assert device.name == "Production Device"
         assert device.site_id == "site-999"
-        assert device.type == models.DeviceType.NATIVE
+        assert device.type == "NATIVE"
