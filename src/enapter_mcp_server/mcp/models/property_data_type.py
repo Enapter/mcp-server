@@ -1,6 +1,6 @@
 from typing import Literal
 
-type PropertyDataType = Literal[
+PropertyDataType = Literal[
     "integer",
     "float",
     "string",

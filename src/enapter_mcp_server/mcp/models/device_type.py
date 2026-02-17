@@ -1,6 +1,6 @@
 from typing import Literal
 
-type DeviceType = Literal[
+DeviceType = Literal[
     "LUA",
     "VIRTUAL_UCM",
     "HARDWARE_UCM",
