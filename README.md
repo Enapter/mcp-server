@@ -28,7 +28,7 @@ The server exposes the following tools for interacting with Enapter EMS:
 ```bash
 docker run --rm --name enapter-mcp-server \
   -p 8000:8000 \
-  enapter/mcp-server:v0.8.1 serve
+  enapter/mcp-server:v0.8.2 serve
 ```
 
 ### Configure Env Variables
