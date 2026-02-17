@@ -17,7 +17,7 @@ class TestTelemetryAttributeDeclaration:
 
         assert attr.name == "voltage"
         assert attr.display_name == "Voltage"
-        assert attr.data_type == models.TelemetryAttributeDataType.FLOAT
+        assert attr.data_type == "float"
         assert attr.description == "Measured voltage"
         assert attr.unit == "V"
 
@@ -34,7 +34,7 @@ class TestTelemetryAttributeDeclaration:
 
         assert attr.name == "mode"
         assert attr.display_name == "Operation Mode"
-        assert attr.data_type == models.TelemetryAttributeDataType.STRING
+        assert attr.data_type == "string"
         assert attr.description == "Current operation mode"
         assert attr.enum == ["auto", "manual", "off"]
         assert attr.unit is None
@@ -50,7 +50,7 @@ class TestTelemetryAttributeDeclaration:
 
         assert attr.name == "simple"
         assert attr.display_name == "Simple Attribute"
-        assert attr.data_type == models.TelemetryAttributeDataType.BOOLEAN
+        assert attr.data_type == "boolean"
         assert attr.description is None
         assert attr.enum is None
         assert attr.unit is None

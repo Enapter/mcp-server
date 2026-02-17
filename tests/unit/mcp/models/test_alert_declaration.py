@@ -19,7 +19,7 @@ class TestAlertDeclaration:
 
         assert alert.name == "low_pressure"
         assert alert.display_name == "Low Pressure Alert"
-        assert alert.severity == models.AlertSeverity.ERROR
+        assert alert.severity == "error"
         assert alert.description == "Pressure below minimum threshold"
         assert alert.troubleshooting == ["Check pressure sensor", "Inspect valves"]
         assert alert.components == ["pressure_sensor", "valve_control"]
@@ -36,7 +36,7 @@ class TestAlertDeclaration:
 
         assert alert.name == "basic_alert"
         assert alert.display_name == "Basic Alert"
-        assert alert.severity == models.AlertSeverity.INFO
+        assert alert.severity == "info"
         assert alert.description is None
         assert alert.troubleshooting is None
         assert alert.components is None

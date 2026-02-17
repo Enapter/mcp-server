@@ -227,7 +227,7 @@ class Server(enapter.async_.Routine):
         ) as stream:
             devices = []
             async for device in stream:
-                if (type is None or device.type == type) and name_regexp.search(
+                if (type is None or device.type.value == type) and name_regexp.search(
                     device.name
                 ):
                     devices.append(models.Device.from_domain(device))
@@ -266,9 +266,7 @@ class Server(enapter.async_.Routine):
         return models.DeviceContext(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             device=models.Device.from_domain(device),
-            connectivity_status=(
-                models.ConnectivityStatus(device.connectivity.status.value)
-            ),
+            connectivity_status=device.connectivity.status.value,
             properties={
                 k: device.properties.get(k)
                 for k in device.manifest.get("properties", {})
@@ -319,17 +317,17 @@ class Server(enapter.async_.Routine):
             | models.AlertDeclaration
         ]
         match section:
-            case models.BlueprintSection.PROPERTIES:
+            case "properties":
                 entities = [
                     models.PropertyDeclaration.from_dto(name, dto)
                     for name, dto in device.manifest.get("properties", {}).items()
                 ]
-            case models.BlueprintSection.TELEMETRY:
+            case "telemetry":
                 entities = [
                     models.TelemetryAttributeDeclaration.from_dto(name, dto)
                     for name, dto in device.manifest.get("telemetry", {}).items()
                 ]
-            case models.BlueprintSection.ALERTS:
+            case "alerts":
                 entities = [
                     models.AlertDeclaration.from_dto(name, dto)
                     for name, dto in device.manifest.get("alerts", {}).items()

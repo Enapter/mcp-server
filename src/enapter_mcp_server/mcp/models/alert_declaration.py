@@ -34,7 +34,7 @@ class AlertDeclaration(pydantic.BaseModel):
         return cls(
             name=name,
             display_name=dto["display_name"],
-            severity=AlertSeverity(dto["severity"]),
+            severity=dto["severity"],
             description=dto.get("description"),
             troubleshooting=dto.get("troubleshooting"),
             components=dto.get("components"),

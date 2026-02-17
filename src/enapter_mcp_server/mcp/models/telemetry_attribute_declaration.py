@@ -32,7 +32,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
         return cls(
             name=name,
             display_name=dto["display_name"],
-            data_type=TelemetryAttributeDataType(dto["type"]),
+            data_type=dto["type"],
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),

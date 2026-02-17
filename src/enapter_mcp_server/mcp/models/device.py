@@ -29,5 +29,5 @@ class Device(pydantic.BaseModel):
             id=device.id,
             name=device.name,
             site_id=device.site_id,
-            type=DeviceType(device.type.value),
+            type=device.type.value,
         )

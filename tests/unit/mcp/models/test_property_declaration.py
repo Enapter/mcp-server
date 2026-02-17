@@ -16,7 +16,7 @@ class TestPropertyDeclaration:
 
         assert prop.name == "serial_number"
         assert prop.display_name == "Serial Number"
-        assert prop.data_type == models.PropertyDataType.STRING
+        assert prop.data_type == "string"
         assert prop.description == "Device serial number"
         assert prop.enum is None
         assert prop.unit is None
@@ -35,7 +35,7 @@ class TestPropertyDeclaration:
 
         assert prop.name == "status"
         assert prop.display_name == "Status"
-        assert prop.data_type == models.PropertyDataType.STRING
+        assert prop.data_type == "string"
         assert prop.description == "Device status"
         assert prop.enum == ["active", "inactive", "error"]
         assert prop.unit == "state"
@@ -51,7 +51,7 @@ class TestPropertyDeclaration:
 
         assert prop.name == "simple"
         assert prop.display_name == "Simple Property"
-        assert prop.data_type == models.PropertyDataType.INTEGER
+        assert prop.data_type == "integer"
         assert prop.description is None
         assert prop.enum is None
         assert prop.unit is None

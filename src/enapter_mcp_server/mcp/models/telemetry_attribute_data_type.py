@@ -1,14 +1,12 @@
-import enum
+from typing import Literal
 
-
-class TelemetryAttributeDataType(enum.StrEnum):
-    """Represents the data type of a telemetry attribute."""
-
-    INTEGER = "integer"
-    FLOAT = "float"
-    STRING = "string"
-    BOOLEAN = "boolean"
-    JSON = "json"
-    ARRAY_OF_STRINGS = "array_of_strings"
-    OBJECT = "object"
-    ALERTS = "alerts"
+type TelemetryAttributeDataType = Literal[
+    "integer",
+    "float",
+    "string",
+    "boolean",
+    "json",
+    "array_of_strings",
+    "object",
+    "alerts",
+]
