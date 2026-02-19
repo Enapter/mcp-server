@@ -1,20 +1,13 @@
 import asyncio
 import datetime
 import re
-import urllib.parse
-
 import enapter
 import fastmcp
-import fastmcp.server.auth.providers.introspection
-import httpx
-import key_value.aio.protocols
-import key_value.aio.stores.disk
-import key_value.aio.stores.memory
 import mcp
 
 from enapter_mcp_server import __version__
 
-from . import models
+from . import auth, models
 from .server_config import ServerConfig
 
 INSTRUCTIONS = """This MCP server exposes the Enapter HTTP API, enabling management of energy systems.
@@ -37,6 +30,12 @@ class Server(enapter.async_.Routine):
         self._enapter_http_api_client = enapter.http.api.Client(
             config=enapter.http.api.Config(base_url=self._config.enapter_http_api_url)
         )
+        if self._config.oauth_proxy:
+            self._auth_provider: auth.AuthProvider = auth.OAuthProxyAuthProvider(
+                self._config.oauth_proxy
+            )
+        else:
+            self._auth_provider = auth.HeaderAuthProvider()
 
     async def _run(self) -> None:
         async with self._enapter_http_api_client:
@@ -45,14 +44,13 @@ class Server(enapter.async_.Routine):
                 if self._config.logo_url is not None
                 else None
             )
-            auth_provider = self._select_auth_provider()
             fastmcp_server = fastmcp.FastMCP(
                 name="Enapter MCP Server",
                 instructions=INSTRUCTIONS,
                 version=__version__,
                 website_url="https://github.com/Enapter/mcp-server",
                 icons=[icon] if icon is not None else [],
-                auth=auth_provider,
+                auth=self._auth_provider.fastmcp_auth_provider,
             )
             self._register_tools(fastmcp_server)
             await fastmcp_server.run_async(
@@ -63,45 +61,6 @@ class Server(enapter.async_.Routine):
                 uvicorn_config={"timeout_graceful_shutdown": 5.0},
                 stateless_http=True,
             )
-
-    def _select_auth_provider(self) -> fastmcp.server.auth.AuthProvider | None:
-        if self._config.oauth_proxy is None:
-            return None
-        if self._config.oauth_proxy.jwt_signing_key is None:
-            raise ValueError("jwt_signing_key must be set when oauth_proxy is enabled")
-        token_verifier = (
-            fastmcp.server.auth.providers.introspection.IntrospectionTokenVerifier(
-                introspection_url=self._config.oauth_proxy.introspection_endpoint_url,
-                client_id=self._config.oauth_proxy.client_id,
-                client_secret=self._config.oauth_proxy.client_secret,
-                required_scopes=self._config.oauth_proxy.required_scopes,
-            )
-        )
-        jwt_store = self._select_jwt_store()
-        return fastmcp.server.auth.OAuthProxy(
-            upstream_authorization_endpoint=self._config.oauth_proxy.authorization_endpoint_url,
-            upstream_token_endpoint=self._config.oauth_proxy.token_endpoint_url,
-            upstream_client_id=self._config.oauth_proxy.client_id,
-            upstream_client_secret=self._config.oauth_proxy.client_secret,
-            token_verifier=token_verifier,
-            base_url=self._config.oauth_proxy.protected_resource_url,
-            forward_pkce=self._config.oauth_proxy.forward_pkce,
-            client_storage=jwt_store,
-            jwt_signing_key=self._config.oauth_proxy.jwt_signing_key,
-        )
-
-    def _select_jwt_store(self) -> key_value.aio.protocols.AsyncKeyValue:
-        assert self._config.oauth_proxy is not None
-        if self._config.oauth_proxy.jwt_store_url is None:
-            return key_value.aio.stores.memory.MemoryStore()
-        jwt_store_url = urllib.parse.urlparse(self._config.oauth_proxy.jwt_store_url)
-        match jwt_store_url.scheme:
-            case "memory":
-                return key_value.aio.stores.memory.MemoryStore()
-            case "disk":
-                return key_value.aio.stores.disk.DiskStore(directory=jwt_store_url.path)
-            case _:
-                raise NotImplementedError(f"{jwt_store_url.scheme}")
 
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
         read_only_tools: list[mcp.types.AnyFunction] = [
@@ -389,25 +348,4 @@ class Server(enapter.async_.Routine):
         )
 
     async def _new_enapter_http_api_auth(self) -> enapter.http.api.Auth:
-        if self._config.oauth_proxy is None:
-            return self._enapter_http_api_auth_from_request_headers()
-        return await self._enapter_http_api_auth_from_access_token()
-
-    def _enapter_http_api_auth_from_request_headers(self) -> enapter.http.api.Auth:
-        headers = fastmcp.server.dependencies.get_http_headers()
-        token = headers.get("x-enapter-auth-token")
-        user = headers.get("x-enapter-auth-user")
-        return enapter.http.api.Auth(token=token, user=user)
-
-    async def _enapter_http_api_auth_from_access_token(self) -> enapter.http.api.Auth:
-        access_token = fastmcp.server.dependencies.get_access_token()
-        assert access_token is not None
-        async with httpx.AsyncClient() as client:
-            assert self._config.oauth_proxy is not None
-            response = await client.get(
-                self._config.oauth_proxy.user_info_endpoint_url,
-                headers={"Authorization": f"Bearer {access_token.token}"},
-            )
-            response.raise_for_status()
-            user_info = response.json()
-            return enapter.http.api.Auth(user=user_info["guid"])
+        return await self._auth_provider.get_enapter_auth()
