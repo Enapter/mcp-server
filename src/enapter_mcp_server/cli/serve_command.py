@@ -31,6 +31,9 @@ ENAPTER_OAUTH_PROXY_FORWARD_PKCE = os.getenv("ENAPTER_OAUTH_PROXY_FORWARD_PKCE",
 ENAPTER_OAUTH_PROXY_REQUIRED_SCOPES = os.getenv(
     "ENAPTER_OAUTH_PROXY_REQUIRED_SCOPES", "openid,public"
 )
+ENAPTER_OAUTH_PROXY_ALLOWED_REDIRECT_URLS = os.getenv(
+    "ENAPTER_OAUTH_PROXY_ALLOWED_REDIRECT_URLS", ""
+)
 ENAPTER_OAUTH_PROXY_CLIENT_ID = os.getenv("ENAPTER_OAUTH_PROXY_CLIENT_ID")
 ENAPTER_OAUTH_PROXY_CLIENT_SECRET = os.getenv("ENAPTER_OAUTH_PROXY_CLIENT_SECRET")
 ENAPTER_OAUTH_PROXY_JWT_STORE_URL = os.getenv(
@@ -100,6 +103,11 @@ class ServeCommand(Command):
             help="Comma-separated list of required scopes for OAuth proxy",
         )
         parser.add_argument(
+            "--oauth-proxy-allowed-redirect-urls",
+            default=ENAPTER_OAUTH_PROXY_ALLOWED_REDIRECT_URLS,
+            help="Comma-separated list of allowed redirect URLs for OAuth proxy",
+        )
+        parser.add_argument(
             "--oauth-proxy-client-id",
             default=ENAPTER_OAUTH_PROXY_CLIENT_ID,
             help="Client ID for OAuth proxy",
@@ -132,6 +140,11 @@ class ServeCommand(Command):
                 for scope in args.oauth_proxy_required_scopes.split(",")
                 if scope.strip()
             ]
+            allowed_redirect_urls = [
+                url.strip()
+                for url in args.oauth_proxy_allowed_redirect_urls.split(",")
+                if url.strip()
+            ]
             oauth_proxy_config = mcp.OAuthProxyConfig(
                 introspection_endpoint_url=args.oauth_proxy_introspection_url,
                 authorization_endpoint_url=args.oauth_proxy_authorization_url,
@@ -142,6 +155,9 @@ class ServeCommand(Command):
                 required_scopes=required_scopes,
                 client_id=args.oauth_proxy_client_id,
                 client_secret=args.oauth_proxy_client_secret,
+                allowed_redirect_urls=allowed_redirect_urls
+                if allowed_redirect_urls
+                else None,
                 jwt_store_url=args.oauth_proxy_jwt_store_url,
                 jwt_signing_key=args.oauth_proxy_jwt_signing_key,
             )

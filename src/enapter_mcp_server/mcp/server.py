@@ -86,6 +86,7 @@ class Server(enapter.async_.Routine):
             token_verifier=token_verifier,
             base_url=self._config.oauth_proxy.protected_resource_url,
             forward_pkce=self._config.oauth_proxy.forward_pkce,
+            allowed_client_redirect_uris=self._config.oauth_proxy.allowed_redirect_urls,
             client_storage=jwt_store,
             jwt_signing_key=self._config.oauth_proxy.jwt_signing_key,
         )
