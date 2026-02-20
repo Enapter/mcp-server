@@ -155,9 +155,9 @@ class ServeCommand(Command):
                 required_scopes=required_scopes,
                 client_id=args.oauth_proxy_client_id,
                 client_secret=args.oauth_proxy_client_secret,
-                allowed_redirect_urls=allowed_redirect_urls
-                if allowed_redirect_urls
-                else None,
+                allowed_redirect_urls=(
+                    allowed_redirect_urls if allowed_redirect_urls else None
+                ),
                 jwt_store_url=args.oauth_proxy_jwt_store_url,
                 jwt_signing_key=args.oauth_proxy_jwt_signing_key,
             )

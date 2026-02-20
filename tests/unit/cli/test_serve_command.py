@@ -1,9 +1,11 @@
 import argparse
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
+
 import pytest
+
 from enapter_mcp_server.cli.serve_command import ServeCommand
-from enapter_mcp_server import mcp
+
 
 class TestServeCommand:
     @pytest.mark.asyncio
@@ -25,7 +27,7 @@ class TestServeCommand:
             oauth_proxy_client_secret="client_secret",
             oauth_proxy_jwt_store_url="memory://",
             oauth_proxy_jwt_signing_key="signing_key",
-            verbose=False
+            verbose=False,
         )
 
         with patch("enapter_mcp_server.mcp.Server", autospec=True) as mock_server:
@@ -41,7 +43,10 @@ class TestServeCommand:
             mock_server.assert_called_once()
             config = mock_server.call_args[1]["config"]
             assert config.oauth_proxy is not None
-            assert config.oauth_proxy.allowed_redirect_urls == ["http://localhost:3000", "http://localhost:3001"]
+            assert config.oauth_proxy.allowed_redirect_urls == [
+                "http://localhost:3000",
+                "http://localhost:3001",
+            ]
 
     @pytest.mark.asyncio
     async def test_run_handles_empty_allowed_redirect_urls(self):
@@ -62,7 +67,7 @@ class TestServeCommand:
             oauth_proxy_client_secret="client_secret",
             oauth_proxy_jwt_store_url="memory://",
             oauth_proxy_jwt_signing_key="signing_key",
-            verbose=False
+            verbose=False,
         )
 
         with patch("enapter_mcp_server.mcp.Server", autospec=True) as mock_server:
