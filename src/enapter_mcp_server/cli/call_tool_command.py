@@ -27,7 +27,9 @@ class CallToolCommand(Command):
     async def run(args: argparse.Namespace) -> None:
         url = f"http://{args.address}/mcp"
         async with mcp.Client(
-            url=url, enapter_auth_token=os.getenv("ENAPTER_HTTP_API_TOKEN")
+            url=url,
+            enapter_auth_token=os.getenv("ENAPTER_HTTP_API_TOKEN"),
+            enapter_auth_user=os.getenv("ENAPTER_HTTP_API_USER"),
         ) as client:
             result = await client.call_tool(args.name, json.loads(args.arguments))
             print(json.dumps(result.structured_content))
