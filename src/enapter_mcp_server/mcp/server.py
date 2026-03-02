@@ -1,7 +1,9 @@
 import asyncio
+import contextlib
 import datetime
 import re
 import urllib.parse
+from typing import AsyncGenerator
 
 import enapter
 import fastmcp
@@ -34,12 +36,10 @@ class Server(enapter.async_.Routine):
     ) -> None:
         super().__init__(task_group=task_group)
         self._config = config
-        self._enapter_http_api_client = enapter.http.api.Client(
-            config=enapter.http.api.Config(base_url=self._config.enapter_http_api_url)
-        )
+        self._enapter_http_api_transport = enapter.http.api.Transport()
 
     async def _run(self) -> None:
-        async with self._enapter_http_api_client:
+        async with self._enapter_http_api_transport:
             icon = (
                 mcp.types.Icon(src=self._config.logo_url)
                 if self._config.logo_url is not None
@@ -139,18 +139,18 @@ class Server(enapter.async_.Routine):
             get_site_context: Get detailed context about a specific site.
             search_devices: Search for devices within a specific site.
         """
-        auth = await self._new_enapter_http_api_auth()
-        name_regexp = re.compile(name_pattern)
-        timezone_regexp = re.compile(timezone_pattern)
-        async with self._enapter_http_api_client.sites(auth=auth).list() as stream:
-            sites = []
-            async for site in stream:
-                if name_regexp.search(site.name) and (
-                    timezone_regexp.search(site.timezone)
-                ):
-                    sites.append(models.Site.from_domain(site))
-            sites.sort(key=lambda s: s.id)
-            return sites[offset : offset + limit]
+        async with self._new_enapter_http_api_client() as client:
+            name_regexp = re.compile(name_pattern)
+            timezone_regexp = re.compile(timezone_pattern)
+            async with client.sites.list() as stream:
+                sites = []
+                async for site in stream:
+                    if name_regexp.search(site.name) and (
+                        timezone_regexp.search(site.timezone)
+                    ):
+                        sites.append(models.Site.from_domain(site))
+                sites.sort(key=lambda s: s.id)
+                return sites[offset : offset + limit]
 
     async def get_site_context(self, site_id: str) -> models.SiteContext:
         """Get site context by site ID.
@@ -164,36 +164,36 @@ class Server(enapter.async_.Routine):
         Related tools:
             search_devices: Search for devices within a specific site.
         """
-        auth = await self._new_enapter_http_api_auth()
-        site = await self._enapter_http_api_client.sites(auth=auth).get(site_id)
-        gateway_id: str | None = None
-        gateway_online = False
-        devices_total = 0
-        devices_online = 0
-        async with self._enapter_http_api_client.devices(auth=auth).list(
-            site_id=site_id, expand_connectivity=True
-        ) as stream:
-            async for device in stream:
-                assert device.connectivity is not None
-                devices_total += 1
-                device_online = (
-                    device.connectivity.status
-                    == enapter.http.api.devices.DeviceConnectivityStatus.ONLINE
-                )
-                if device_online:
-                    devices_online += 1
-                if device.type == enapter.http.api.devices.DeviceType.GATEWAY:
-                    assert gateway_id is None
-                    gateway_id = device.id
-                    gateway_online = device_online
-        return models.SiteContext(
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            site=models.Site.from_domain(site),
-            gateway_id=gateway_id,
-            gateway_online=gateway_online,
-            devices_total=devices_total,
-            devices_online=devices_online,
-        )
+        async with self._new_enapter_http_api_client() as client:
+            site = await client.sites.get(site_id)
+            gateway_id: str | None = None
+            gateway_online = False
+            devices_total = 0
+            devices_online = 0
+            async with client.devices.list(
+                site_id=site_id, expand_connectivity=True
+            ) as stream:
+                async for device in stream:
+                    assert device.connectivity is not None
+                    devices_total += 1
+                    device_online = (
+                        device.connectivity.status
+                        == enapter.http.api.devices.DeviceConnectivityStatus.ONLINE
+                    )
+                    if device_online:
+                        devices_online += 1
+                    if device.type == enapter.http.api.devices.DeviceType.GATEWAY:
+                        assert gateway_id is None
+                        gateway_id = device.id
+                        gateway_online = device_online
+            return models.SiteContext(
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+                site=models.Site.from_domain(site),
+                gateway_id=gateway_id,
+                gateway_online=gateway_online,
+                devices_total=devices_total,
+                devices_online=devices_online,
+            )
 
     async def search_devices(
         self,
@@ -220,19 +220,17 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read specific sections of a device's blueprint.
             get_historical_telemetry: Get historical telemetry data of a device.
         """
-        auth = await self._new_enapter_http_api_auth()
-        name_regexp = re.compile(name_pattern)
-        async with self._enapter_http_api_client.devices(auth=auth).list(
-            site_id=site_id
-        ) as stream:
-            devices = []
-            async for device in stream:
-                if (type is None or device.type.value == type) and name_regexp.search(
-                    device.name
-                ):
-                    devices.append(models.Device.from_domain(device))
-            devices.sort(key=lambda d: d.id)
-            return devices[offset : offset + limit]
+        async with self._new_enapter_http_api_client() as client:
+            name_regexp = re.compile(name_pattern)
+            async with client.devices.list(site_id=site_id) as stream:
+                devices = []
+                async for device in stream:
+                    if (
+                        type is None or device.type.value == type
+                    ) and name_regexp.search(device.name):
+                        devices.append(models.Device.from_domain(device))
+                devices.sort(key=lambda d: d.id)
+                return devices[offset : offset + limit]
 
     async def get_device_context(self, device_id: str) -> models.DeviceContext:
         """Get device context by device ID.
@@ -248,35 +246,37 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read specific sections of the device's blueprint.
             get_historical_telemetry: Get historical telemetry data of the device.
         """
-        auth = await self._new_enapter_http_api_auth()
-        device = await self._enapter_http_api_client.devices(auth=auth).get(
-            device_id,
-            expand_manifest=True,
-            expand_connectivity=True,
-            expand_properties=True,
-        )
-        assert device.manifest is not None
-        assert device.connectivity is not None
-        assert device.properties is not None
-        latest_telemetry = (
-            await self._enapter_http_api_client.telemetry(auth=auth).latest(
-                {device_id: list(device.manifest.get("telemetry", {}))}
+        async with self._new_enapter_http_api_client() as client:
+            device = await client.devices.get(
+                device_id,
+                expand_manifest=True,
+                expand_connectivity=True,
+                expand_properties=True,
             )
-        )[device_id]
-        return models.DeviceContext(
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            device=models.Device.from_domain(device),
-            connectivity_status=device.connectivity.status.value,
-            properties={
-                k: device.properties.get(k)
-                for k in device.manifest.get("properties", {})
-            },
-            latest_telemetry={
-                k: v.value if v is not None else None
-                for k, v in latest_telemetry.items()
-            },
-            blueprint_summary=models.BlueprintSummary.from_manifest(device.manifest),
-        )
+            assert device.manifest is not None
+            assert device.connectivity is not None
+            assert device.properties is not None
+            latest_telemetry = (
+                await client.telemetry.latest(
+                    {device_id: list(device.manifest.get("telemetry", {}))}
+                )
+            )[device_id]
+            return models.DeviceContext(
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+                device=models.Device.from_domain(device),
+                connectivity_status=device.connectivity.status.value,
+                properties={
+                    k: device.properties.get(k)
+                    for k in device.manifest.get("properties", {})
+                },
+                latest_telemetry={
+                    k: v.value if v is not None else None
+                    for k, v in latest_telemetry.items()
+                },
+                blueprint_summary=models.BlueprintSummary.from_manifest(
+                    device.manifest
+                ),
+            )
 
     async def read_blueprint(
         self,
@@ -305,38 +305,36 @@ class Server(enapter.async_.Routine):
         Returns:
             A list of declarations in the specified blueprint section.
         """
-        auth = await self._new_enapter_http_api_auth()
-        name_regexp = re.compile(name_pattern)
-        device = await self._enapter_http_api_client.devices(auth=auth).get(
-            device_id, expand_manifest=True
-        )
-        assert device.manifest is not None
-        entities: list[
-            models.PropertyDeclaration
-            | models.TelemetryAttributeDeclaration
-            | models.AlertDeclaration
-        ]
-        match section:
-            case "properties":
-                entities = [
-                    models.PropertyDeclaration.from_dto(name, dto)
-                    for name, dto in device.manifest.get("properties", {}).items()
-                ]
-            case "telemetry":
-                entities = [
-                    models.TelemetryAttributeDeclaration.from_dto(name, dto)
-                    for name, dto in device.manifest.get("telemetry", {}).items()
-                ]
-            case "alerts":
-                entities = [
-                    models.AlertDeclaration.from_dto(name, dto)
-                    for name, dto in device.manifest.get("alerts", {}).items()
-                ]
-            case _:
-                raise NotImplementedError(section)
-        entities = [e for e in entities if name_regexp.search(e.name)]
-        entities.sort(key=lambda e: e.name)
-        return entities[offset : offset + limit]
+        async with self._new_enapter_http_api_client() as client:
+            name_regexp = re.compile(name_pattern)
+            device = await client.devices.get(device_id, expand_manifest=True)
+            assert device.manifest is not None
+            entities: list[
+                models.PropertyDeclaration
+                | models.TelemetryAttributeDeclaration
+                | models.AlertDeclaration
+            ]
+            match section:
+                case "properties":
+                    entities = [
+                        models.PropertyDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("properties", {}).items()
+                    ]
+                case "telemetry":
+                    entities = [
+                        models.TelemetryAttributeDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("telemetry", {}).items()
+                    ]
+                case "alerts":
+                    entities = [
+                        models.AlertDeclaration.from_dto(name, dto)
+                        for name, dto in device.manifest.get("alerts", {}).items()
+                    ]
+                case _:
+                    raise NotImplementedError(section)
+            entities = [e for e in entities if name_regexp.search(e.name)]
+            entities.sort(key=lambda e: e.name)
+            return entities[offset : offset + limit]
 
     async def get_historical_telemetry(
         self,
@@ -368,38 +366,47 @@ class Server(enapter.async_.Routine):
             read_blueprint_section: Read the telemetry attributes declared in
                 the device's blueprint.
         """
-        auth = await self._new_enapter_http_api_auth()
-        telemetry = await self._enapter_http_api_client.telemetry(
-            auth=auth
-        ).wide_timeseries(
-            from_=time_from,
-            to=time_to,
-            granularity=granularity,
-            selectors=[
-                enapter.http.api.telemetry.Selector(
-                    device=device_id, attributes=attributes
-                )
-            ],
-        )
-        return models.HistoricalTelemetry(
-            timestamps=telemetry.timestamps,
-            values={
-                column.labels.telemetry: column.values for column in telemetry.columns
-            },
-        )
+        async with self._new_enapter_http_api_client() as client:
+            telemetry = await client.telemetry.wide_timeseries(
+                from_=time_from,
+                to=time_to,
+                granularity=granularity,
+                selectors=[
+                    enapter.http.api.telemetry.Selector(
+                        device=device_id, attributes=attributes
+                    )
+                ],
+            )
+            return models.HistoricalTelemetry(
+                timestamps=telemetry.timestamps,
+                values={
+                    column.labels.telemetry: column.values
+                    for column in telemetry.columns
+                },
+            )
 
-    async def _new_enapter_http_api_auth(self) -> enapter.http.api.Auth:
+    @contextlib.asynccontextmanager
+    async def _new_enapter_http_api_client(
+        self,
+    ) -> AsyncGenerator[enapter.http.api.Client, None]:
         if self._config.oauth_proxy is None:
-            return self._enapter_http_api_auth_from_request_headers()
-        return await self._enapter_http_api_auth_from_access_token()
+            config = self._enapter_http_api_config_from_request_headers()
+        else:
+            config = await self._enapter_http_api_config_from_access_token()
+        async with enapter.http.api.Client(
+            config=config, transport=self._enapter_http_api_transport
+        ) as client:
+            yield client
 
-    def _enapter_http_api_auth_from_request_headers(self) -> enapter.http.api.Auth:
+    def _enapter_http_api_config_from_request_headers(self) -> enapter.http.api.Config:
         headers = fastmcp.server.dependencies.get_http_headers()
         token = headers.get("x-enapter-auth-token")
         user = headers.get("x-enapter-auth-user")
-        return enapter.http.api.Auth(token=token, user=user)
+        return self._new_enapter_http_api_config(token=token, user=user)
 
-    async def _enapter_http_api_auth_from_access_token(self) -> enapter.http.api.Auth:
+    async def _enapter_http_api_config_from_access_token(
+        self,
+    ) -> enapter.http.api.Config:
         access_token = fastmcp.server.dependencies.get_access_token()
         assert access_token is not None
         async with httpx.AsyncClient() as client:
@@ -410,4 +417,11 @@ class Server(enapter.async_.Routine):
             )
             response.raise_for_status()
             user_info = response.json()
-            return enapter.http.api.Auth(user=user_info["guid"])
+            return self._new_enapter_http_api_config(user=user_info["guid"])
+
+    def _new_enapter_http_api_config(
+        self, user: str | None = None, token: str | None = None
+    ) -> enapter.http.api.Config:
+        return enapter.http.api.Config(
+            base_url=self._config.enapter_http_api_url, user=user, token=token
+        )
