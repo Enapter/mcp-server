@@ -12,7 +12,7 @@ def main() -> None:
         author="Roman Novatorov",
         author_email="rnovatorov@enapter.com",
         install_requires=[
-            "enapter==0.16.0",
+            "enapter==0.17.0",
             "fastmcp==2.14.*",
             "sentry-sdk==2.53.*",
             "httpx==0.*",
