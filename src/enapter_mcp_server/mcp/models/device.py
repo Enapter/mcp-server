@@ -1,7 +1,8 @@
 from typing import Self
 
-import enapter
 import pydantic
+
+from enapter_mcp_server import domain
 
 from .device_type import DeviceType
 
@@ -24,7 +25,7 @@ class Device(pydantic.BaseModel):
     type: DeviceType
 
     @classmethod
-    def from_domain(cls, device: enapter.http.api.devices.Device) -> Self:
+    def from_domain(cls, device: domain.Device) -> Self:
         return cls(
             id=device.id,
             name=device.name,

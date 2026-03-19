@@ -1,6 +1,9 @@
 import datetime
+from typing import Self
 
 import pydantic
+
+from enapter_mcp_server import domain
 
 from .site import Site
 
@@ -24,3 +27,14 @@ class SiteContext(pydantic.BaseModel):
     gateway_online: bool
     devices_total: int
     devices_online: int
+
+    @classmethod
+    def from_domain(cls, context: domain.SiteContext) -> Self:
+        return cls(
+            timestamp=context.timestamp,
+            site=Site.from_domain(context.site),
+            gateway_id=context.gateway_id,
+            gateway_online=context.gateway_online,
+            devices_total=context.devices_total,
+            devices_online=context.devices_online,
+        )

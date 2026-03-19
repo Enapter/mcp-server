@@ -1,4 +1,4 @@
-from enapter_mcp_server import mcp
+from enapter_mcp_server import core, http, mcp
 
 
 class TestServer:
@@ -10,6 +10,8 @@ class TestServer:
             port=12345,
             enapter_http_api_url="",
         )
-        async with mcp.Server(config=config):
-            async with mcp.Client(url=f"http://{config.address}/mcp") as client:
-                assert await client.ping()
+        async with http.EnapterAPI(base_url=config.enapter_http_api_url) as enapter_api:
+            app = core.ApplicationServer(enapter_api=enapter_api)
+            async with mcp.Server(app=app, config=config):
+                async with mcp.Client(url=f"http://{config.address}/mcp") as client:
+                    assert await client.ping()

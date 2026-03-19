@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import os
 
-from enapter_mcp_server import mcp
+from enapter_mcp_server import core, http, mcp
 
 from .command import Command
 from .subparsers import Subparsers
@@ -153,5 +153,9 @@ class ServeCommand(Command):
             logo_url=args.logo_url,
         )
         async with asyncio.TaskGroup() as task_group:
-            async with mcp.Server(config=config, task_group=task_group):
-                await asyncio.Event().wait()
+            async with http.EnapterAPI(
+                base_url=args.enapter_http_api_url
+            ) as enapter_api:
+                app = core.ApplicationServer(enapter_api=enapter_api)
+                async with mcp.Server(app=app, config=config, task_group=task_group):
+                    await asyncio.Event().wait()

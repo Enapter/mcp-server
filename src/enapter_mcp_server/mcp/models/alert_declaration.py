@@ -1,6 +1,8 @@
-from typing import Any, Self
+from typing import Self
 
 import pydantic
+
+from enapter_mcp_server import domain
 
 from .alert_severity import AlertSeverity
 
@@ -30,13 +32,13 @@ class AlertDeclaration(pydantic.BaseModel):
     conditions: list[str] | None
 
     @classmethod
-    def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
+    def from_domain(cls, declaration: domain.AlertDeclaration) -> Self:
         return cls(
-            name=name,
-            display_name=dto["display_name"],
-            severity=dto["severity"],
-            description=dto.get("description"),
-            troubleshooting=dto.get("troubleshooting"),
-            components=dto.get("components"),
-            conditions=dto.get("conditions"),
+            name=declaration.name,
+            display_name=declaration.display_name,
+            severity=declaration.severity.value,
+            description=declaration.description,
+            troubleshooting=declaration.troubleshooting,
+            components=declaration.components,
+            conditions=declaration.conditions,
         )

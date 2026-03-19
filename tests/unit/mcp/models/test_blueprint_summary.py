@@ -1,34 +1,20 @@
-from typing import Any
-
-from enapter_mcp_server.mcp import models
+from enapter_mcp_server import domain, mcp
 
 
 class TestBlueprintSummary:
     """Test cases for BlueprintSummary model."""
 
-    def test_blueprint_summary_from_manifest(self) -> None:
-        """Test creating BlueprintSummary from manifest."""
-        manifest = {
-            "description": "Electrolyzer device",
-            "vendor": "Enapter",
-            "properties": {
-                "firmware_version": {"type": "string"},
-                "serial_number": {"type": "string"},
-                "model": {"type": "string"},
-            },
-            "telemetry": {
-                "temperature": {"type": "float"},
-                "pressure": {"type": "float"},
-                "voltage": {"type": "float"},
-                "current": {"type": "float"},
-            },
-            "alerts": {
-                "high_temperature": {"severity": "warning"},
-                "low_pressure": {"severity": "error"},
-            },
-        }
+    def test_blueprint_summary_from_domain(self) -> None:
+        """Test creating BlueprintSummary from domain object."""
+        blueprint_summary = domain.BlueprintSummary(
+            description="Electrolyzer device",
+            vendor="Enapter",
+            properties_total=3,
+            telemetry_attributes_total=4,
+            alerts_total=2,
+        )
 
-        summary = models.BlueprintSummary.from_manifest(manifest)
+        summary = mcp.models.BlueprintSummary.from_domain(blueprint_summary)
 
         assert summary.description == "Electrolyzer device"
         assert summary.vendor == "Enapter"
@@ -36,11 +22,17 @@ class TestBlueprintSummary:
         assert summary.telemetry_attributes_total == 4
         assert summary.alerts_total == 2
 
-    def test_blueprint_summary_from_manifest_empty(self) -> None:
-        """Test creating BlueprintSummary from empty manifest."""
-        manifest: dict[str, Any] = {}
+    def test_blueprint_summary_from_domain_empty(self) -> None:
+        """Test creating BlueprintSummary from empty domain object."""
+        blueprint_summary = domain.BlueprintSummary(
+            description=None,
+            vendor=None,
+            properties_total=0,
+            telemetry_attributes_total=0,
+            alerts_total=0,
+        )
 
-        summary = models.BlueprintSummary.from_manifest(manifest)
+        summary = mcp.models.BlueprintSummary.from_domain(blueprint_summary)
 
         assert summary.description is None
         assert summary.vendor is None
@@ -48,16 +40,17 @@ class TestBlueprintSummary:
         assert summary.telemetry_attributes_total == 0
         assert summary.alerts_total == 0
 
-    def test_blueprint_summary_from_manifest_partial(self) -> None:
-        """Test creating BlueprintSummary from partial manifest."""
-        manifest = {
-            "description": "Partial device",
-            "telemetry": {
-                "temp": {"type": "float"},
-            },
-        }
+    def test_blueprint_summary_from_domain_partial(self) -> None:
+        """Test creating BlueprintSummary from partial domain object."""
+        blueprint_summary = domain.BlueprintSummary(
+            description="Partial device",
+            vendor=None,
+            properties_total=0,
+            telemetry_attributes_total=1,
+            alerts_total=0,
+        )
 
-        summary = models.BlueprintSummary.from_manifest(manifest)
+        summary = mcp.models.BlueprintSummary.from_domain(blueprint_summary)
 
         assert summary.description == "Partial device"
         assert summary.vendor is None

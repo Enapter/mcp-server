@@ -1,7 +1,9 @@
 import datetime
-from typing import Any
+from typing import Any, Self
 
 import pydantic
+
+from enapter_mcp_server import domain
 
 from .blueprint_summary import BlueprintSummary
 from .connectivity_status import ConnectivityStatus
@@ -31,3 +33,14 @@ class DeviceContext(pydantic.BaseModel):
     properties: dict[str, Any]
     latest_telemetry: dict[str, Any]
     blueprint_summary: BlueprintSummary
+
+    @classmethod
+    def from_domain(cls, context: domain.DeviceContext) -> Self:
+        return cls(
+            timestamp=context.timestamp,
+            device=Device.from_domain(context.device),
+            connectivity_status=context.connectivity_status.value,
+            properties=context.properties,
+            latest_telemetry=context.latest_telemetry,
+            blueprint_summary=BlueprintSummary.from_domain(context.blueprint_summary),
+        )

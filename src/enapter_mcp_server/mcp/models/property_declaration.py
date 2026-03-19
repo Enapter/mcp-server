@@ -2,6 +2,8 @@ from typing import Any, Self
 
 import pydantic
 
+from enapter_mcp_server import domain
+
 from .property_data_type import PropertyDataType
 
 
@@ -29,12 +31,12 @@ class PropertyDeclaration(pydantic.BaseModel):
     unit: str | None
 
     @classmethod
-    def from_dto(cls, name: str, dto: dict[str, Any]) -> Self:
+    def from_domain(cls, declaration: domain.PropertyDeclaration) -> Self:
         return cls(
-            name=name,
-            display_name=dto["display_name"],
-            data_type=dto["type"],
-            description=dto.get("description"),
-            enum=dto.get("enum"),
-            unit=dto.get("unit"),
+            name=declaration.name,
+            display_name=declaration.display_name,
+            data_type=declaration.data_type.value,
+            description=declaration.description,
+            enum=declaration.enum,
+            unit=declaration.unit,
         )

@@ -1,18 +1,21 @@
-from enapter_mcp_server.mcp import models
+from enapter_mcp_server import domain, mcp
 
 
 class TestPropertyDeclaration:
     """Test cases for PropertyDeclaration model."""
 
-    def test_property_declaration_from_dto(self) -> None:
-        """Test creating PropertyDeclaration from DTO."""
-        dto = {
-            "display_name": "Serial Number",
-            "type": "string",
-            "description": "Device serial number",
-        }
+    def test_property_declaration_from_domain(self) -> None:
+        """Test creating PropertyDeclaration from domain object."""
+        declaration = domain.PropertyDeclaration(
+            name="serial_number",
+            display_name="Serial Number",
+            data_type=domain.PropertyDataType.STRING,
+            description="Device serial number",
+            enum=None,
+            unit=None,
+        )
 
-        prop = models.PropertyDeclaration.from_dto("serial_number", dto)
+        prop = mcp.models.PropertyDeclaration.from_domain(declaration)
 
         assert prop.name == "serial_number"
         assert prop.display_name == "Serial Number"
@@ -21,17 +24,18 @@ class TestPropertyDeclaration:
         assert prop.enum is None
         assert prop.unit is None
 
-    def test_property_declaration_from_dto_with_enum_and_unit(self) -> None:
-        """Test creating PropertyDeclaration from DTO with enum and unit."""
-        dto = {
-            "display_name": "Status",
-            "type": "string",
-            "description": "Device status",
-            "enum": ["active", "inactive", "error"],
-            "unit": "state",
-        }
+    def test_property_declaration_from_domain_with_enum_and_unit(self) -> None:
+        """Test creating PropertyDeclaration from domain object with enum and unit."""
+        declaration = domain.PropertyDeclaration(
+            name="status",
+            display_name="Status",
+            data_type=domain.PropertyDataType.STRING,
+            description="Device status",
+            enum=["active", "inactive", "error"],
+            unit="state",
+        )
 
-        prop = models.PropertyDeclaration.from_dto("status", dto)
+        prop = mcp.models.PropertyDeclaration.from_domain(declaration)
 
         assert prop.name == "status"
         assert prop.display_name == "Status"
@@ -40,14 +44,18 @@ class TestPropertyDeclaration:
         assert prop.enum == ["active", "inactive", "error"]
         assert prop.unit == "state"
 
-    def test_property_declaration_from_dto_minimal(self) -> None:
-        """Test creating PropertyDeclaration from minimal DTO."""
-        dto = {
-            "display_name": "Simple Property",
-            "type": "integer",
-        }
+    def test_property_declaration_from_domain_minimal(self) -> None:
+        """Test creating PropertyDeclaration from minimal domain object."""
+        declaration = domain.PropertyDeclaration(
+            name="simple",
+            display_name="Simple Property",
+            data_type=domain.PropertyDataType.INTEGER,
+            description=None,
+            enum=None,
+            unit=None,
+        )
 
-        prop = models.PropertyDeclaration.from_dto("simple", dto)
+        prop = mcp.models.PropertyDeclaration.from_domain(declaration)
 
         assert prop.name == "simple"
         assert prop.display_name == "Simple Property"

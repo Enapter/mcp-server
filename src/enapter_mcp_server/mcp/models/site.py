@@ -1,7 +1,8 @@
 from typing import Self
 
-import enapter
 import pydantic
+
+from enapter_mcp_server import domain
 
 
 class Site(pydantic.BaseModel):
@@ -21,5 +22,5 @@ class Site(pydantic.BaseModel):
     timezone: str
 
     @classmethod
-    def from_domain(cls, site: enapter.http.api.sites.Site) -> Self:
+    def from_domain(cls, site: domain.Site) -> Self:
         return cls(id=site.id, name=site.name, timezone=site.timezone)

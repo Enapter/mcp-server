@@ -1,6 +1,8 @@
-from typing import Any, Self
+from typing import Self
 
 import pydantic
+
+from enapter_mcp_server import domain
 
 
 class BlueprintSummary(pydantic.BaseModel):
@@ -27,11 +29,11 @@ class BlueprintSummary(pydantic.BaseModel):
     alerts_total: int
 
     @classmethod
-    def from_manifest(cls, manifest: dict[str, Any]) -> Self:
+    def from_domain(cls, blueprint_summary: domain.BlueprintSummary) -> Self:
         return cls(
-            description=manifest.get("description"),
-            vendor=manifest.get("vendor"),
-            properties_total=len(manifest.get("properties", {})),
-            telemetry_attributes_total=len(manifest.get("telemetry", {})),
-            alerts_total=len(manifest.get("alerts", {})),
+            description=blueprint_summary.description,
+            vendor=blueprint_summary.vendor,
+            properties_total=blueprint_summary.properties_total,
+            telemetry_attributes_total=blueprint_summary.telemetry_attributes_total,
+            alerts_total=blueprint_summary.alerts_total,
         )
