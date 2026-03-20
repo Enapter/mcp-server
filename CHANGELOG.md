@@ -1,3 +1,8 @@
+## [0.9.1] - 2026-03-20
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docker)* Ensure reproducible image builds
 ## [0.9.0] - 2026-03-20
 
 ### 🚀 Features
@@ -26,6 +31,7 @@
 - *(setup)* Upgrade `enapter` to `0.17.0`
 - Add git-cliff configuration and initial changelog
 - *(makefile)* Update bump-version to generate changelog using git-cliff
+- *(release)* Bump version to 0.9.0
 ## [0.8.3] - 2026-03-02
 
 ### 🚀 Features
