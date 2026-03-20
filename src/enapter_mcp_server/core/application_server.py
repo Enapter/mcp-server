@@ -20,9 +20,10 @@ class ApplicationServer:
         limit: int,
     ) -> list[domain.Site]:
         sites = []
-        async for site in self._enapter_api.list_sites(auth):
-            if spec.matches(site):
-                sites.append(site)
+        async with self._enapter_api.list_sites(auth) as sites_gen:
+            async for site in sites_gen:
+                if spec.matches(site):
+                    sites.append(site)
 
         sites.sort(key=lambda s: s.id)
         return sites[offset : offset + limit]
@@ -37,17 +38,18 @@ class ApplicationServer:
         devices_total = 0
         devices_online = 0
 
-        async for device_dto in self._enapter_api.list_devices(
+        async with self._enapter_api.list_devices(
             auth, site_id=site_id, expand_connectivity=True
-        ):
-            devices_total += 1
-            is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
-            if is_online:
-                devices_online += 1
+        ) as devices_gen:
+            async for device_dto in devices_gen:
+                devices_total += 1
+                is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
+                if is_online:
+                    devices_online += 1
 
-            if device_dto.type == domain.DeviceType.GATEWAY:
-                gateway_id = device_dto.id
-                gateway_online = is_online
+                if device_dto.type == domain.DeviceType.GATEWAY:
+                    gateway_id = device_dto.id
+                    gateway_online = is_online
 
         return domain.SiteDetails(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
@@ -66,10 +68,11 @@ class ApplicationServer:
         limit: int,
     ) -> list[domain.Device]:
         devices = []
-        async for device_dto in self._enapter_api.list_devices(auth, site_id=spec.site_id):
-            device = device_dto.to_domain()
-            if spec.matches(device):
-                devices.append(device)
+        async with self._enapter_api.list_devices(auth, site_id=spec.site_id) as devices_gen:
+            async for device_dto in devices_gen:
+                device = device_dto.to_domain()
+                if spec.matches(device):
+                    devices.append(device)
 
         devices.sort(key=lambda d: d.id)
         return devices[offset : offset + limit]

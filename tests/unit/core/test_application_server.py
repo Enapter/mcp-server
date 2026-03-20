@@ -1,6 +1,8 @@
 import datetime
 from typing import Any, AsyncGenerator
 
+import enapter
+
 from enapter_mcp_server import core, domain
 
 
@@ -17,6 +19,7 @@ class MockEnapterAPI:
         self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
 
+    @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
     ) -> AsyncGenerator[domain.Site, None]:
@@ -29,6 +32,7 @@ class MockEnapterAPI:
                 return site
         raise ValueError(f"Site {site_id} not found")
 
+    @enapter.async_.generator
     async def list_devices(
         self,
         auth: core.AuthConfig,

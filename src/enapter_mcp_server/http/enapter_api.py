@@ -20,6 +20,7 @@ class EnapterAPI:
     async def __aexit__(self, *args: Any) -> None:
         await self._transport.__aexit__(*args)
 
+    @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
     ) -> AsyncGenerator[domain.Site, None]:
@@ -35,6 +36,7 @@ class EnapterAPI:
             site = await client.sites.get(site_id)
             return domain.Site(id=site.id, name=site.name, timezone=site.timezone)
 
+    @enapter.async_.generator
     async def list_devices(
         self,
         auth: core.AuthConfig,
