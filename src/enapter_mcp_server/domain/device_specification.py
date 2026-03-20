@@ -26,4 +26,3 @@ class DeviceSpecification:
         if self._name_re is not None and not self._name_re.search(device.name):
             return False
         return True
-

@@ -68,7 +68,9 @@ class ApplicationServer:
         limit: int,
     ) -> list[domain.Device]:
         devices = []
-        async with self._enapter_api.list_devices(auth, site_id=spec.site_id) as devices_gen:
+        async with self._enapter_api.list_devices(
+            auth, site_id=spec.site_id
+        ) as devices_gen:
             async for device_dto in devices_gen:
                 device = device_dto.to_domain()
                 if spec.matches(device):

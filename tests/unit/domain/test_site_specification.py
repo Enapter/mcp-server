@@ -10,10 +10,12 @@ class TestSiteSpecification:
     def test_matches_timezone(self) -> None:
         spec = domain.SiteSpecification(timezone_pattern="Berlin")
         assert (
-            spec.matches(domain.Site(id="1", name="A", timezone="Europe/Berlin")) is True
+            spec.matches(domain.Site(id="1", name="A", timezone="Europe/Berlin"))
+            is True
         )
         assert (
-            spec.matches(domain.Site(id="2", name="A", timezone="Europe/London")) is False
+            spec.matches(domain.Site(id="2", name="A", timezone="Europe/London"))
+            is False
         )
 
     def test_matches_both(self) -> None:

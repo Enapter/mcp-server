@@ -25,7 +25,8 @@ class SiteSpecification:
     def matches(self, site: Site) -> bool:
         if self._name_re is not None and not self._name_re.search(site.name):
             return False
-        if self._timezone_re is not None and not self._timezone_re.search(site.timezone):
+        if self._timezone_re is not None and not self._timezone_re.search(
+            site.timezone
+        ):
             return False
         return True
-
