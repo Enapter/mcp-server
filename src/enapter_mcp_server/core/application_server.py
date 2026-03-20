@@ -19,12 +19,9 @@ class ApplicationServer:
         offset: int,
         limit: int,
     ) -> list[domain.Site]:
-        name_regexp = re.compile(spec.name_pattern)
-        timezone_regexp = re.compile(spec.timezone_pattern)
-
         sites = []
         async for site in self._enapter_api.list_sites(auth):
-            if name_regexp.search(site.name) and timezone_regexp.search(site.timezone):
+            if spec.matches(site):
                 sites.append(site)
 
         sites.sort(key=lambda s: s.id)
@@ -68,14 +65,11 @@ class ApplicationServer:
         offset: int,
         limit: int,
     ) -> list[domain.Device]:
-        name_regexp = re.compile(spec.name_pattern)
-
         devices = []
         async for device_dto in self._enapter_api.list_devices(auth, site_id=spec.site_id):
-            if (
-                spec.device_type is None or device_dto.type == spec.device_type
-            ) and name_regexp.search(device_dto.name):
-                devices.append(device_dto.to_domain())
+            device = device_dto.to_domain()
+            if spec.matches(device):
+                devices.append(device)
 
         devices.sort(key=lambda d: d.id)
         return devices[offset : offset + limit]
