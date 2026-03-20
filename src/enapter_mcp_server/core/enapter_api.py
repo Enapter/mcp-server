@@ -4,6 +4,7 @@ from typing import Any, AsyncGenerator, Protocol
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
+from .device_dto import DeviceDTO
 
 
 class EnapterAPI(Protocol):
@@ -18,7 +19,7 @@ class EnapterAPI(Protocol):
         auth: AuthConfig,
         site_id: str | None = None,
         expand_connectivity: bool = False,
-    ) -> AsyncGenerator[domain.Device, None]:
+    ) -> AsyncGenerator[DeviceDTO, None]:
         yield  # type: ignore
 
     async def get_device(
@@ -28,7 +29,7 @@ class EnapterAPI(Protocol):
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
-    ) -> domain.Device: ...
+    ) -> DeviceDTO: ...
 
     async def get_latest_telemetry(
         self, auth: AuthConfig, device_id: str, attributes: list[str]

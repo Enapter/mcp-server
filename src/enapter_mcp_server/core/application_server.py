@@ -41,16 +41,16 @@ class ApplicationServer:
         devices_total = 0
         devices_online = 0
 
-        async for device in self._enapter_api.list_devices(
+        async for device_dto in self._enapter_api.list_devices(
             auth, site_id=site_id, expand_connectivity=True
         ):
             devices_total += 1
-            is_online = device.connectivity == domain.ConnectivityStatus.ONLINE
+            is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
             if is_online:
                 devices_online += 1
 
-            if device.type == domain.DeviceType.GATEWAY:
-                gateway_id = device.id
+            if device_dto.type == domain.DeviceType.GATEWAY:
+                gateway_id = device_dto.id
                 gateway_online = is_online
 
         return domain.SiteContext(
@@ -74,11 +74,11 @@ class ApplicationServer:
         name_regexp = re.compile(name_pattern)
 
         devices = []
-        async for device in self._enapter_api.list_devices(auth, site_id=site_id):
+        async for device_dto in self._enapter_api.list_devices(auth, site_id=site_id):
             if (
-                device_type is None or device.type == device_type
-            ) and name_regexp.search(device.name):
-                devices.append(device)
+                device_type is None or device_dto.type == device_type
+            ) and name_regexp.search(device_dto.name):
+                devices.append(device_dto.to_domain())
 
         devices.sort(key=lambda d: d.id)
         return devices[offset : offset + limit]
@@ -86,36 +86,38 @@ class ApplicationServer:
     async def get_device_context(
         self, auth: AuthConfig, device_id: str
     ) -> domain.DeviceContext:
-        device = await self._enapter_api.get_device(
+        device_dto = await self._enapter_api.get_device(
             auth,
             device_id,
             expand_manifest=True,
             expand_connectivity=True,
             expand_properties=True,
         )
-        assert device.manifest is not None
-        assert device.connectivity is not None
-        assert device.properties is not None
+        assert device_dto.manifest is not None
+        assert device_dto.connectivity is not None
+        assert device_dto.properties is not None
 
         latest_telemetry = await self._enapter_api.get_latest_telemetry(
-            auth, device_id, list(device.manifest.get("telemetry", {}))
+            auth, device_id, list(device_dto.manifest.get("telemetry", {}))
         )
 
         blueprint_summary = domain.BlueprintSummary(
-            description=device.manifest.get("description"),
-            vendor=device.manifest.get("vendor"),
-            properties_total=len(device.manifest.get("properties", {})),
-            telemetry_attributes_total=len(device.manifest.get("telemetry", {})),
-            alerts_total=len(device.manifest.get("alerts", {})),
+            description=device_dto.manifest.get("description"),
+            vendor=device_dto.manifest.get("vendor"),
+            properties_total=len(device_dto.manifest.get("properties", {})),
+            telemetry_attributes_total=len(device_dto.manifest.get("telemetry", {})),
+            alerts_total=len(device_dto.manifest.get("alerts", {})),
         )
+
+        device = device_dto.to_domain()
 
         return domain.DeviceContext(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             device=device,
-            connectivity_status=device.connectivity,
+            connectivity_status=device_dto.connectivity,
             properties={
-                k: device.properties.get(k)
-                for k in device.manifest.get("properties", {})
+                k: device_dto.properties.get(k)
+                for k in device_dto.manifest.get("properties", {})
             },
             latest_telemetry=latest_telemetry,
             blueprint_summary=blueprint_summary,
@@ -135,10 +137,10 @@ class ApplicationServer:
         | domain.AlertDeclaration
     ]:
         name_regexp = re.compile(name_pattern)
-        device = await self._enapter_api.get_device(
+        device_dto = await self._enapter_api.get_device(
             auth, device_id, expand_manifest=True
         )
-        assert device.manifest is not None
+        assert device_dto.manifest is not None
 
         entities: list[
             domain.PropertyDeclaration
@@ -157,7 +159,7 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in device.manifest.get("properties", {}).items()
+                    for name, dto in device_dto.manifest.get("properties", {}).items()
                 ]
             case domain.BlueprintSection.TELEMETRY:
                 entities = [
@@ -169,7 +171,7 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in device.manifest.get("telemetry", {}).items()
+                    for name, dto in device_dto.manifest.get("telemetry", {}).items()
                 ]
             case domain.BlueprintSection.ALERTS:
                 entities = [
@@ -182,7 +184,7 @@ class ApplicationServer:
                         components=dto.get("components"),
                         conditions=dto.get("conditions"),
                     )
-                    for name, dto in device.manifest.get("alerts", {}).items()
+                    for name, dto in device_dto.manifest.get("alerts", {}).items()
                 ]
             case _:
                 raise NotImplementedError(section)

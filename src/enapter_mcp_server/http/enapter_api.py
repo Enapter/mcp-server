@@ -40,7 +40,7 @@ class EnapterAPI:
         auth: core.AuthConfig,
         site_id: str | None = None,
         expand_connectivity: bool = False,
-    ) -> AsyncGenerator[domain.Device, None]:
+    ) -> AsyncGenerator[core.DeviceDTO, None]:
         async with self._new_client(auth) as client:
             async with client.devices.list(
                 site_id=site_id, expand_connectivity=expand_connectivity
@@ -52,7 +52,7 @@ class EnapterAPI:
                             device.connectivity.status.value
                         )
 
-                    yield domain.Device(
+                    yield core.DeviceDTO(
                         id=device.id,
                         name=device.name,
                         site_id=device.site_id,
@@ -67,7 +67,7 @@ class EnapterAPI:
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
-    ) -> domain.Device:
+    ) -> core.DeviceDTO:
         async with self._new_client(auth) as client:
             device = await client.devices.get(
                 device_id,
@@ -82,7 +82,7 @@ class EnapterAPI:
                     device.connectivity.status.value
                 )
 
-            return domain.Device(
+            return core.DeviceDTO(
                 id=device.id,
                 name=device.name,
                 site_id=device.site_id,

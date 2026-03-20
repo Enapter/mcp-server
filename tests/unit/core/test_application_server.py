@@ -8,7 +8,7 @@ class MockEnapterAPI:
     def __init__(
         self,
         sites: list[domain.Site] | None = None,
-        devices: list[domain.Device] | None = None,
+        devices: list[core.DeviceDTO] | None = None,
         telemetry: dict[str, Any] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
     ):
@@ -34,7 +34,7 @@ class MockEnapterAPI:
         auth: core.AuthConfig,
         site_id: str | None = None,
         expand_connectivity: bool = False,
-    ) -> AsyncGenerator[domain.Device, None]:
+    ) -> AsyncGenerator[core.DeviceDTO, None]:
         for device in self._devices:
             if site_id is None or device.site_id == site_id:
                 yield device
@@ -46,7 +46,7 @@ class MockEnapterAPI:
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
-    ) -> domain.Device:
+    ) -> core.DeviceDTO:
         for device in self._devices:
             if device.id == device_id:
                 return device
@@ -108,14 +108,14 @@ class TestApplicationServer:
     async def test_get_site_context(self) -> None:
         site = domain.Site(id="site-1", name="Site 1", timezone="UTC")
         devices = [
-            domain.Device(
+            core.DeviceDTO(
                 id="dev-1",
                 name="Gateway",
                 site_id="site-1",
                 type=domain.DeviceType.GATEWAY,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
-            domain.Device(
+            core.DeviceDTO(
                 id="dev-2",
                 name="Device 2",
                 site_id="site-1",
@@ -137,13 +137,13 @@ class TestApplicationServer:
 
     async def test_search_devices(self) -> None:
         devices = [
-            domain.Device(
+            core.DeviceDTO(
                 id="1", name="Alpha", site_id="s1", type=domain.DeviceType.NATIVE
             ),
-            domain.Device(
+            core.DeviceDTO(
                 id="2", name="Beta", site_id="s1", type=domain.DeviceType.GATEWAY
             ),
-            domain.Device(
+            core.DeviceDTO(
                 id="3", name="Gamma", site_id="s2", type=domain.DeviceType.NATIVE
             ),
         ]
@@ -177,7 +177,7 @@ class TestApplicationServer:
             "telemetry": {"t1": {}},
             "alerts": {"a1": {}},
         }
-        device = domain.Device(
+        device = core.DeviceDTO(
             id="dev-1",
             name="Dev 1",
             site_id="s1",
@@ -207,7 +207,7 @@ class TestApplicationServer:
             "telemetry": {"t1": {"display_name": "T1", "type": "float", "unit": "V"}},
             "alerts": {"a1": {"display_name": "A1", "severity": "warning"}},
         }
-        device = domain.Device(
+        device = core.DeviceDTO(
             id="dev-1",
             name="Dev 1",
             site_id="s1",
