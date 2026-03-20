@@ -15,13 +15,12 @@ class ApplicationServer:
     async def search_sites(
         self,
         auth: AuthConfig,
-        name_pattern: str,
-        timezone_pattern: str,
+        spec: domain.SiteSpecification,
         offset: int,
         limit: int,
     ) -> list[domain.Site]:
-        name_regexp = re.compile(name_pattern)
-        timezone_regexp = re.compile(timezone_pattern)
+        name_regexp = re.compile(spec.name_pattern)
+        timezone_regexp = re.compile(spec.timezone_pattern)
 
         sites = []
         async for site in self._enapter_api.list_sites(auth):
@@ -65,18 +64,16 @@ class ApplicationServer:
     async def search_devices(
         self,
         auth: AuthConfig,
-        site_id: str | None,
-        device_type: domain.DeviceType | None,
-        name_pattern: str,
+        spec: domain.DeviceSpecification,
         offset: int,
         limit: int,
     ) -> list[domain.Device]:
-        name_regexp = re.compile(name_pattern)
+        name_regexp = re.compile(spec.name_pattern)
 
         devices = []
-        async for device_dto in self._enapter_api.list_devices(auth, site_id=site_id):
+        async for device_dto in self._enapter_api.list_devices(auth, site_id=spec.site_id):
             if (
-                device_type is None or device_dto.type == device_type
+                spec.device_type is None or device_dto.type == spec.device_type
             ) and name_regexp.search(device_dto.name):
                 devices.append(device_dto.to_domain())
 

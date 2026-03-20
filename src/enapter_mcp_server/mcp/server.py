@@ -139,10 +139,13 @@ class Server(enapter.async_.Routine):
             search_devices: Search for devices within a specific site.
         """
         auth = await self._get_auth_config()
-        sites = await self._app.search_sites(
-            auth=auth,
+        spec = domain.SiteSpecification(
             name_pattern=name_pattern,
             timezone_pattern=timezone_pattern,
+        )
+        sites = await self._app.search_sites(
+            auth=auth,
+            spec=spec,
             offset=offset,
             limit=limit,
         )
@@ -191,11 +194,14 @@ class Server(enapter.async_.Routine):
         """
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
-        devices = await self._app.search_devices(
-            auth=auth,
+        spec = domain.DeviceSpecification(
             site_id=site_id,
             device_type=device_type,
             name_pattern=name_pattern,
+        )
+        devices = await self._app.search_devices(
+            auth=auth,
+            spec=spec,
             offset=offset,
             limit=limit,
         )

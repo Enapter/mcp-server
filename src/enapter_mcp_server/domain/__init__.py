@@ -5,12 +5,14 @@ from .blueprint_summary import BlueprintSummary
 from .connectivity_status import ConnectivityStatus
 from .device import Device
 from .device_details import DeviceDetails
+from .device_specification import DeviceSpecification
 from .device_type import DeviceType
 from .historical_telemetry import HistoricalTelemetry
 from .property_data_type import PropertyDataType
 from .property_declaration import PropertyDeclaration
 from .site import Site
 from .site_details import SiteDetails
+from .site_specification import SiteSpecification
 from .telemetry_attribute_data_type import TelemetryAttributeDataType
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
@@ -22,12 +24,14 @@ __all__ = [
     "ConnectivityStatus",
     "Device",
     "DeviceDetails",
+    "DeviceSpecification",
     "DeviceType",
     "HistoricalTelemetry",
     "PropertyDataType",
     "PropertyDeclaration",
     "Site",
     "SiteDetails",
+    "SiteSpecification",
     "TelemetryAttributeDataType",
     "TelemetryAttributeDeclaration",
 ]

@@ -85,14 +85,20 @@ class TestApplicationServer:
 
         # Test name filtering
         result = await app.search_sites(
-            auth, name_pattern="Alpha", timezone_pattern=".*", offset=0, limit=20
+            auth,
+            spec=domain.SiteSpecification(name_pattern="Alpha", timezone_pattern=".*"),
+            offset=0,
+            limit=20,
         )
         assert len(result) == 1
         assert result[0].name == "Alpha"
 
         # Test timezone filtering
         result = await app.search_sites(
-            auth, name_pattern=".*", timezone_pattern="Berlin", offset=0, limit=20
+            auth,
+            spec=domain.SiteSpecification(name_pattern=".*", timezone_pattern="Berlin"),
+            offset=0,
+            limit=20,
         )
         assert len(result) == 2
         assert result[0].name == "Alpha"
@@ -100,7 +106,10 @@ class TestApplicationServer:
 
         # Test sorting and pagination
         result = await app.search_sites(
-            auth, name_pattern=".*", timezone_pattern=".*", offset=0, limit=1
+            auth,
+            spec=domain.SiteSpecification(name_pattern=".*", timezone_pattern=".*"),
+            offset=0,
+            limit=1,
         )
         assert len(result) == 1
         assert result[0].id == "1"
@@ -153,16 +162,23 @@ class TestApplicationServer:
 
         # Filter by site
         result = await app.search_devices(
-            auth, site_id="s1", device_type=None, name_pattern=".*", offset=0, limit=10
+            auth,
+            spec=domain.DeviceSpecification(
+                site_id="s1", device_type=None, name_pattern=".*"
+            ),
+            offset=0,
+            limit=10,
         )
         assert len(result) == 2
 
         # Filter by type
         result = await app.search_devices(
             auth,
-            site_id=None,
-            device_type=domain.DeviceType.GATEWAY,
-            name_pattern=".*",
+            spec=domain.DeviceSpecification(
+                site_id=None,
+                device_type=domain.DeviceType.GATEWAY,
+                name_pattern=".*",
+            ),
             offset=0,
             limit=10,
         )
