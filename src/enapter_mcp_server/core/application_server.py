@@ -31,9 +31,9 @@ class ApplicationServer:
         sites.sort(key=lambda s: s.id)
         return sites[offset : offset + limit]
 
-    async def get_site_context(
+    async def get_site_details(
         self, auth: AuthConfig, site_id: str
-    ) -> domain.SiteContext:
+    ) -> domain.SiteDetails:
         site = await self._enapter_api.get_site(auth, site_id)
 
         gateway_id: str | None = None
@@ -53,7 +53,7 @@ class ApplicationServer:
                 gateway_id = device_dto.id
                 gateway_online = is_online
 
-        return domain.SiteContext(
+        return domain.SiteDetails(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             site=site,
             gateway_id=gateway_id,
@@ -83,9 +83,9 @@ class ApplicationServer:
         devices.sort(key=lambda d: d.id)
         return devices[offset : offset + limit]
 
-    async def get_device_context(
+    async def get_device_details(
         self, auth: AuthConfig, device_id: str
-    ) -> domain.DeviceContext:
+    ) -> domain.DeviceDetails:
         device_dto = await self._enapter_api.get_device(
             auth,
             device_id,
@@ -111,7 +111,7 @@ class ApplicationServer:
 
         device = device_dto.to_domain()
 
-        return domain.DeviceContext(
+        return domain.DeviceDetails(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             device=device,
             connectivity_status=device_dto.connectivity,

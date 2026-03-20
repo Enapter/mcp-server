@@ -21,7 +21,7 @@ INSTRUCTIONS = """This MCP server exposes the Enapter HTTP API, enabling managem
 Workflow:
 
 - Start by searching for sites or devices if IDs are not provided.
-- Use `get_site_context` or `get_device_context` to get a comprehensive view.
+- Use `get_site_details` or `get_device_details` to get a comprehensive view.
 - Drill down into specific blueprint sections or historical data as needed.
 """
 
@@ -105,9 +105,9 @@ class Server(enapter.async_.Routine):
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
         read_only_tools: list[mcp.types.AnyFunction] = [
             self.search_sites,
-            self.get_site_context,
+            self.get_site_details,
             self.search_devices,
-            self.get_device_context,
+            self.get_device_details,
             self.read_blueprint,
             self.get_historical_telemetry,
         ]
@@ -135,7 +135,7 @@ class Server(enapter.async_.Routine):
             A list of sites matching the specified patterns sorted by site ID.
 
         Related tools:
-            get_site_context: Get detailed context about a specific site.
+            get_site_details: Get detailed information about a specific site.
             search_devices: Search for devices within a specific site.
         """
         auth = await self._get_auth_config()
@@ -148,21 +148,21 @@ class Server(enapter.async_.Routine):
         )
         return [models.Site.from_domain(s) for s in sites]
 
-    async def get_site_context(self, site_id: str) -> models.SiteContext:
-        """Get site context by site ID.
+    async def get_site_details(self, site_id: str) -> models.SiteDetails:
+        """Get site details by site ID.
 
         Args:
             site_id: The ID of the site.
 
         Returns:
-            The site context including site details and device statistics.
+            The site details including site details and device statistics.
 
         Related tools:
             search_devices: Search for devices within a specific site.
         """
         auth = await self._get_auth_config()
-        context = await self._app.get_site_context(auth=auth, site_id=site_id)
-        return models.SiteContext.from_domain(context)
+        details = await self._app.get_site_details(auth=auth, site_id=site_id)
+        return models.SiteDetails.from_domain(details)
 
     async def search_devices(
         self,
@@ -185,7 +185,7 @@ class Server(enapter.async_.Routine):
             A list of devices matching the specified criteria sorted by device ID.
 
         Related tools:
-            get_device_context: Get detailed context about a specific device.
+            get_device_details: Get detailed information about a specific device.
             read_blueprint_section: Read specific sections of a device's blueprint.
             get_historical_telemetry: Get historical telemetry data of a device.
         """
@@ -201,14 +201,14 @@ class Server(enapter.async_.Routine):
         )
         return [models.Device.from_domain(d) for d in devices]
 
-    async def get_device_context(self, device_id: str) -> models.DeviceContext:
-        """Get device context by device ID.
+    async def get_device_details(self, device_id: str) -> models.DeviceDetails:
+        """Get device details by device ID.
 
         Args:
             device_id: The ID of the device to retrieve.
 
         Returns:
-            The device context including connectivity status, properties,
+            The device details including connectivity status, properties,
             latest telemetry, and blueprint summary.
 
         Related tools:
@@ -216,8 +216,8 @@ class Server(enapter.async_.Routine):
             get_historical_telemetry: Get historical telemetry data of the device.
         """
         auth = await self._get_auth_config()
-        context = await self._app.get_device_context(auth=auth, device_id=device_id)
-        return models.DeviceContext.from_domain(context)
+        details = await self._app.get_device_details(auth=auth, device_id=device_id)
+        return models.DeviceDetails.from_domain(details)
 
     async def read_blueprint(
         self,

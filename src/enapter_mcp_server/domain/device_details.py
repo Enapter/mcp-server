@@ -8,7 +8,7 @@ from .device import Device
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class DeviceContext:
+class DeviceDetails:
     timestamp: datetime.datetime
     device: Device
     connectivity_status: ConnectivityStatus

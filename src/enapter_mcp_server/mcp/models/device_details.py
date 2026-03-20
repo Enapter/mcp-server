@@ -10,14 +10,14 @@ from .connectivity_status import ConnectivityStatus
 from .device import Device
 
 
-class DeviceContext(pydantic.BaseModel):
-    """Represents the context of a device.
+class DeviceDetails(pydantic.BaseModel):
+    """Represents the details of a device.
 
-    Device context includes metadata about the device, its connectivity status,
+    Device details include metadata about the device, its connectivity status,
     properties, latest telemetry, and a summary of its blueprint.
 
     Attributes:
-        timestamp: The timestamp when the context was recorded.
+        timestamp: The timestamp when the details were recorded.
         device: The device information.
         connectivity_status: The connectivity status of the device.
         properties: A dictionary of device properties. Device property is
@@ -35,12 +35,12 @@ class DeviceContext(pydantic.BaseModel):
     blueprint_summary: BlueprintSummary
 
     @classmethod
-    def from_domain(cls, context: domain.DeviceContext) -> Self:
+    def from_domain(cls, details: domain.DeviceDetails) -> Self:
         return cls(
-            timestamp=context.timestamp,
-            device=Device.from_domain(context.device),
-            connectivity_status=context.connectivity_status.value,
-            properties=context.properties,
-            latest_telemetry=context.latest_telemetry,
-            blueprint_summary=BlueprintSummary.from_domain(context.blueprint_summary),
+            timestamp=details.timestamp,
+            device=Device.from_domain(details.device),
+            connectivity_status=details.connectivity_status.value,
+            properties=details.properties,
+            latest_telemetry=details.latest_telemetry,
+            blueprint_summary=BlueprintSummary.from_domain(details.blueprint_summary),
         )

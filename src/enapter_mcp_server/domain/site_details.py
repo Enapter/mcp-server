@@ -5,7 +5,7 @@ from .site import Site
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class SiteContext:
+class SiteDetails:
     timestamp: datetime.datetime
     site: Site
     gateway_id: str | None

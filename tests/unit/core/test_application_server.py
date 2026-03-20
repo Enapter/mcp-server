@@ -105,7 +105,7 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].id == "1"
 
-    async def test_get_site_context(self) -> None:
+    async def test_get_site_details(self) -> None:
         site = domain.Site(id="site-1", name="Site 1", timezone="UTC")
         devices = [
             core.DeviceDTO(
@@ -127,13 +127,13 @@ class TestApplicationServer:
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
-        context = await app.get_site_context(auth, "site-1")
+        details = await app.get_site_details(auth, "site-1")
 
-        assert context.site.id == "site-1"
-        assert context.gateway_id == "dev-1"
-        assert context.gateway_online is True
-        assert context.devices_total == 2
-        assert context.devices_online == 1
+        assert details.site.id == "site-1"
+        assert details.gateway_id == "dev-1"
+        assert details.gateway_online is True
+        assert details.devices_total == 2
+        assert details.devices_online == 1
 
     async def test_search_devices(self) -> None:
         devices = [
@@ -169,7 +169,7 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].id == "2"
 
-    async def test_get_device_context(self) -> None:
+    async def test_get_device_details(self) -> None:
         manifest = {
             "description": "Desc",
             "vendor": "Enapter",
@@ -191,13 +191,13 @@ class TestApplicationServer:
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
-        context = await app.get_device_context(auth, "dev-1")
+        details = await app.get_device_details(auth, "dev-1")
 
-        assert context.device.id == "dev-1"
-        assert context.connectivity_status == domain.ConnectivityStatus.ONLINE
-        assert context.properties == {"p1": "v1"}
-        assert context.latest_telemetry == {"t1": 42}
-        assert context.blueprint_summary.properties_total == 1
+        assert details.device.id == "dev-1"
+        assert details.connectivity_status == domain.ConnectivityStatus.ONLINE
+        assert details.properties == {"p1": "v1"}
+        assert details.latest_telemetry == {"t1": 42}
+        assert details.blueprint_summary.properties_total == 1
 
     async def test_read_blueprint(self) -> None:
         manifest = {
