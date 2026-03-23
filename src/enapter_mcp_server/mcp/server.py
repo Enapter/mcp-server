@@ -103,17 +103,21 @@ class Server(enapter.async_.Routine):
                 raise NotImplementedError(f"{jwt_store_url.scheme}")
 
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        read_only_tools: list[mcp.types.AnyFunction] = [
-            self.search_sites,
-            self.get_site_details,
-            self.search_devices,
-            self.get_device_details,
-            self.read_blueprint,
-            self.get_historical_telemetry,
+        read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
+            (self.search_sites, "Search Sites"),
+            (self.get_site_details, "Get Site Details"),
+            (self.search_devices, "Search Devices"),
+            (self.get_device_details, "Get Device Details"),
+            (self.read_blueprint, "Read Blueprint"),
+            (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
-        for tool in read_only_tools:
+        for tool, title in read_only_tools:
             fastmcp_server.tool(
-                tool, annotations=mcp.types.ToolAnnotations(readOnlyHint=True)
+                tool,
+                annotations=mcp.types.ToolAnnotations(
+                    readOnlyHint=True,
+                    title=title,
+                ),
             )
 
     async def search_sites(
