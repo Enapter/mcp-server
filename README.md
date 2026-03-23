@@ -3,27 +3,30 @@
 [![CI](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml)
 [![Docker Hub](https://img.shields.io/docker/v/enapter/mcp-server?label=Docker%20Hub)](https://hub.docker.com/r/enapter/mcp-server)
 
-## Overview
-
 A Model Context Protocol (MCP) server that provides seamless integration with
-the [Enapter EMS](https://www.enapter.com/). This server enables AI assistants
-and other MCP clients to interact with Enapter sites, devices and telemetry
-data.
+the [Enapter EMS](https://enapter.com/en/enapter-products-aem/ems-toolkit/).
+This server enables AI assistants and other MCP clients to interact with
+Enapter sites, devices and telemetry data.
 
-## Tools
+## Connecting Your AI Application
 
-The server exposes the following tools for interacting with Enapter EMS:
+The Enapter MCP Server is available as a public hosted service at
+`https://mcp.enapter.com/mcp`. It uses streamable HTTP transport and OAuth 2.0
+for authentication.
 
-- **`search_sites`**: Search sites with regex filtering (name, timezone) and pagination
-- **`get_site_details`**: Get detailed site information with device statistics
-- **`search_devices`**: Filter devices by site, type, and name pattern
-- **`get_device_details`**: Get comprehensive device data (connectivity, properties, telemetry)
-- **`read_blueprint`**: Access device blueprint sections (properties, telemetry, alerts)
-- **`get_historical_telemetry`**: Retrieve time-series telemetry with configurable granularity
+For specific instructions on how to connect your preferred AI client, please
+refer to the following guides:
 
-## Usage
+- [Claude Desktop](https://v3.developers.enapter.com/docs/claude-desktop-mcp/)
+- [Claude Mobile](https://v3.developers.enapter.com/docs/claude-mobile-mcp/)
+- [Claude Code](https://v3.developers.enapter.com/docs/claude-code-mcp/)
+- [Copilot Studio](https://v3.developers.enapter.com/docs/copilot-studio-mcp/)
+- [ChatGPT](https://v3.developers.enapter.com/docs/chatgpt-mcp/)
 
-### Run Using Docker
+## Self-Hosting
+
+If you prefer to run your own instance, you can self-host the server using
+Docker:
 
 ```bash
 docker run --rm --name enapter-mcp-server \
@@ -31,23 +34,33 @@ docker run --rm --name enapter-mcp-server \
   enapter/mcp-server:v0.9.1
 ```
 
-### Configure Env Variables
+The server can be configured using environment variables and command-line
+arguments.
 
-- **`ENAPTER_MCP_SERVER_ADDRESS`**: Server listening address (default: `127.0.0.1:8000`)
-- **`ENAPTER_HTTP_API_URL`**: Enapter HTTP API base URL (default: `https://api.enapter.com`)
+## Available Tools
 
-## Authentication
+The server exposes the following tools for interacting with the Enapter EMS:
 
-The server requires authentication via the `X-Enapter-Auth-Token` HTTP header for all tool invocations.
-MCP clients must provide this token when making requests to the server.
-
-To obtain an API token, see the [API
-reference](https://v3.developers.enapter.com/reference/http/intro#api-token).
+| Tool                       | Description                                                         |
+| -------------------------- | ------------------------------------------------------------------- |
+| `search_sites`             | Search sites with regex filtering (name, timezone) and pagination   |
+| `get_site_details`         | Get detailed site information with device statistics                |
+| `search_devices`           | Filter devices by site, type, and name pattern                      |
+| `get_device_details`       | Get comprehensive device data (connectivity, properties, telemetry) |
+| `read_blueprint`           | Access device blueprint sections (properties, telemetry, alerts)    |
+| `get_historical_telemetry` | Retrieve time-series telemetry with configurable granularity        |
 
 ## Support
 
-For issues, questions, or contributions, please use the [GitHub
-Issues](https://github.com/Enapter/mcp-server/issues) page.
+For issues, questions, or contributions, please:
+
+- Open a [GitHub Issue](https://github.com/Enapter/mcp-server/issues).
+- Join our [Discord server](https://discord.com/invite/TCaEZs3qpe).
+
+## Privacy Policy
+
+For information about how we handle data, please refer to the [Enapter Privacy
+Policy](https://www.enapter.com/privacy-policy).
 
 ---
 
