@@ -3,6 +3,8 @@
 [![CI](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml)
 [![Docker Hub](https://img.shields.io/docker/v/enapter/mcp-server?label=Docker%20Hub)](https://hub.docker.com/r/enapter/mcp-server)
 
+[![Enapter Server MCP server](https://glama.ai/mcp/servers/Enapter/mcp-server/badges/card.svg)](https://glama.ai/mcp/servers/Enapter/mcp-server)
+
 ## Overview
 
 A Model Context Protocol (MCP) server that provides seamless integration with
