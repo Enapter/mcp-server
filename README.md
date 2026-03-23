@@ -57,6 +57,7 @@ For issues, questions, or contributions, please:
 
 - Open a [GitHub Issue](https://github.com/Enapter/mcp-server/issues).
 - Join our [Discord server](https://discord.com/invite/TCaEZs3qpe).
+- Check our [Contributing Guide](CONTRIBUTING.md).
 
 ## Privacy Policy
 
