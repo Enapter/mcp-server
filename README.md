@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Enapter/mcp-server/actions/workflows/ci.yml)
 [![Docker Hub](https://img.shields.io/docker/v/enapter/mcp-server?label=Docker%20Hub)](https://hub.docker.com/r/enapter/mcp-server)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A Model Context Protocol (MCP) server that provides seamless integration with
 the [Enapter EMS](https://enapter.com/en/enapter-products-aem/ems-toolkit/).
