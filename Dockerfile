@@ -14,3 +14,5 @@ RUN pipenv install --system --deploy
 STOPSIGNAL SIGINT
 
 ENTRYPOINT ["python", "-m", "enapter_mcp_server"]
+
+CMD ["serve"]
