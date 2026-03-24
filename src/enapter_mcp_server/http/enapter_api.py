@@ -94,18 +94,6 @@ class EnapterAPI:
                 manifest=device.manifest,
             )
 
-    async def get_latest_telemetry(
-        self, auth: core.AuthConfig, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]:
-        async with self._new_client(auth) as client:
-            latest_telemetry = (await client.telemetry.latest({device_id: attributes}))[
-                device_id
-            ]
-            return {
-                k: v.value if v is not None else None
-                for k, v in latest_telemetry.items()
-            }
-
     async def get_historical_telemetry(
         self,
         auth: core.AuthConfig,

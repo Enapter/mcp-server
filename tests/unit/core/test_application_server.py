@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 import enapter
 
@@ -11,12 +11,10 @@ class MockEnapterAPI:
         self,
         sites: list[domain.Site] | None = None,
         devices: list[core.DeviceDTO] | None = None,
-        telemetry: dict[str, Any] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
-        self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
 
     @enapter.async_.generator
@@ -55,11 +53,6 @@ class MockEnapterAPI:
             if device.id == device_id:
                 return device
         raise ValueError(f"Device {device_id} not found")
-
-    async def get_latest_telemetry(
-        self, auth: core.AuthConfig, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]:
-        return self._telemetry.get(device_id, {})
 
     async def get_historical_telemetry(
         self,
@@ -206,8 +199,7 @@ class TestApplicationServer:
             properties={"p1": "v1"},
             manifest=manifest,
         )
-        telemetry = {"dev-1": {"t1": 42}}
-        api = MockEnapterAPI(devices=[device], telemetry=telemetry)
+        api = MockEnapterAPI(devices=[device])
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -216,7 +208,6 @@ class TestApplicationServer:
         assert details.device.id == "dev-1"
         assert details.connectivity_status == domain.ConnectivityStatus.ONLINE
         assert details.properties == {"p1": "v1"}
-        assert details.latest_telemetry == {"t1": 42}
         assert details.blueprint_summary.properties_total == 1
 
     async def test_read_blueprint(self) -> None:

@@ -13,5 +13,4 @@ class DeviceDetails:
     device: Device
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
-    latest_telemetry: dict[str, Any]
     blueprint_summary: BlueprintSummary

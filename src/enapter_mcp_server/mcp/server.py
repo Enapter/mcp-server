@@ -240,7 +240,7 @@ class Server(enapter.async_.Routine):
 
         Returns:
             The device details including connectivity status, properties,
-            latest telemetry, and blueprint summary.
+            and blueprint summary.
 
         Related tools:
             read_blueprint_section: Read specific sections of the device's blueprint.

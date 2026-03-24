@@ -14,7 +14,7 @@ class DeviceDetails(pydantic.BaseModel):
     """Represents the details of a device.
 
     Device details include metadata about the device, its connectivity status,
-    properties, latest telemetry, and a summary of its blueprint.
+    properties, and a summary of its blueprint.
 
     Attributes:
         timestamp: The timestamp when the details were recorded.
@@ -23,7 +23,6 @@ class DeviceDetails(pydantic.BaseModel):
         properties: A dictionary of device properties. Device property is
             metadata which does not change during normal operation, e.g.
             `firmware_version`, `model`, and `serial_number`.
-        latest_telemetry: A dictionary of the latest telemetry data from the device.
         blueprint_summary: A summary of the device's blueprint.
     """
 
@@ -31,7 +30,6 @@ class DeviceDetails(pydantic.BaseModel):
     device: Device
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
-    latest_telemetry: dict[str, Any]
     blueprint_summary: BlueprintSummary
 
     @classmethod
@@ -41,6 +39,5 @@ class DeviceDetails(pydantic.BaseModel):
             device=Device.from_domain(details.device),
             connectivity_status=details.connectivity_status.value,
             properties=details.properties,
-            latest_telemetry=details.latest_telemetry,
             blueprint_summary=BlueprintSummary.from_domain(details.blueprint_summary),
         )
