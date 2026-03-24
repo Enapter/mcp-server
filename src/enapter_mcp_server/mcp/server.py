@@ -110,7 +110,7 @@ class Server(enapter.async_.Routine):
             (self.get_site_details, "Get Site Details"),
             (self.search_devices, "Search Devices"),
             (self.get_device_details, "Get Device Details"),
-            (self.read_blueprint, "Read Blueprint"),
+            (self.read_blueprint_manifest, "Read Blueprint Manifest"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
         for tool, title in read_only_tools:
@@ -214,7 +214,7 @@ class Server(enapter.async_.Routine):
 
         Related tools:
             get_device_details: Get detailed information about a specific device.
-            read_blueprint_section: Read specific sections of a device's blueprint.
+            read_blueprint_manifest: Read specific sections of a device's blueprint manifest.
             get_historical_telemetry: Get historical telemetry data of a device.
         """
         auth = await self._get_auth_config()
@@ -243,17 +243,17 @@ class Server(enapter.async_.Routine):
             and blueprint summary.
 
         Related tools:
-            read_blueprint_section: Read specific sections of the device's blueprint.
+            read_blueprint_manifest: Read specific sections of the device's blueprint manifest.
             get_historical_telemetry: Get historical telemetry data of the device.
         """
         auth = await self._get_auth_config()
         details = await self._app.get_device_details(auth=auth, device_id=device_id)
         return models.DeviceDetails.from_domain(details)
 
-    async def read_blueprint(
+    async def read_blueprint_manifest(
         self,
         device_id: str,
-        section: models.BlueprintSection,
+        section: models.BlueprintManifestSection,
         name_pattern: str = ".*",
         offset: int = 0,
         limit: int = 20,
@@ -262,26 +262,26 @@ class Server(enapter.async_.Routine):
         | models.TelemetryAttributeDeclaration
         | models.AlertDeclaration
     ]:
-        """Read a specific section of the device blueprint.
+        """Read a specific section of the device blueprint manifest.
 
         A blueprint can contain hundreds of declarations, therefore this tool
         supports pagination via `offset` and `limit` parameters.
 
         Args:
             device_id: The ID of the device.
-            section: The section of the blueprint to read.
+            section: The section of the blueprint manifest to read.
             name_pattern: A regular expression pattern to match declaration names.
             offset: The offset of the first declaration to return.
             limit: The maximum number of declarations to return.
 
         Returns:
-            A list of declarations in the specified blueprint section.
+            A list of declarations in the specified blueprint manifest section.
         """
         auth = await self._get_auth_config()
-        declarations = await self._app.read_blueprint(
+        declarations = await self._app.read_blueprint_manifest(
             auth=auth,
             device_id=device_id,
-            section=domain.BlueprintSection(section),
+            section=domain.BlueprintManifestSection(section),
             name_pattern=name_pattern,
             offset=offset,
             limit=limit,
@@ -332,8 +332,8 @@ class Server(enapter.async_.Routine):
             The historical telemetry data for the specified device and attributes.
 
         Related tools:
-            read_blueprint_section: Read the telemetry attributes declared in
-                the device's blueprint.
+            read_blueprint_manifest: Read the telemetry attributes declared in
+                the device's blueprint manifest.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(

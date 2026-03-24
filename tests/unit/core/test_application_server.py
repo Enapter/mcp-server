@@ -210,7 +210,7 @@ class TestApplicationServer:
         assert details.properties == {"p1": "v1"}
         assert details.blueprint_summary.properties_total == 1
 
-    async def test_read_blueprint(self) -> None:
+    async def test_read_blueprint_manifest(self) -> None:
         manifest = {
             "properties": {
                 "p1": {"display_name": "P1", "type": "string", "description": "D1"}
@@ -230,8 +230,8 @@ class TestApplicationServer:
         auth = core.AuthConfig(token="test")
 
         # Read properties
-        props = await app.read_blueprint(
-            auth, "dev-1", domain.BlueprintSection.PROPERTIES, ".*", 0, 10
+        props = await app.read_blueprint_manifest(
+            auth, "dev-1", domain.BlueprintManifestSection.PROPERTIES, ".*", 0, 10
         )
         assert len(props) == 1
         assert isinstance(props[0], domain.PropertyDeclaration)
@@ -239,16 +239,16 @@ class TestApplicationServer:
         assert props[0].data_type == domain.PropertyDataType.STRING
 
         # Read telemetry
-        telemetry = await app.read_blueprint(
-            auth, "dev-1", domain.BlueprintSection.TELEMETRY, ".*", 0, 10
+        telemetry = await app.read_blueprint_manifest(
+            auth, "dev-1", domain.BlueprintManifestSection.TELEMETRY, ".*", 0, 10
         )
         assert len(telemetry) == 1
         assert isinstance(telemetry[0], domain.TelemetryAttributeDeclaration)
         assert telemetry[0].name == "t1"
 
         # Read alerts
-        alerts = await app.read_blueprint(
-            auth, "dev-1", domain.BlueprintSection.ALERTS, ".*", 0, 10
+        alerts = await app.read_blueprint_manifest(
+            auth, "dev-1", domain.BlueprintManifestSection.ALERTS, ".*", 0, 10
         )
         assert len(alerts) == 1
         assert isinstance(alerts[0], domain.AlertDeclaration)

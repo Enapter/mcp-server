@@ -1,7 +1,7 @@
 import enum
 
 
-class BlueprintSection(enum.Enum):
+class BlueprintManifestSection(enum.Enum):
     TELEMETRY = "telemetry"
     PROPERTIES = "properties"
     ALERTS = "alerts"
