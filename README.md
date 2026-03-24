@@ -55,6 +55,7 @@ The server exposes the following tools for interacting with the Enapter EMS:
 
 For issues, questions, or contributions, please:
 
+- Email us at [support@enapter.com](mailto:support@enapter.com).
 - Open a [GitHub Issue](https://github.com/Enapter/mcp-server/issues).
 - Join our [Discord server](https://discord.com/invite/TCaEZs3qpe).
 - Check our [Contributing Guide](CONTRIBUTING.md).
