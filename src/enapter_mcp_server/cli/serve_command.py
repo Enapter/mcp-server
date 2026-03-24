@@ -37,6 +37,7 @@ ENAPTER_OAUTH_PROXY_JWT_STORE_URL = os.getenv(
     "ENAPTER_OAUTH_PROXY_JWT_STORE_URL", "memory://"
 )
 ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY")
+ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
 
 
 class ServeCommand(Command):
@@ -56,6 +57,11 @@ class ServeCommand(Command):
             "--logo-url",
             default=ENAPTER_LOGO_URL,
             help="URL of logo to display when connecting to this MCP server",
+        )
+        parser.add_argument(
+            "--cors-allow-origins",
+            default=ENAPTER_CORS_ALLOW_ORIGINS,
+            help="Comma-separated list of allowed CORS origins",
         )
         parser.add_argument(
             "--oauth-proxy-enabled",
@@ -145,12 +151,20 @@ class ServeCommand(Command):
                 jwt_store_url=args.oauth_proxy_jwt_store_url,
                 jwt_signing_key=args.oauth_proxy_jwt_signing_key,
             )
+        cors_allow_origins = None
+        if args.cors_allow_origins is not None:
+            cors_allow_origins = [
+                origin.strip()
+                for origin in args.cors_allow_origins.split(",")
+                if origin.strip()
+            ]
         config = mcp.ServerConfig(
             host=host,
             port=int(port_string),
             enapter_http_api_url=args.enapter_http_api_url,
             oauth_proxy_config=oauth_proxy_config,
             logo_url=args.logo_url,
+            cors_allow_origins=cors_allow_origins,
         )
         async with asyncio.TaskGroup() as task_group:
             async with http.EnapterAPI(

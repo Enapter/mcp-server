@@ -10,6 +10,7 @@ import key_value.aio.protocols
 import key_value.aio.stores.disk
 import key_value.aio.stores.memory
 import mcp
+import starlette
 
 from enapter_mcp_server import __version__, core, domain
 
@@ -60,6 +61,7 @@ class Server(enapter.async_.Routine):
             host=self._config.host,
             port=self._config.port,
             uvicorn_config={"timeout_graceful_shutdown": 5.0},
+            middleware=self._new_middleware(),
             stateless_http=True,
         )
 
@@ -119,6 +121,25 @@ class Server(enapter.async_.Routine):
                     title=title,
                 ),
             )
+
+    def _new_middleware(self) -> list[starlette.middleware.Middleware]:
+        middleware = []
+        if self._config.cors_allow_origins is not None:
+            middleware.append(
+                self._new_cors_middleware(self._config.cors_allow_origins)
+            )
+        return middleware
+
+    def _new_cors_middleware(
+        self, allow_origins: list[str]
+    ) -> starlette.middleware.Middleware:
+        return starlette.middleware.Middleware(
+            starlette.middleware.cors.CORSMiddleware,
+            allow_origins=allow_origins,
+            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            allow_headers=["mcp-protocol-version", "mcp-session-id", "Authorization"],
+            expose_headers=["mcp-session-id"],
+        )
 
     async def search_sites(
         self,

@@ -11,6 +11,7 @@ class ServerConfig:
     enapter_http_api_url: str
     oauth_proxy_config: OAuthProxyConfig | None = None
     logo_url: str | None = None
+    cors_allow_origins: list[str] | None = None
 
     @property
     def address(self) -> str:
