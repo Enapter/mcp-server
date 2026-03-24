@@ -1,8 +1,33 @@
+## [0.10.0] - 2026-03-24
+
+### 🚀 Features
+
+- *(mcp)* Add mandatory title annotations for tool registrations
+- *(docker)* Set 'serve' as default CMD to simplify container usage
+- Add configurable CORS support for MCP server
+- [**breaking**] Remove latest_telemetry from get_device_details
+
+### 📚 Documentation
+
+- *(readme)* Update guide for connecting AI applications and self-hosting
+- *(license)* Add Apache 2.0 license and badge
+- Add contributing guide and link it from README
+- Add direct email contact for user support
+
+### ⚙️ Miscellaneous Tasks
+
+- Add glama.json manifest
+- *(release)* Bump version to 0.10.0
+
+### ◀️ Revert
+
+- Chore: add glama.json manifest
 ## [0.9.1] - 2026-03-20
 
 ### ⚙️ Miscellaneous Tasks
 
 - *(docker)* Ensure reproducible image builds
+- *(release)* Bump version to 0.9.1
 ## [0.9.0] - 2026-03-20
 
 ### 🚀 Features
