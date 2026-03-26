@@ -18,6 +18,7 @@ class MockEnapterAPI:
         self._devices = devices or []
         self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
+        self.latest_telemetry_batch_calls = 0
 
     @enapter.async_.generator
     async def list_sites(
@@ -57,9 +58,13 @@ class MockEnapterAPI:
         raise ValueError(f"Device {device_id} not found")
 
     async def get_latest_telemetry(
-        self, auth: core.AuthConfig, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]:
-        return self._telemetry.get(device_id, {})
+        self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
+    ) -> dict[str, dict[str, Any]]:
+        self.latest_telemetry_batch_calls += 1
+        return {
+            device_id: self._telemetry.get(device_id, {})
+            for device_id in attributes_by_device
+        }
 
     async def get_historical_telemetry(
         self,
@@ -155,6 +160,7 @@ class TestApplicationServer:
         assert details.devices_total == 2
         assert details.devices_online == 1
         assert details.active_alerts_total == 3
+        assert api.latest_telemetry_batch_calls == 1
 
     async def test_search_devices(self) -> None:
         devices = [

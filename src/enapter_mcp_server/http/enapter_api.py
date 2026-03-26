@@ -95,15 +95,17 @@ class EnapterAPI:
             )
 
     async def get_latest_telemetry(
-        self, auth: core.AuthConfig, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]:
+        self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
+    ) -> dict[str, dict[str, Any]]:
         async with self._new_client(auth) as client:
-            latest_telemetry = (await client.telemetry.latest({device_id: attributes}))[
-                device_id
-            ]
             return {
-                k: v.value if v is not None else None
-                for k, v in latest_telemetry.items()
+                device_id: {
+                    k: v.value if v is not None else None
+                    for k, v in device_telemetry.items()
+                }
+                for device_id, device_telemetry in (
+                    await client.telemetry.latest(attributes_by_device)
+                ).items()
             }
 
     async def get_historical_telemetry(

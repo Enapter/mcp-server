@@ -36,8 +36,8 @@ class EnapterAPI(Protocol):
     ) -> DeviceDTO: ...
 
     async def get_latest_telemetry(
-        self, auth: AuthConfig, device_id: str, attributes: list[str]
-    ) -> dict[str, Any]: ...
+        self, auth: AuthConfig, attributes_by_device: dict[str, list[str]]
+    ) -> dict[str, dict[str, Any]]: ...
 
     async def get_historical_telemetry(
         self,

@@ -38,12 +38,13 @@ class ApplicationServer:
         devices_total = 0
         devices_online = 0
         active_alerts_total = 0
+        device_ids: list[str] = []
 
         async with self._enapter_api.list_devices(
             auth, site_id=site_id, expand_connectivity=True
         ) as devices_gen:
             async for device_dto in devices_gen:
-                devices_total += 1
+                device_ids.append(device_dto.id)
                 is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
                 if is_online:
                     devices_online += 1
@@ -52,10 +53,14 @@ class ApplicationServer:
                     gateway_id = device_dto.id
                     gateway_online = is_online
 
-                latest_telemetry = await self._enapter_api.get_latest_telemetry(
-                    auth, device_dto.id, ["alerts"]
-                )
-                active_alerts_total += len(latest_telemetry.get("alerts", []))
+        latest_telemetry_by_device = await self._enapter_api.get_latest_telemetry(
+            auth, {device_id: ["alerts"] for device_id in device_ids}
+        )
+        active_alerts_total = sum(
+            len(device_telemetry.get("alerts", []))
+            for device_telemetry in latest_telemetry_by_device.values()
+        )
+        devices_total = len(device_ids)
 
         return domain.SiteDetails(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
@@ -100,7 +105,7 @@ class ApplicationServer:
         assert device_dto.connectivity is not None
         assert device_dto.properties is not None
         latest_telemetry = await self._enapter_api.get_latest_telemetry(
-            auth, device_id, ["alerts"]
+            auth, {device_id: ["alerts"]}
         )
 
         blueprint_summary = domain.BlueprintSummary(
@@ -122,7 +127,7 @@ class ApplicationServer:
                 k: device_dto.properties.get(k)
                 for k in device_dto.manifest.get("properties", {})
             },
-            active_alerts=latest_telemetry.get("alerts", []),
+            active_alerts=latest_telemetry.get(device_id, {}).get("alerts", []),
             blueprint_summary=blueprint_summary,
         )
 
