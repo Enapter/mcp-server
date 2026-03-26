@@ -12,3 +12,4 @@ class SiteDetails:
     gateway_online: bool
     devices_total: int
     devices_online: int
+    active_alerts_total: int

@@ -45,7 +45,7 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | Tool                       | Description                                                             |
 | -------------------------- | ----------------------------------------------------------------------- |
 | `search_sites`             | Search sites with regex filtering (name, timezone) and pagination       |
-| `get_site_details`         | Get detailed site information with device statistics                    |
+| `get_site_details`         | Get detailed site information with device and active alert statistics   |
 | `search_devices`           | Filter devices by site, type, and name pattern                          |
 | `get_device_details`       | Get comprehensive device data (connectivity, properties, active alerts) |
 | `read_blueprint_manifest`  | Access device blueprint sections (properties, telemetry, alerts)        |

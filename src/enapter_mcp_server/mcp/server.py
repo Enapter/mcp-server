@@ -162,7 +162,7 @@ class Server(enapter.async_.Routine):
         return [models.Site.from_domain(s) for s in sites]
 
     async def get_site_details(self, site_id: str) -> models.SiteDetails:
-        """Get site details by site ID."""
+        """Get site details, including gateway, device, and active alert stats."""
         auth = await self._get_auth_config()
         details = await self._app.get_site_details(auth=auth, site_id=site_id)
         return models.SiteDetails.from_domain(details)

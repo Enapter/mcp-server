@@ -9,7 +9,7 @@ from .site import Site
 
 
 class SiteDetails(pydantic.BaseModel):
-    """Represents the details of a site including its gateway and device stats."""
+    """Represents site details including gateway, device, and alert stats."""
 
     timestamp: datetime.datetime
     site: Site
@@ -17,6 +17,7 @@ class SiteDetails(pydantic.BaseModel):
     gateway_online: bool
     devices_total: int
     devices_online: int
+    active_alerts_total: int
 
     @classmethod
     def from_domain(cls, details: domain.SiteDetails) -> Self:
@@ -27,4 +28,5 @@ class SiteDetails(pydantic.BaseModel):
             gateway_online=details.gateway_online,
             devices_total=details.devices_total,
             devices_online=details.devices_online,
+            active_alerts_total=details.active_alerts_total,
         )

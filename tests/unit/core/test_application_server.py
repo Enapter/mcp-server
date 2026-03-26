@@ -136,7 +136,14 @@ class TestApplicationServer:
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
         ]
-        api = MockEnapterAPI(sites=[site], devices=devices)
+        api = MockEnapterAPI(
+            sites=[site],
+            devices=devices,
+            telemetry={
+                "dev-1": {"alerts": ["a1"]},
+                "dev-2": {"alerts": ["a2", "a3"]},
+            },
+        )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -147,6 +154,7 @@ class TestApplicationServer:
         assert details.gateway_online is True
         assert details.devices_total == 2
         assert details.devices_online == 1
+        assert details.active_alerts_total == 3
 
     async def test_search_devices(self) -> None:
         devices = [

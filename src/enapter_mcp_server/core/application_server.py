@@ -37,6 +37,7 @@ class ApplicationServer:
         gateway_online = False
         devices_total = 0
         devices_online = 0
+        active_alerts_total = 0
 
         async with self._enapter_api.list_devices(
             auth, site_id=site_id, expand_connectivity=True
@@ -51,6 +52,11 @@ class ApplicationServer:
                     gateway_id = device_dto.id
                     gateway_online = is_online
 
+                latest_telemetry = await self._enapter_api.get_latest_telemetry(
+                    auth, device_dto.id, ["alerts"]
+                )
+                active_alerts_total += len(latest_telemetry.get("alerts", []))
+
         return domain.SiteDetails(
             timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
             site=site,
@@ -58,6 +64,7 @@ class ApplicationServer:
             gateway_online=gateway_online,
             devices_total=devices_total,
             devices_online=devices_online,
+            active_alerts_total=active_alerts_total,
         )
 
     async def search_devices(
