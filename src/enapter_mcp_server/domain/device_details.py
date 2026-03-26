@@ -13,4 +13,5 @@ class DeviceDetails:
     device: Device
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
+    active_alerts: list[str]
     blueprint_summary: BlueprintSummary

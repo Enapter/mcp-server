@@ -14,13 +14,14 @@ class DeviceDetails(pydantic.BaseModel):
     """Represents the details of a device.
 
     Device details include metadata about the device, its connectivity status,
-    properties, and a summary of its blueprint.
+    properties, currently active alerts, and a summary of its blueprint.
     """
 
     timestamp: datetime.datetime
     device: Device
     connectivity_status: ConnectivityStatus
     properties: dict[str, Any]
+    active_alerts: list[str]
     blueprint_summary: BlueprintSummary
 
     @classmethod
@@ -30,5 +31,6 @@ class DeviceDetails(pydantic.BaseModel):
             device=Device.from_domain(details.device),
             connectivity_status=details.connectivity_status.value,
             properties=details.properties,
+            active_alerts=details.active_alerts,
             blueprint_summary=BlueprintSummary.from_domain(details.blueprint_summary),
         )

@@ -1,5 +1,5 @@
 import datetime
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 import enapter
 
@@ -11,10 +11,12 @@ class MockEnapterAPI:
         self,
         sites: list[domain.Site] | None = None,
         devices: list[core.DeviceDTO] | None = None,
+        telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
+        self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
 
     @enapter.async_.generator
@@ -53,6 +55,11 @@ class MockEnapterAPI:
             if device.id == device_id:
                 return device
         raise ValueError(f"Device {device_id} not found")
+
+    async def get_latest_telemetry(
+        self, auth: core.AuthConfig, device_id: str, attributes: list[str]
+    ) -> dict[str, Any]:
+        return self._telemetry.get(device_id, {})
 
     async def get_historical_telemetry(
         self,
@@ -199,7 +206,10 @@ class TestApplicationServer:
             properties={"p1": "v1"},
             manifest=manifest,
         )
-        api = MockEnapterAPI(devices=[device])
+        api = MockEnapterAPI(
+            devices=[device],
+            telemetry={"dev-1": {"alerts": ["a1", "a2"]}},
+        )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -208,8 +218,31 @@ class TestApplicationServer:
         assert details.device.id == "dev-1"
         assert details.connectivity_status == domain.ConnectivityStatus.ONLINE
         assert details.properties == {"p1": "v1"}
+        assert details.active_alerts == ["a1", "a2"]
         assert details.blueprint_summary.properties_total == 1
         assert details.blueprint_summary.commands_total == 0
+
+    async def test_get_device_details_with_missing_active_alerts(self) -> None:
+        manifest: dict[str, object] = {
+            "properties": {"p1": {}},
+            "telemetry": {"t1": {}},
+            "alerts": {"a1": {}},
+        }
+        device = core.DeviceDTO(
+            id="dev-1",
+            name="Dev 1",
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            connectivity=domain.ConnectivityStatus.ONLINE,
+            properties={"p1": "v1"},
+            manifest=manifest,
+        )
+        api = MockEnapterAPI(devices=[device], telemetry={"dev-1": {}})
+        app = core.ApplicationServer(api)
+
+        details = await app.get_device_details(core.AuthConfig(token="test"), "dev-1")
+
+        assert details.active_alerts == []
 
     async def test_read_blueprint_manifest(self) -> None:
         manifest = {

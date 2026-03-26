@@ -1,5 +1,5 @@
 import datetime
-from typing import AsyncGenerator, Protocol
+from typing import Any, AsyncGenerator, Protocol
 
 import enapter
 
@@ -34,6 +34,10 @@ class EnapterAPI(Protocol):
         expand_connectivity: bool = False,
         expand_properties: bool = False,
     ) -> DeviceDTO: ...
+
+    async def get_latest_telemetry(
+        self, auth: AuthConfig, device_id: str, attributes: list[str]
+    ) -> dict[str, Any]: ...
 
     async def get_historical_telemetry(
         self,

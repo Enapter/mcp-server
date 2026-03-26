@@ -92,6 +92,9 @@ class ApplicationServer:
         assert device_dto.manifest is not None
         assert device_dto.connectivity is not None
         assert device_dto.properties is not None
+        latest_telemetry = await self._enapter_api.get_latest_telemetry(
+            auth, device_id, ["alerts"]
+        )
 
         blueprint_summary = domain.BlueprintSummary(
             description=device_dto.manifest.get("description"),
@@ -112,6 +115,7 @@ class ApplicationServer:
                 k: device_dto.properties.get(k)
                 for k in device_dto.manifest.get("properties", {})
             },
+            active_alerts=latest_telemetry.get("alerts", []),
             blueprint_summary=blueprint_summary,
         )
 
