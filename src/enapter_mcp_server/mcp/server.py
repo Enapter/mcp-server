@@ -17,13 +17,12 @@ from enapter_mcp_server import __version__, core, domain
 from . import models
 from .server_config import ServerConfig
 
-INSTRUCTIONS = """This MCP server exposes the Enapter HTTP API, enabling management of energy systems.
+INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy systems.
 
 Workflow:
-
-- Start by searching for sites or devices if IDs are not provided.
-- Use `get_site_details` or `get_device_details` to get a comprehensive view.
-- Drill down into specific blueprint sections or historical data as needed.
+- Search: Find sites (`search_sites`) or devices (`search_devices`) to obtain IDs.
+- Details: Use `get_site_details` or `get_device_details` for comprehensive views.
+- Deep Dive: Explore device manifests with `read_blueprint_manifest` and fetch historical data with `get_historical_telemetry`.
 """
 
 
@@ -148,21 +147,7 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Site]:
-        """Search among all sites to which the authenticated user has access.
-
-        Args:
-            name_pattern: A regular expression pattern to match site names.
-            timezone_pattern: A regular expression pattern to match site timezones.
-            offset: The offset of the first site to return.
-            limit: The maximum number of sites to return.
-
-        Returns:
-            A list of sites matching the specified patterns sorted by site ID.
-
-        Related tools:
-            get_site_details: Get detailed information about a specific site.
-            search_devices: Search for devices within a specific site.
-        """
+        """Search among all sites to which the authenticated user has access."""
         auth = await self._get_auth_config()
         spec = domain.SiteSpecification(
             name_pattern=name_pattern,
@@ -177,17 +162,7 @@ class Server(enapter.async_.Routine):
         return [models.Site.from_domain(s) for s in sites]
 
     async def get_site_details(self, site_id: str) -> models.SiteDetails:
-        """Get site details by site ID.
-
-        Args:
-            site_id: The ID of the site.
-
-        Returns:
-            The site details including site details and device statistics.
-
-        Related tools:
-            search_devices: Search for devices within a specific site.
-        """
+        """Get site details by site ID."""
         auth = await self._get_auth_config()
         details = await self._app.get_site_details(auth=auth, site_id=site_id)
         return models.SiteDetails.from_domain(details)
@@ -200,23 +175,7 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search among all devices in a site.
-
-        Args:
-            site_id: The ID of the site.
-            type: The type of the device to filter by.
-            name_pattern: A regular expression pattern to match device names.
-            offset: The offset of the first device to return.
-            limit: The maximum number of devices to return.
-
-        Returns:
-            A list of devices matching the specified criteria sorted by device ID.
-
-        Related tools:
-            get_device_details: Get detailed information about a specific device.
-            read_blueprint_manifest: Read specific sections of a device's blueprint manifest.
-            get_historical_telemetry: Get historical telemetry data of a device.
-        """
+        """Search among all devices in a site."""
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
         spec = domain.DeviceSpecification(
@@ -233,19 +192,7 @@ class Server(enapter.async_.Routine):
         return [models.Device.from_domain(d) for d in devices]
 
     async def get_device_details(self, device_id: str) -> models.DeviceDetails:
-        """Get device details by device ID.
-
-        Args:
-            device_id: The ID of the device to retrieve.
-
-        Returns:
-            The device details including connectivity status, properties,
-            and blueprint summary.
-
-        Related tools:
-            read_blueprint_manifest: Read specific sections of the device's blueprint manifest.
-            get_historical_telemetry: Get historical telemetry data of the device.
-        """
+        """Get device details by device ID."""
         auth = await self._get_auth_config()
         details = await self._app.get_device_details(auth=auth, device_id=device_id)
         return models.DeviceDetails.from_domain(details)
@@ -263,21 +210,7 @@ class Server(enapter.async_.Routine):
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
-        """Read a specific section of the device blueprint manifest.
-
-        A blueprint can contain hundreds of declarations, therefore this tool
-        supports pagination via `offset` and `limit` parameters.
-
-        Args:
-            device_id: The ID of the device.
-            section: The section of the blueprint manifest to read.
-            name_pattern: A regular expression pattern to match declaration names.
-            offset: The offset of the first declaration to return.
-            limit: The maximum number of declarations to return.
-
-        Returns:
-            A list of declarations in the specified blueprint manifest section.
-        """
+        """Read a specific section of the device blueprint manifest."""
         auth = await self._get_auth_config()
         declarations = await self._app.read_blueprint_manifest(
             auth=auth,
@@ -324,20 +257,6 @@ class Server(enapter.async_.Routine):
         aggregate data over a specified interval (in seconds). For example, a
         granularity of 3600 seconds (1 hour) will return hourly averages of the
         telemetry data.
-
-        Args:
-            device_id: The ID of the device.
-            attributes: A list of telemetry attributes to retrieve.
-            time_from: The start time of the telemetry data.
-            time_to: The end time of the telemetry data.
-            granularity: The granularity of the telemetry data in seconds.
-
-        Returns:
-            The historical telemetry data for the specified device and attributes.
-
-        Related tools:
-            read_blueprint_manifest: Read the telemetry attributes declared in
-                the device's blueprint manifest.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(
