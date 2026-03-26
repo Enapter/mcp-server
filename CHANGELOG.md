@@ -1,3 +1,25 @@
+## [0.11.0] - 2026-03-26
+
+### 🚀 Features
+
+- Add command discovery to blueprint manifest
+- Surface active alerts in device details
+- Expose site-wide active alert totals
+
+### 🐛 Bug Fixes
+
+- Handle None values in telemetry and blueprint manifests
+
+### 🚜 Refactor
+
+- [**breaking**] Rename read_blueprint to read_blueprint_manifest
+- [**breaking**] Unify data type definitions
+- Unify latest telemetry around batched reads
+
+### 📚 Documentation
+
+- Simplify tool descriptions and consolidate instructions
+- Remove redundant attribute sections from MCP models
 ## [0.10.0] - 2026-03-24
 
 ### 🚀 Features

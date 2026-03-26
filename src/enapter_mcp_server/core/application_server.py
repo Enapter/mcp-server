@@ -169,7 +169,9 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in (device_dto.manifest.get("properties") or {}).items()
+                    for name, dto in (
+                        device_dto.manifest.get("properties") or {}
+                    ).items()
                 ]
             case domain.BlueprintManifestSection.TELEMETRY:
                 entities = [
@@ -181,7 +183,9 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in (device_dto.manifest.get("telemetry") or {}).items()
+                    for name, dto in (
+                        device_dto.manifest.get("telemetry") or {}
+                    ).items()
                 ]
             case domain.BlueprintManifestSection.ALERTS:
                 entities = [
@@ -211,7 +215,9 @@ class ApplicationServer:
                                 description=arg_dto.get("description"),
                                 enum=arg_dto.get("enum"),
                             )
-                            for arg_name, arg_dto in (dto.get("arguments") or {}).items()
+                            for arg_name, arg_dto in (
+                                dto.get("arguments") or {}
+                            ).items()
                         ],
                     )
                     for name, dto in (device_dto.manifest.get("commands") or {}).items()
