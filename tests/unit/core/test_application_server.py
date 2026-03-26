@@ -346,3 +346,27 @@ class TestApplicationServer:
         )
 
         assert result == historical
+
+    async def test_get_site_details_with_missing_alerts(self) -> None:
+        site = domain.Site(id="site-1", name="Site 1", timezone="UTC")
+        devices = [
+            core.DeviceDTO(
+                id="dev-1",
+                name="Device 1",
+                site_id="site-1",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+            ),
+        ]
+        api = MockEnapterAPI(
+            sites=[site],
+            devices=devices,
+            telemetry={
+                "dev-1": {"alerts": None},
+            },
+        )
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        details = await app.get_site_details(auth, "site-1")
+        assert details.active_alerts_total == 0

@@ -57,7 +57,7 @@ class ApplicationServer:
             auth, {device_id: ["alerts"] for device_id in device_ids}
         )
         active_alerts_total = sum(
-            len(device_telemetry.get("alerts", []))
+            len(device_telemetry.get("alerts") or [])
             for device_telemetry in latest_telemetry_by_device.values()
         )
         devices_total = len(device_ids)
@@ -111,10 +111,10 @@ class ApplicationServer:
         blueprint_summary = domain.BlueprintSummary(
             description=device_dto.manifest.get("description"),
             vendor=device_dto.manifest.get("vendor"),
-            commands_total=len(device_dto.manifest.get("commands", {})),
-            properties_total=len(device_dto.manifest.get("properties", {})),
-            telemetry_attributes_total=len(device_dto.manifest.get("telemetry", {})),
-            alerts_total=len(device_dto.manifest.get("alerts", {})),
+            commands_total=len(device_dto.manifest.get("commands") or {}),
+            properties_total=len(device_dto.manifest.get("properties") or {}),
+            telemetry_attributes_total=len(device_dto.manifest.get("telemetry") or {}),
+            alerts_total=len(device_dto.manifest.get("alerts") or {}),
         )
 
         device = device_dto.to_domain()
@@ -127,7 +127,7 @@ class ApplicationServer:
                 k: device_dto.properties.get(k)
                 for k in device_dto.manifest.get("properties", {})
             },
-            active_alerts=latest_telemetry.get(device_id, {}).get("alerts", []),
+            active_alerts=latest_telemetry.get(device_id, {}).get("alerts") or [],
             blueprint_summary=blueprint_summary,
         )
 
@@ -169,7 +169,7 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in device_dto.manifest.get("properties", {}).items()
+                    for name, dto in (device_dto.manifest.get("properties") or {}).items()
                 ]
             case domain.BlueprintManifestSection.TELEMETRY:
                 entities = [
@@ -181,7 +181,7 @@ class ApplicationServer:
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
                     )
-                    for name, dto in device_dto.manifest.get("telemetry", {}).items()
+                    for name, dto in (device_dto.manifest.get("telemetry") or {}).items()
                 ]
             case domain.BlueprintManifestSection.ALERTS:
                 entities = [
@@ -194,7 +194,7 @@ class ApplicationServer:
                         components=dto.get("components"),
                         conditions=dto.get("conditions"),
                     )
-                    for name, dto in device_dto.manifest.get("alerts", {}).items()
+                    for name, dto in (device_dto.manifest.get("alerts") or {}).items()
                 ]
             case domain.BlueprintManifestSection.COMMANDS:
                 entities = [
@@ -211,10 +211,10 @@ class ApplicationServer:
                                 description=arg_dto.get("description"),
                                 enum=arg_dto.get("enum"),
                             )
-                            for arg_name, arg_dto in dto.get("arguments", {}).items()
+                            for arg_name, arg_dto in (dto.get("arguments") or {}).items()
                         ],
                     )
-                    for name, dto in device_dto.manifest.get("commands", {}).items()
+                    for name, dto in (device_dto.manifest.get("commands") or {}).items()
                 ]
             case _:
                 raise NotImplementedError(section)
