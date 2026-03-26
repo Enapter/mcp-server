@@ -209,6 +209,7 @@ class TestApplicationServer:
         assert details.connectivity_status == domain.ConnectivityStatus.ONLINE
         assert details.properties == {"p1": "v1"}
         assert details.blueprint_summary.properties_total == 1
+        assert details.blueprint_summary.commands_total == 0
 
     async def test_read_blueprint_manifest(self) -> None:
         manifest = {
@@ -217,6 +218,19 @@ class TestApplicationServer:
             },
             "telemetry": {"t1": {"display_name": "T1", "type": "float", "unit": "V"}},
             "alerts": {"a1": {"display_name": "A1", "severity": "warning"}},
+            "commands": {
+                "c1": {
+                    "display_name": "C1",
+                    "description": "D1",
+                    "arguments": {
+                        "a1": {
+                            "display_name": "A1",
+                            "type": "integer",
+                            "required": True,
+                        }
+                    },
+                }
+            },
         }
         device = core.DeviceDTO(
             id="dev-1",
@@ -254,6 +268,19 @@ class TestApplicationServer:
         assert isinstance(alerts[0], domain.AlertDeclaration)
         assert alerts[0].name == "a1"
         assert alerts[0].severity == domain.AlertSeverity.WARNING
+
+        # Read commands
+        commands = await app.read_blueprint_manifest(
+            auth, "dev-1", domain.BlueprintManifestSection.COMMANDS, ".*", 0, 10
+        )
+        assert len(commands) == 1
+        assert isinstance(commands[0], domain.CommandDeclaration)
+        assert commands[0].name == "c1"
+        assert len(commands[0].arguments) == 1
+        assert commands[0].arguments[0].name == "a1"
+        assert (
+            commands[0].arguments[0].data_type == domain.CommandArgumentDataType.INTEGER
+        )
 
     async def test_get_historical_telemetry(self) -> None:
         historical = domain.HistoricalTelemetry(

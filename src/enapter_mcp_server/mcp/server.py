@@ -261,6 +261,7 @@ class Server(enapter.async_.Routine):
         models.PropertyDeclaration
         | models.TelemetryAttributeDeclaration
         | models.AlertDeclaration
+        | models.CommandDeclaration
     ]:
         """Read a specific section of the device blueprint manifest.
 
@@ -291,6 +292,7 @@ class Server(enapter.async_.Routine):
             models.PropertyDeclaration
             | models.TelemetryAttributeDeclaration
             | models.AlertDeclaration
+            | models.CommandDeclaration
         ] = []
 
         for d in declarations:
@@ -300,6 +302,8 @@ class Server(enapter.async_.Routine):
                 models_list.append(models.TelemetryAttributeDeclaration.from_domain(d))
             elif isinstance(d, domain.AlertDeclaration):
                 models_list.append(models.AlertDeclaration.from_domain(d))
+            elif isinstance(d, domain.CommandDeclaration):
+                models_list.append(models.CommandDeclaration.from_domain(d))
             else:
                 raise NotImplementedError(type(d))
 

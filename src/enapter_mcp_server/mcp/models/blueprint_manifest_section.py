@@ -1,3 +1,3 @@
 from typing import Literal
 
-BlueprintManifestSection = Literal["telemetry", "properties", "alerts"]
+BlueprintManifestSection = Literal["telemetry", "properties", "alerts", "commands"]

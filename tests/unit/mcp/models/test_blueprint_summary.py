@@ -9,6 +9,7 @@ class TestBlueprintSummary:
         blueprint_summary = domain.BlueprintSummary(
             description="Electrolyzer device",
             vendor="Enapter",
+            commands_total=5,
             properties_total=3,
             telemetry_attributes_total=4,
             alerts_total=2,
@@ -18,6 +19,7 @@ class TestBlueprintSummary:
 
         assert summary.description == "Electrolyzer device"
         assert summary.vendor == "Enapter"
+        assert summary.commands_total == 5
         assert summary.properties_total == 3
         assert summary.telemetry_attributes_total == 4
         assert summary.alerts_total == 2
@@ -27,6 +29,7 @@ class TestBlueprintSummary:
         blueprint_summary = domain.BlueprintSummary(
             description=None,
             vendor=None,
+            commands_total=0,
             properties_total=0,
             telemetry_attributes_total=0,
             alerts_total=0,
@@ -36,6 +39,7 @@ class TestBlueprintSummary:
 
         assert summary.description is None
         assert summary.vendor is None
+        assert summary.commands_total == 0
         assert summary.properties_total == 0
         assert summary.telemetry_attributes_total == 0
         assert summary.alerts_total == 0
@@ -45,6 +49,7 @@ class TestBlueprintSummary:
         blueprint_summary = domain.BlueprintSummary(
             description="Partial device",
             vendor=None,
+            commands_total=0,
             properties_total=0,
             telemetry_attributes_total=1,
             alerts_total=0,
@@ -54,6 +59,7 @@ class TestBlueprintSummary:
 
         assert summary.description == "Partial device"
         assert summary.vendor is None
+        assert summary.commands_total == 0
         assert summary.properties_total == 0
         assert summary.telemetry_attributes_total == 1
         assert summary.alerts_total == 0

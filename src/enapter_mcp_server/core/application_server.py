@@ -96,6 +96,7 @@ class ApplicationServer:
         blueprint_summary = domain.BlueprintSummary(
             description=device_dto.manifest.get("description"),
             vendor=device_dto.manifest.get("vendor"),
+            commands_total=len(device_dto.manifest.get("commands", {})),
             properties_total=len(device_dto.manifest.get("properties", {})),
             telemetry_attributes_total=len(device_dto.manifest.get("telemetry", {})),
             alerts_total=len(device_dto.manifest.get("alerts", {})),
@@ -126,6 +127,7 @@ class ApplicationServer:
         domain.PropertyDeclaration
         | domain.TelemetryAttributeDeclaration
         | domain.AlertDeclaration
+        | domain.CommandDeclaration
     ]:
         name_regexp = re.compile(name_pattern)
         device_dto = await self._enapter_api.get_device(
@@ -137,6 +139,7 @@ class ApplicationServer:
             domain.PropertyDeclaration
             | domain.TelemetryAttributeDeclaration
             | domain.AlertDeclaration
+            | domain.CommandDeclaration
         ]
 
         match section:
@@ -176,6 +179,28 @@ class ApplicationServer:
                         conditions=dto.get("conditions"),
                     )
                     for name, dto in device_dto.manifest.get("alerts", {}).items()
+                ]
+            case domain.BlueprintManifestSection.COMMANDS:
+                entities = [
+                    domain.CommandDeclaration(
+                        name=name,
+                        display_name=dto.get("display_name", name),
+                        description=dto.get("description"),
+                        arguments=[
+                            domain.CommandArgumentDeclaration(
+                                name=arg_name,
+                                display_name=arg_dto.get("display_name", arg_name),
+                                data_type=domain.CommandArgumentDataType(
+                                    arg_dto["type"]
+                                ),
+                                required=arg_dto.get("required", False),
+                                description=arg_dto.get("description"),
+                                enum=arg_dto.get("enum"),
+                            )
+                            for arg_name, arg_dto in dto.get("arguments", {}).items()
+                        ],
+                    )
+                    for name, dto in device_dto.manifest.get("commands", {}).items()
                 ]
             case _:
                 raise NotImplementedError(section)

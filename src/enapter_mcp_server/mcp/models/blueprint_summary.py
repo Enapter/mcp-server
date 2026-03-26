@@ -17,6 +17,7 @@ class BlueprintSummary(pydantic.BaseModel):
     Attributes:
         description: A brief description of the device.
         vendor: The vendor of the device.
+        commands_total: The total number of commands defined in the blueprint.
         properties_total: The total number of properties defined in the blueprint.
         telemetry_attributes_total: The total number of telemetry attributes defined in the blueprint.
         alerts_total: The total number of alerts defined in the blueprint.
@@ -24,6 +25,7 @@ class BlueprintSummary(pydantic.BaseModel):
 
     description: str | None
     vendor: str | None
+    commands_total: int
     properties_total: int
     telemetry_attributes_total: int
     alerts_total: int
@@ -33,6 +35,7 @@ class BlueprintSummary(pydantic.BaseModel):
         return cls(
             description=blueprint_summary.description,
             vendor=blueprint_summary.vendor,
+            commands_total=blueprint_summary.commands_total,
             properties_total=blueprint_summary.properties_total,
             telemetry_attributes_total=blueprint_summary.telemetry_attributes_total,
             alerts_total=blueprint_summary.alerts_total,

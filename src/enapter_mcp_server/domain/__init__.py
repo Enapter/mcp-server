@@ -2,6 +2,9 @@ from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
 from .blueprint_manifest_section import BlueprintManifestSection
 from .blueprint_summary import BlueprintSummary
+from .command_argument_data_type import CommandArgumentDataType
+from .command_argument_declaration import CommandArgumentDeclaration
+from .command_declaration import CommandDeclaration
 from .connectivity_status import ConnectivityStatus
 from .device import Device
 from .device_details import DeviceDetails
@@ -21,6 +24,9 @@ __all__ = [
     "AlertSeverity",
     "BlueprintManifestSection",
     "BlueprintSummary",
+    "CommandArgumentDataType",
+    "CommandArgumentDeclaration",
+    "CommandDeclaration",
     "ConnectivityStatus",
     "Device",
     "DeviceDetails",

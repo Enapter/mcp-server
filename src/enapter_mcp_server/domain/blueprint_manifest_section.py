@@ -5,3 +5,4 @@ class BlueprintManifestSection(enum.Enum):
     TELEMETRY = "telemetry"
     PROPERTIES = "properties"
     ALERTS = "alerts"
+    COMMANDS = "commands"
