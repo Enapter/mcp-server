@@ -1,14 +1,14 @@
 import dataclasses
 from typing import Any
 
-from .telemetry_attribute_data_type import TelemetryAttributeDataType
+from .data_type import DataType
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class TelemetryAttributeDeclaration:
     name: str
     display_name: str
-    data_type: TelemetryAttributeDataType
+    data_type: DataType
     description: str | None
     enum: list[Any] | None
     unit: str | None

@@ -9,7 +9,7 @@ class TestTelemetryAttributeDeclaration:
         declaration = domain.TelemetryAttributeDeclaration(
             name="voltage",
             display_name="Voltage",
-            data_type=domain.TelemetryAttributeDataType.FLOAT,
+            data_type=domain.DataType.FLOAT,
             description="Measured voltage",
             enum=None,
             unit="V",
@@ -28,7 +28,7 @@ class TestTelemetryAttributeDeclaration:
         declaration = domain.TelemetryAttributeDeclaration(
             name="mode",
             display_name="Operation Mode",
-            data_type=domain.TelemetryAttributeDataType.STRING,
+            data_type=domain.DataType.STRING,
             description="Current operation mode",
             enum=["auto", "manual", "off"],
             unit=None,
@@ -47,7 +47,7 @@ class TestTelemetryAttributeDeclaration:
         declaration = domain.TelemetryAttributeDeclaration(
             name="simple",
             display_name="Simple Attribute",
-            data_type=domain.TelemetryAttributeDataType.BOOLEAN,
+            data_type=domain.DataType.BOOLEAN,
             description=None,
             enum=None,
             unit=None,

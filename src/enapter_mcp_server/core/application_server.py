@@ -148,7 +148,7 @@ class ApplicationServer:
                     domain.PropertyDeclaration(
                         name=name,
                         display_name=dto["display_name"],
-                        data_type=domain.PropertyDataType(dto["type"]),
+                        data_type=domain.DataType(dto["type"]),
                         description=dto.get("description"),
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
@@ -160,7 +160,7 @@ class ApplicationServer:
                     domain.TelemetryAttributeDeclaration(
                         name=name,
                         display_name=dto["display_name"],
-                        data_type=domain.TelemetryAttributeDataType(dto["type"]),
+                        data_type=domain.DataType(dto["type"]),
                         description=dto.get("description"),
                         enum=dto.get("enum"),
                         unit=dto.get("unit"),
@@ -190,9 +190,7 @@ class ApplicationServer:
                             domain.CommandArgumentDeclaration(
                                 name=arg_name,
                                 display_name=arg_dto.get("display_name", arg_name),
-                                data_type=domain.CommandArgumentDataType(
-                                    arg_dto["type"]
-                                ),
+                                data_type=domain.DataType(arg_dto["type"]),
                                 required=arg_dto.get("required", False),
                                 description=arg_dto.get("description"),
                                 enum=arg_dto.get("enum"),

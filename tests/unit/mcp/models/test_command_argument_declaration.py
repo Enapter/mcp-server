@@ -9,7 +9,7 @@ class TestCommandArgumentDeclaration:
         declaration = domain.CommandArgumentDeclaration(
             name="power",
             display_name="Power",
-            data_type=domain.CommandArgumentDataType.BOOLEAN,
+            data_type=domain.DataType.BOOLEAN,
             required=True,
             description="Turn power on or off",
             enum=None,
@@ -19,7 +19,7 @@ class TestCommandArgumentDeclaration:
 
         assert arg.name == "power"
         assert arg.display_name == "Power"
-        assert arg.data_type.value == "boolean"
+        assert arg.data_type == "boolean"
         assert arg.required is True
         assert arg.description == "Turn power on or off"
         assert arg.enum is None
@@ -29,7 +29,7 @@ class TestCommandArgumentDeclaration:
         declaration = domain.CommandArgumentDeclaration(
             name="mode",
             display_name="Mode",
-            data_type=domain.CommandArgumentDataType.STRING,
+            data_type=domain.DataType.STRING,
             required=True,
             description="Operation mode",
             enum=["eco", "normal", "boost"],
@@ -39,7 +39,7 @@ class TestCommandArgumentDeclaration:
 
         assert arg.name == "mode"
         assert arg.display_name == "Mode"
-        assert arg.data_type.value == "string"
+        assert arg.data_type == "string"
         assert arg.required is True
         assert arg.description == "Operation mode"
         assert arg.enum == ["eco", "normal", "boost"]

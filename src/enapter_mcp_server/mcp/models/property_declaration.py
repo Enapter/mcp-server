@@ -4,7 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
-from .property_data_type import PropertyDataType
+from .data_type import DataType
 
 
 class PropertyDeclaration(pydantic.BaseModel):
@@ -25,7 +25,7 @@ class PropertyDeclaration(pydantic.BaseModel):
 
     name: str
     display_name: str
-    data_type: PropertyDataType
+    data_type: DataType
     description: str | None
     enum: list[Any] | None
     unit: str | None

@@ -4,7 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
-from .command_argument_data_type import CommandArgumentDataType
+from .data_type import DataType
 
 
 class CommandArgumentDeclaration(pydantic.BaseModel):
@@ -21,7 +21,7 @@ class CommandArgumentDeclaration(pydantic.BaseModel):
 
     name: str
     display_name: str
-    data_type: CommandArgumentDataType
+    data_type: DataType
     required: bool
     description: str | None
     enum: list[Any] | None = None
@@ -31,7 +31,7 @@ class CommandArgumentDeclaration(pydantic.BaseModel):
         return cls(
             name=declaration.name,
             display_name=declaration.display_name,
-            data_type=CommandArgumentDataType(declaration.data_type.value),
+            data_type=declaration.data_type.value,
             required=declaration.required,
             description=declaration.description,
             enum=declaration.enum,

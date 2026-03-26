@@ -250,7 +250,7 @@ class TestApplicationServer:
         assert len(props) == 1
         assert isinstance(props[0], domain.PropertyDeclaration)
         assert props[0].name == "p1"
-        assert props[0].data_type == domain.PropertyDataType.STRING
+        assert props[0].data_type == domain.DataType.STRING
 
         # Read telemetry
         telemetry = await app.read_blueprint_manifest(
@@ -278,9 +278,7 @@ class TestApplicationServer:
         assert commands[0].name == "c1"
         assert len(commands[0].arguments) == 1
         assert commands[0].arguments[0].name == "a1"
-        assert (
-            commands[0].arguments[0].data_type == domain.CommandArgumentDataType.INTEGER
-        )
+        assert commands[0].arguments[0].data_type == domain.DataType.INTEGER
 
     async def test_get_historical_telemetry(self) -> None:
         historical = domain.HistoricalTelemetry(

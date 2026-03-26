@@ -4,7 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
-from .telemetry_attribute_data_type import TelemetryAttributeDataType
+from .data_type import DataType
 
 
 class TelemetryAttributeDeclaration(pydantic.BaseModel):
@@ -24,7 +24,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
 
     name: str
     display_name: str
-    data_type: TelemetryAttributeDataType
+    data_type: DataType
     description: str | None
     enum: list[Any] | None
     unit: str | None
