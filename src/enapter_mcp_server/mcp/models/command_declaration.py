@@ -8,14 +8,7 @@ from .command_argument_declaration import CommandArgumentDeclaration
 
 
 class CommandDeclaration(pydantic.BaseModel):
-    """A declaration of a device command.
-
-    Attributes:
-        name: The unique identifier for the command.
-        display_name: A human-readable name for the command.
-        description: A brief explanation of what the command does.
-        arguments: A list of arguments that the command accepts.
-    """
+    """A declaration of a device command."""
 
     name: str
     display_name: str

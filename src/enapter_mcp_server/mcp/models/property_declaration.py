@@ -10,17 +10,9 @@ from .data_type import DataType
 class PropertyDeclaration(pydantic.BaseModel):
     """Represents a property declaration.
 
-    Property is device metadata which does not change during normal device
-    operation. "firmware_version", "device_model", and "serial_number" fit this
-    well.
-
-    Attributes:
-        name: The name of the property.
-        display_name: A user-friendly name for the property.
-        data_type: The data type of the property.
-        description: A description of the property.
-        enum: An optional list of allowed values for the property.
-        unit: An optional unit of measurement for the property.
+    Properties are device metadata which do not change during normal device
+    operation. Examples include "firmware_version", "device_model", and
+    "serial_number".
     """
 
     name: str

@@ -15,15 +15,6 @@ class DeviceDetails(pydantic.BaseModel):
 
     Device details include metadata about the device, its connectivity status,
     properties, and a summary of its blueprint.
-
-    Attributes:
-        timestamp: The timestamp when the details were recorded.
-        device: The device information.
-        connectivity_status: The connectivity status of the device.
-        properties: A dictionary of device properties. Device property is
-            metadata which does not change during normal operation, e.g.
-            `firmware_version`, `model`, and `serial_number`.
-        blueprint_summary: A summary of the device's blueprint.
     """
 
     timestamp: datetime.datetime

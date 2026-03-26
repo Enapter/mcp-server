@@ -10,16 +10,9 @@ from .data_type import DataType
 class TelemetryAttributeDeclaration(pydantic.BaseModel):
     """Represents a telemetry attribute declaration.
 
-    Telemetry attribute is a measurable device parameter which can change during
-    normal device operation. "temperature", "voltage", and "current" fit this well.
-
-    Attributes:
-        name: The name of the telemetry attribute.
-        display_name: A user-friendly name for the telemetry attribute.
-        data_type: The data type of the telemetry attribute.
-        description: A description of the telemetry attribute.
-        enum: An optional list of allowed values for the telemetry attribute.
-        unit: An optional unit of measurement for the telemetry attribute.
+    Telemetry attributes are measurable device parameters which can change
+    during normal device operation. Examples include "temperature", "voltage",
+    and "current".
     """
 
     name: str

@@ -8,16 +8,7 @@ from .data_type import DataType
 
 
 class CommandArgumentDeclaration(pydantic.BaseModel):
-    """A declaration of an argument for a device command.
-
-    Attributes:
-        name: The unique identifier for the argument within the command.
-        display_name: A human-readable name for the argument.
-        data_type: The data type of the argument's value.
-        required: Whether the argument must be provided when executing the command.
-        description: A brief explanation of the argument's purpose.
-        enum: A list of possible values for the argument.
-    """
+    """A declaration of an argument for a device command."""
 
     name: str
     display_name: str

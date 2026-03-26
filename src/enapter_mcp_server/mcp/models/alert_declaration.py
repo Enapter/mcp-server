@@ -10,17 +10,8 @@ from .alert_severity import AlertSeverity
 class AlertDeclaration(pydantic.BaseModel):
     """Represents an alert declaration.
 
-    Alert is a notification about a significant event or condition related to
+    An alert is a notification about a significant event or condition related to
     the device. Alerts can indicate issues, warnings, or informational messages.
-
-    Attributes:
-        name: The name of the alert.
-        display_name: A user-friendly name for the alert.
-        severity: The severity level of the alert.
-        description: A description of the alert.
-        troubleshooting: A list of troubleshooting steps for the alert.
-        components: A list of device components related to the alert.
-        conditions: A list of conditions that trigger the alert.
     """
 
     name: str
