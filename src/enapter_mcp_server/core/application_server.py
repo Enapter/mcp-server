@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import re
 
@@ -93,7 +94,7 @@ class ApplicationServer:
 
     async def get_device_details(
         self, auth: AuthConfig, device_id: str
-    ) -> domain.DeviceDetails:
+    ) -> domain.Device:
         device_dto = await self._enapter_api.get_device(
             auth,
             device_id,
@@ -119,9 +120,8 @@ class ApplicationServer:
 
         device = device_dto.to_domain()
 
-        return domain.DeviceDetails(
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            device=device,
+        return dataclasses.replace(
+            device,
             connectivity_status=device_dto.connectivity,
             properties={
                 k: device_dto.properties.get(k)

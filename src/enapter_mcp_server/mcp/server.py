@@ -191,11 +191,11 @@ class Server(enapter.async_.Routine):
         )
         return [models.Device.from_domain(d) for d in devices]
 
-    async def get_device_details(self, device_id: str) -> models.DeviceDetails:
-        """Get device details, including connectivity, properties, and active alerts."""
+    async def get_device_details(self, device_id: str) -> models.Device:
+        """Get a full device record, including connectivity, properties, and active alerts."""
         auth = await self._get_auth_config()
-        details = await self._app.get_device_details(auth=auth, device_id=device_id)
-        return models.DeviceDetails.from_domain(details)
+        device = await self._app.get_device_details(auth=auth, device_id=device_id)
+        return models.Device.from_domain(device)
 
     async def read_blueprint_manifest(
         self,
