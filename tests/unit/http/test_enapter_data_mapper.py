@@ -1,9 +1,13 @@
+import datetime
+
+import enapter
+
 from enapter_mcp_server import domain, http
 
 
-class TestEnapterAPI:
+class TestEnapterDataMapper:
     def test_parse_device_manifest(self) -> None:
-        manifest = http.EnapterAPI._parse_device_manifest(
+        manifest = http.EnapterDataMapper().to_device_manifest(
             {
                 "description": "Electrolyzer device",
                 "vendor": "Enapter",
@@ -52,7 +56,7 @@ class TestEnapterAPI:
         assert manifest.commands["c1"].arguments[0].data_type == domain.DataType.INTEGER
 
     def test_parse_device_manifest_missing_sections(self) -> None:
-        manifest = http.EnapterAPI._parse_device_manifest({})
+        manifest = http.EnapterDataMapper().to_device_manifest({})
 
         assert manifest is not None
         assert manifest.description is None
@@ -64,7 +68,7 @@ class TestEnapterAPI:
 
     def test_parse_device_manifest_raises_on_invalid_payload(self) -> None:
         try:
-            http.EnapterAPI._parse_device_manifest(
+            http.EnapterDataMapper().to_device_manifest(
                 {
                     "properties": {
                         "p1": {
@@ -77,3 +81,49 @@ class TestEnapterAPI:
             assert exc.args == ("display_name",)
         else:
             raise AssertionError("Expected manifest parsing to fail")
+
+    def test_to_latest_telemetry(self) -> None:
+        timestamp = datetime.datetime.now()
+        telemetry = http.EnapterDataMapper().to_latest_telemetry(
+            {
+                "dev-1": {
+                    "alerts": enapter.http.api.telemetry.LatestDatapoint(
+                        timestamp=timestamp, value=["a1"]
+                    ),
+                    "power": enapter.http.api.telemetry.LatestDatapoint(
+                        timestamp=timestamp, value=42.0
+                    ),
+                    "missing": None,
+                }
+            }
+        )
+
+        assert telemetry == {
+            "dev-1": {
+                "alerts": ["a1"],
+                "power": 42.0,
+                "missing": None,
+            }
+        }
+
+    def test_to_historical_telemetry(self) -> None:
+        timestamp = datetime.datetime.now()
+        telemetry = http.EnapterDataMapper().to_historical_telemetry(
+            enapter.http.api.telemetry.WideTimeseries(
+                timestamps=[timestamp],
+                columns=[
+                    enapter.http.api.telemetry.WideTimeseriesColumn(
+                        data_type=enapter.http.api.telemetry.DataType.FLOAT,
+                        labels=enapter.http.api.telemetry.labels.Labels(
+                            telemetry="temperature"
+                        ),
+                        values=[21.5],
+                    )
+                ],
+            )
+        )
+
+        assert telemetry == domain.HistoricalTelemetry(
+            timestamps=[timestamp],
+            values={"temperature": [21.5]},
+        )
