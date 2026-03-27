@@ -21,20 +21,12 @@ class ApplicationServer:
         query: SiteSearchQuery,
         offset: int,
         limit: int,
-        view: domain.SiteView,
     ) -> list[domain.Site]:
-        match view:
-            case domain.SiteView.BASIC:
-                sites = await self._search_sites_basic(auth, query)
-            case domain.SiteView.FULL:
-                sites = await self._search_sites_full(auth, query)
-            case _:
-                raise NotImplementedError(view)
-
+        sites = await self._search_sites(auth, query)
         sites.sort(key=lambda s: s.id)
         return sites[offset : offset + limit]
 
-    async def _search_sites_basic(
+    async def _search_sites(
         self, auth: AuthConfig, query: SiteSearchQuery
     ) -> list[domain.Site]:
         sites: list[domain.Site] = []
@@ -86,11 +78,6 @@ class ApplicationServer:
                 )
 
         return sites
-
-    async def _search_sites_full(
-        self, auth: AuthConfig, query: SiteSearchQuery
-    ) -> list[domain.Site]:
-        return await self._search_sites_basic(auth, query)
 
     async def search_devices(
         self,

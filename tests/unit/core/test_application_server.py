@@ -133,7 +133,6 @@ class TestApplicationServer:
             query=core.SiteSearchQuery(name_pattern="Alpha", timezone_pattern=".*"),
             offset=0,
             limit=20,
-            view=domain.SiteView.BASIC,
         )
         assert len(result) == 1
         assert result[0].name == "Alpha"
@@ -149,7 +148,6 @@ class TestApplicationServer:
             query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern="Berlin"),
             offset=0,
             limit=20,
-            view=domain.SiteView.BASIC,
         )
         assert len(result) == 2
         assert result[0].name == "Alpha"
@@ -163,13 +161,12 @@ class TestApplicationServer:
             query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
             offset=0,
             limit=1,
-            view=domain.SiteView.BASIC,
         )
         assert len(result) == 1
         assert result[0].id == "1"
         assert result[0].devices_total == 2
 
-    async def test_search_sites_full_view(self) -> None:
+    async def test_search_sites(self) -> None:
         site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
         devices = [
             core.DeviceDTO(
@@ -203,7 +200,6 @@ class TestApplicationServer:
             query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
             offset=0,
             limit=20,
-            view=domain.SiteView.FULL,
         )
 
         assert len(result) == 1
@@ -471,7 +467,6 @@ class TestApplicationServer:
             query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
             offset=0,
             limit=20,
-            view=domain.SiteView.FULL,
         )
         assert len(result) == 1
         assert result[0].active_alerts_total == 0

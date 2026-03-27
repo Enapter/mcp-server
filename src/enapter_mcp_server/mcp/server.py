@@ -156,7 +156,6 @@ class Server(enapter.async_.Routine):
             query=query,
             offset=offset,
             limit=limit,
-            view=domain.SiteView.BASIC,
         )
         return [models.Site.from_domain(s) for s in sites]
 
