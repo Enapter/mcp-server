@@ -172,10 +172,11 @@ class Server(enapter.async_.Routine):
         site_id: str | None = None,
         type: models.DeviceType | None = None,
         name_pattern: str = ".*",
+        view: models.DeviceView = "BASIC",
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search among all devices in a site."""
+        """Search among all devices in a site with BASIC or FULL views."""
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
         spec = domain.DeviceSpecification(
@@ -188,6 +189,7 @@ class Server(enapter.async_.Routine):
             spec=spec,
             offset=offset,
             limit=limit,
+            view=domain.DeviceView(view),
         )
         return [models.Device.from_domain(d) for d in devices]
 

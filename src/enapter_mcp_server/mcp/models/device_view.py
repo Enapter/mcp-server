@@ -1,3 +1,3 @@
 from typing import Literal
 
-DeviceView = Literal["UNSPECIFIED", "BASIC", "FULL"]
+DeviceView = Literal["BASIC", "FULL"]

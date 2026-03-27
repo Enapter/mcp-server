@@ -5,6 +5,7 @@ import re
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
+from .device_dto import DeviceDTO
 from .enapter_api import EnapterAPI
 
 
@@ -79,18 +80,89 @@ class ApplicationServer:
         spec: domain.DeviceSpecification,
         offset: int,
         limit: int,
+        view: domain.DeviceView,
     ) -> list[domain.Device]:
-        devices = []
+        match view:
+            case domain.DeviceView.BASIC:
+                devices = await self._search_devices_basic(auth, spec)
+            case domain.DeviceView.FULL:
+                devices = await self._search_devices_full(auth, spec)
+            case _:
+                raise NotImplementedError(view)
+
+        devices.sort(key=lambda d: d.id)
+        return devices[offset : offset + limit]
+
+    async def _search_devices_basic(
+        self, auth: AuthConfig, spec: domain.DeviceSpecification
+    ) -> list[domain.Device]:
+        devices: list[domain.Device] = []
         async with self._enapter_api.list_devices(
-            auth, site_id=spec.site_id
+            auth,
+            site_id=spec.site_id,
+            expand_manifest=True,
+            expand_connectivity=True,
         ) as devices_gen:
             async for device_dto in devices_gen:
                 device = device_dto.to_domain()
                 if spec.matches(device):
-                    devices.append(device)
+                    assert device_dto.manifest is not None
+                    assert device_dto.connectivity is not None
+                    devices.append(
+                        dataclasses.replace(
+                            device,
+                            connectivity_status=device_dto.connectivity,
+                            blueprint_summary=domain.BlueprintSummary.from_manifest(
+                                device_dto.manifest
+                            ),
+                        )
+                    )
 
-        devices.sort(key=lambda d: d.id)
-        return devices[offset : offset + limit]
+        return devices
+
+    async def _search_devices_full(
+        self, auth: AuthConfig, spec: domain.DeviceSpecification
+    ) -> list[domain.Device]:
+        matched_device_dtos: list[DeviceDTO] = []
+        async with self._enapter_api.list_devices(
+            auth,
+            site_id=spec.site_id,
+            expand_manifest=True,
+            expand_properties=True,
+            expand_connectivity=True,
+        ) as devices_gen:
+            async for device_dto in devices_gen:
+                if spec.matches(device_dto.to_domain()):
+                    matched_device_dtos.append(device_dto)
+
+        if not matched_device_dtos:
+            return []
+
+        latest_telemetry = await self._enapter_api.get_latest_telemetry(
+            auth, {device_dto.id: ["alerts"] for device_dto in matched_device_dtos}
+        )
+        devices: list[domain.Device] = []
+        for device_dto in matched_device_dtos:
+            assert device_dto.manifest is not None
+            assert device_dto.connectivity is not None
+            assert device_dto.properties is not None
+            devices.append(
+                dataclasses.replace(
+                    device_dto.to_domain(),
+                    connectivity_status=device_dto.connectivity,
+                    properties={
+                        k: device_dto.properties.get(k)
+                        for k in device_dto.manifest.get("properties", {})
+                    },
+                    active_alerts=latest_telemetry.get(device_dto.id, {}).get("alerts")
+                    or [],
+                    blueprint_summary=domain.BlueprintSummary.from_manifest(
+                        device_dto.manifest
+                    ),
+                )
+            )
+
+        return devices
 
     async def get_device_details(
         self, auth: AuthConfig, device_id: str
@@ -109,14 +181,7 @@ class ApplicationServer:
             auth, {device_id: ["alerts"]}
         )
 
-        blueprint_summary = domain.BlueprintSummary(
-            description=device_dto.manifest.get("description"),
-            vendor=device_dto.manifest.get("vendor"),
-            commands_total=len(device_dto.manifest.get("commands") or {}),
-            properties_total=len(device_dto.manifest.get("properties") or {}),
-            telemetry_attributes_total=len(device_dto.manifest.get("telemetry") or {}),
-            alerts_total=len(device_dto.manifest.get("alerts") or {}),
-        )
+        blueprint_summary = domain.BlueprintSummary.from_manifest(device_dto.manifest)
 
         device = device_dto.to_domain()
 
