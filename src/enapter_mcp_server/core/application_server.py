@@ -1,4 +1,3 @@
-import dataclasses
 import datetime
 import re
 
@@ -6,6 +5,7 @@ from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
 from .device_dto import DeviceDTO
+from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 
 
@@ -77,16 +77,16 @@ class ApplicationServer:
     async def search_devices(
         self,
         auth: AuthConfig,
-        spec: domain.DeviceSpecification,
+        query: DeviceSearchQuery,
         offset: int,
         limit: int,
         view: domain.DeviceView,
     ) -> list[domain.Device]:
         match view:
             case domain.DeviceView.BASIC:
-                devices = await self._search_devices_basic(auth, spec)
+                devices = await self._search_devices_basic(auth, query)
             case domain.DeviceView.FULL:
-                devices = await self._search_devices_full(auth, spec)
+                devices = await self._search_devices_full(auth, query)
             case _:
                 raise NotImplementedError(view)
 
@@ -94,45 +94,47 @@ class ApplicationServer:
         return devices[offset : offset + limit]
 
     async def _search_devices_basic(
-        self, auth: AuthConfig, spec: domain.DeviceSpecification
+        self, auth: AuthConfig, query: DeviceSearchQuery
     ) -> list[domain.Device]:
         devices: list[domain.Device] = []
         async with self._enapter_api.list_devices(
             auth,
-            site_id=spec.site_id,
+            site_id=query.site_id,
             expand_manifest=True,
             expand_connectivity=True,
         ) as devices_gen:
             async for device_dto in devices_gen:
-                device = device_dto.to_domain()
-                if spec.matches(device):
+                if query.matches(device_dto):
                     assert device_dto.manifest is not None
                     assert device_dto.connectivity is not None
                     devices.append(
-                        dataclasses.replace(
-                            device,
-                            connectivity_status=device_dto.connectivity,
+                        domain.Device(
+                            id=device_dto.id,
+                            name=device_dto.name,
+                            site_id=device_dto.site_id,
+                            type=device_dto.type,
                             blueprint_summary=domain.BlueprintSummary.from_manifest(
                                 device_dto.manifest
                             ),
+                            connectivity_status=device_dto.connectivity,
                         )
                     )
 
         return devices
 
     async def _search_devices_full(
-        self, auth: AuthConfig, spec: domain.DeviceSpecification
+        self, auth: AuthConfig, query: DeviceSearchQuery
     ) -> list[domain.Device]:
         matched_device_dtos: list[DeviceDTO] = []
         async with self._enapter_api.list_devices(
             auth,
-            site_id=spec.site_id,
+            site_id=query.site_id,
             expand_manifest=True,
             expand_properties=True,
             expand_connectivity=True,
         ) as devices_gen:
             async for device_dto in devices_gen:
-                if spec.matches(device_dto.to_domain()):
+                if query.matches(device_dto):
                     matched_device_dtos.append(device_dto)
 
         if not matched_device_dtos:
@@ -147,8 +149,14 @@ class ApplicationServer:
             assert device_dto.connectivity is not None
             assert device_dto.properties is not None
             devices.append(
-                dataclasses.replace(
-                    device_dto.to_domain(),
+                domain.Device(
+                    id=device_dto.id,
+                    name=device_dto.name,
+                    site_id=device_dto.site_id,
+                    type=device_dto.type,
+                    blueprint_summary=domain.BlueprintSummary.from_manifest(
+                        device_dto.manifest
+                    ),
                     connectivity_status=device_dto.connectivity,
                     properties={
                         k: device_dto.properties.get(k)
@@ -156,9 +164,6 @@ class ApplicationServer:
                     },
                     active_alerts=latest_telemetry.get(device_dto.id, {}).get("alerts")
                     or [],
-                    blueprint_summary=domain.BlueprintSummary.from_manifest(
-                        device_dto.manifest
-                    ),
                 )
             )
 

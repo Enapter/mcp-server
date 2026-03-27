@@ -7,7 +7,6 @@ from .command_declaration import CommandDeclaration
 from .connectivity_status import ConnectivityStatus
 from .data_type import DataType
 from .device import Device
-from .device_specification import DeviceSpecification
 from .device_type import DeviceType
 from .device_view import DeviceView
 from .historical_telemetry import HistoricalTelemetry
@@ -27,7 +26,6 @@ __all__ = [
     "ConnectivityStatus",
     "DataType",
     "Device",
-    "DeviceSpecification",
     "DeviceType",
     "DeviceView",
     "HistoricalTelemetry",

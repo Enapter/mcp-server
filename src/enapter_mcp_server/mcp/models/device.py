@@ -19,10 +19,10 @@ class Device(pydantic.BaseModel):
     name: str
     site_id: str
     type: DeviceType
-    connectivity_status: ConnectivityStatus | None = None
+    blueprint_summary: BlueprintSummary
+    connectivity_status: ConnectivityStatus
     properties: dict[str, Any] | None = None
     active_alerts: list[str] | None = None
-    blueprint_summary: BlueprintSummary | None = None
 
     @classmethod
     def from_domain(cls, device: domain.Device) -> Self:
@@ -31,16 +31,8 @@ class Device(pydantic.BaseModel):
             name=device.name,
             site_id=device.site_id,
             type=device.type.value,
-            connectivity_status=(
-                device.connectivity_status.value
-                if device.connectivity_status is not None
-                else None
-            ),
+            connectivity_status=device.connectivity_status.value,
             properties=device.properties,
             active_alerts=device.active_alerts,
-            blueprint_summary=(
-                BlueprintSummary.from_domain(device.blueprint_summary)
-                if device.blueprint_summary is not None
-                else None
-            ),
+            blueprint_summary=BlueprintSummary.from_domain(device.blueprint_summary),
         )

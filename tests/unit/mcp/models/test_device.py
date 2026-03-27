@@ -11,6 +11,15 @@ class TestDevice:
             name="Production Device",
             site_id="site-999",
             type=domain.DeviceType.NATIVE,
+            blueprint_summary=domain.BlueprintSummary(
+                description=None,
+                vendor=None,
+                commands_total=0,
+                properties_total=0,
+                telemetry_attributes_total=0,
+                alerts_total=0,
+            ),
+            connectivity_status=domain.ConnectivityStatus.ONLINE,
         )
 
         device = mcp.models.Device.from_domain(domain_device)
@@ -19,6 +28,8 @@ class TestDevice:
         assert device.name == "Production Device"
         assert device.site_id == "site-999"
         assert device.type == "NATIVE"
+        assert device.connectivity_status == "ONLINE"
+        assert device.blueprint_summary.alerts_total == 0
 
     def test_device_from_domain_with_details(self) -> None:
         domain_device = domain.Device(

@@ -13,11 +13,3 @@ class DeviceDTO:
     connectivity: domain.ConnectivityStatus | None = None
     properties: dict[str, Any] | None = None
     manifest: dict[str, Any] | None = None
-
-    def to_domain(self) -> domain.Device:
-        return domain.Device(
-            id=self.id,
-            name=self.name,
-            site_id=self.site_id,
-            type=self.type,
-        )

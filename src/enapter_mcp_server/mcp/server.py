@@ -178,14 +178,14 @@ class Server(enapter.async_.Routine):
         """Search among all devices in a site with BASIC or FULL views."""
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
-        spec = domain.DeviceSpecification(
+        query = core.DeviceSearchQuery(
             site_id=site_id,
             device_type=device_type,
             name_pattern=name_pattern,
         )
         devices = await self._app.search_devices(
             auth=auth,
-            spec=spec,
+            query=query,
             offset=offset,
             limit=limit,
             view=domain.DeviceView(view),

@@ -206,7 +206,7 @@ class TestApplicationServer:
         # Filter by site
         result = await app.search_devices(
             auth,
-            spec=domain.DeviceSpecification(
+            query=core.DeviceSearchQuery(
                 site_id="s1", device_type=None, name_pattern=".*"
             ),
             offset=0,
@@ -222,7 +222,7 @@ class TestApplicationServer:
         # Filter by type
         result = await app.search_devices(
             auth,
-            spec=domain.DeviceSpecification(
+            query=core.DeviceSearchQuery(
                 site_id=None,
                 device_type=domain.DeviceType.GATEWAY,
                 name_pattern=".*",
@@ -259,7 +259,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            spec=domain.DeviceSpecification(name_pattern=".*"),
+            query=core.DeviceSearchQuery(name_pattern=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -296,7 +296,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            spec=domain.DeviceSpecification(name_pattern=".*"),
+            query=core.DeviceSearchQuery(name_pattern=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,

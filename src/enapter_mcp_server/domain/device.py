@@ -12,7 +12,7 @@ class Device:
     name: str
     site_id: str
     type: DeviceType
-    connectivity_status: ConnectivityStatus | None = None
+    blueprint_summary: BlueprintSummary
+    connectivity_status: ConnectivityStatus
     properties: dict[str, Any] | None = None
     active_alerts: list[str] | None = None
-    blueprint_summary: BlueprintSummary | None = None

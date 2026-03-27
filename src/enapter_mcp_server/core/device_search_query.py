@@ -2,14 +2,15 @@ import dataclasses
 import functools
 import re
 
-from .device import Device
-from .device_type import DeviceType
+from enapter_mcp_server import domain
+
+from .device_dto import DeviceDTO
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class DeviceSpecification:
+class DeviceSearchQuery:
     site_id: str | None = None
-    device_type: DeviceType | None = None
+    device_type: domain.DeviceType | None = None
     name_pattern: str | None = None
 
     @functools.cached_property
@@ -18,11 +19,11 @@ class DeviceSpecification:
             return None
         return re.compile(self.name_pattern)
 
-    def matches(self, device: Device) -> bool:
-        if self.device_type is not None and device.type != self.device_type:
+    def matches(self, device_dto: DeviceDTO) -> bool:
+        if self.device_type is not None and device_dto.type != self.device_type:
             return False
-        if self.site_id is not None and device.site_id != self.site_id:
+        if self.site_id is not None and device_dto.site_id != self.site_id:
             return False
-        if self._name_re is not None and not self._name_re.search(device.name):
+        if self._name_re is not None and not self._name_re.search(device_dto.name):
             return False
         return True
