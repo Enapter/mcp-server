@@ -2,11 +2,11 @@ import dataclasses
 import functools
 import re
 
-from .site import Site
+from .site_dto import SiteDTO
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class SiteSpecification:
+class SiteSearchQuery:
     name_pattern: str | None = None
     timezone_pattern: str | None = None
 
@@ -22,11 +22,11 @@ class SiteSpecification:
             return None
         return re.compile(self.timezone_pattern)
 
-    def matches(self, site: Site) -> bool:
-        if self._name_re is not None and not self._name_re.search(site.name):
+    def matches(self, site_dto: SiteDTO) -> bool:
+        if self._name_re is not None and not self._name_re.search(site_dto.name):
             return False
         if self._timezone_re is not None and not self._timezone_re.search(
-            site.timezone
+            site_dto.timezone
         ):
             return False
         return True

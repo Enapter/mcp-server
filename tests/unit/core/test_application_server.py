@@ -9,7 +9,7 @@ from enapter_mcp_server import core, domain
 class MockEnapterAPI:
     def __init__(
         self,
-        sites: list[domain.Site] | None = None,
+        sites: list[core.SiteDTO] | None = None,
         devices: list[core.DeviceDTO] | None = None,
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
@@ -23,15 +23,9 @@ class MockEnapterAPI:
     @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
-    ) -> AsyncGenerator[domain.Site, None]:
+    ) -> AsyncGenerator[core.SiteDTO, None]:
         for site in self._sites:
             yield site
-
-    async def get_site(self, auth: core.AuthConfig, site_id: str) -> domain.Site:
-        for site in self._sites:
-            if site.id == site_id:
-                return site
-        raise ValueError(f"Site {site_id} not found")
 
     @enapter.async_.generator
     async def list_devices(
@@ -85,48 +79,98 @@ class MockEnapterAPI:
 class TestApplicationServer:
 
     async def test_search_sites_filtering(self) -> None:
-        sites = [
-            domain.Site(id="1", name="Alpha", timezone="Europe/Berlin"),
-            domain.Site(id="2", name="Beta", timezone="Europe/London"),
-            domain.Site(id="3", name="Gamma", timezone="Europe/Berlin"),
+        devices = [
+            core.DeviceDTO(
+                id="dev-1",
+                name="Gateway 1",
+                site_id="1",
+                type=domain.DeviceType.GATEWAY,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+            ),
+            core.DeviceDTO(
+                id="dev-2",
+                name="Device 2",
+                site_id="1",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.OFFLINE,
+            ),
+            core.DeviceDTO(
+                id="dev-3",
+                name="Gateway 2",
+                site_id="2",
+                type=domain.DeviceType.GATEWAY,
+                connectivity=domain.ConnectivityStatus.OFFLINE,
+            ),
+            core.DeviceDTO(
+                id="dev-4",
+                name="Device 4",
+                site_id="3",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+            ),
         ]
-        api = MockEnapterAPI(sites=sites)
+        sites = [
+            core.SiteDTO(id="1", name="Alpha", timezone="Europe/Berlin"),
+            core.SiteDTO(id="2", name="Beta", timezone="Europe/London"),
+            core.SiteDTO(id="3", name="Gamma", timezone="Europe/Berlin"),
+        ]
+        api = MockEnapterAPI(
+            sites=sites,
+            devices=devices,
+            telemetry={
+                "dev-1": {"alerts": ["a1"]},
+                "dev-2": {"alerts": []},
+                "dev-3": {"alerts": ["a2", "a3"]},
+                "dev-4": {"alerts": None},
+            },
+        )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
         # Test name filtering
         result = await app.search_sites(
             auth,
-            spec=domain.SiteSpecification(name_pattern="Alpha", timezone_pattern=".*"),
+            query=core.SiteSearchQuery(name_pattern="Alpha", timezone_pattern=".*"),
             offset=0,
             limit=20,
+            view=domain.SiteView.BASIC,
         )
         assert len(result) == 1
         assert result[0].name == "Alpha"
+        assert result[0].gateway_id == "dev-1"
+        assert result[0].gateway_online is True
+        assert result[0].devices_total == 2
+        assert result[0].devices_online == 1
+        assert result[0].active_alerts_total == 1
 
         # Test timezone filtering
         result = await app.search_sites(
             auth,
-            spec=domain.SiteSpecification(name_pattern=".*", timezone_pattern="Berlin"),
+            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern="Berlin"),
             offset=0,
             limit=20,
+            view=domain.SiteView.BASIC,
         )
         assert len(result) == 2
         assert result[0].name == "Alpha"
         assert result[1].name == "Gamma"
+        assert result[0].active_alerts_total == 1
+        assert result[1].active_alerts_total == 0
 
         # Test sorting and pagination
         result = await app.search_sites(
             auth,
-            spec=domain.SiteSpecification(name_pattern=".*", timezone_pattern=".*"),
+            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
             offset=0,
             limit=1,
+            view=domain.SiteView.BASIC,
         )
         assert len(result) == 1
         assert result[0].id == "1"
+        assert result[0].devices_total == 2
 
-    async def test_get_site_details(self) -> None:
-        site = domain.Site(id="site-1", name="Site 1", timezone="UTC")
+    async def test_search_sites_full_view(self) -> None:
+        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
         devices = [
             core.DeviceDTO(
                 id="dev-1",
@@ -154,14 +198,21 @@ class TestApplicationServer:
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
-        details = await app.get_site_details(auth, "site-1")
+        result = await app.search_sites(
+            auth,
+            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
+            offset=0,
+            limit=20,
+            view=domain.SiteView.FULL,
+        )
 
-        assert details.site.id == "site-1"
-        assert details.gateway_id == "dev-1"
-        assert details.gateway_online is True
-        assert details.devices_total == 2
-        assert details.devices_online == 1
-        assert details.active_alerts_total == 3
+        assert len(result) == 1
+        assert result[0].id == "site-1"
+        assert result[0].gateway_id == "dev-1"
+        assert result[0].gateway_online is True
+        assert result[0].devices_total == 2
+        assert result[0].devices_online == 1
+        assert result[0].active_alerts_total == 3
         assert api.latest_telemetry_batch_calls == 1
 
     async def test_search_devices(self) -> None:
@@ -394,8 +445,8 @@ class TestApplicationServer:
 
         assert result == historical
 
-    async def test_get_site_details_with_missing_alerts(self) -> None:
-        site = domain.Site(id="site-1", name="Site 1", timezone="UTC")
+    async def test_search_sites_full_view_with_missing_alerts(self) -> None:
+        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
         devices = [
             core.DeviceDTO(
                 id="dev-1",
@@ -415,5 +466,12 @@ class TestApplicationServer:
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
-        details = await app.get_site_details(auth, "site-1")
-        assert details.active_alerts_total == 0
+        result = await app.search_sites(
+            auth,
+            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
+            offset=0,
+            limit=20,
+            view=domain.SiteView.FULL,
+        )
+        assert len(result) == 1
+        assert result[0].active_alerts_total == 0

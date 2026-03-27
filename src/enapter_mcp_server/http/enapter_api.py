@@ -23,18 +23,15 @@ class EnapterAPI:
     @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
-    ) -> AsyncGenerator[domain.Site, None]:
+    ) -> AsyncGenerator[core.SiteDTO, None]:
         async with self._new_client(auth) as client:
             async with client.sites.list() as s:
                 async for site in s:
-                    yield domain.Site(
-                        id=site.id, name=site.name, timezone=site.timezone
+                    yield core.SiteDTO(
+                        id=site.id,
+                        name=site.name,
+                        timezone=site.timezone,
                     )
-
-    async def get_site(self, auth: core.AuthConfig, site_id: str) -> domain.Site:
-        async with self._new_client(auth) as client:
-            site = await client.sites.get(site_id)
-            return domain.Site(id=site.id, name=site.name, timezone=site.timezone)
 
     @enapter.async_.generator
     async def list_devices(

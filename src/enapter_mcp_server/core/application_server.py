@@ -7,6 +7,7 @@ from .auth_config import AuthConfig
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
+from .site_search_query import SiteSearchQuery
 
 
 class ApplicationServer:
@@ -17,62 +18,79 @@ class ApplicationServer:
     async def search_sites(
         self,
         auth: AuthConfig,
-        spec: domain.SiteSpecification,
+        query: SiteSearchQuery,
         offset: int,
         limit: int,
+        view: domain.SiteView,
     ) -> list[domain.Site]:
-        sites = []
-        async with self._enapter_api.list_sites(auth) as sites_gen:
-            async for site in sites_gen:
-                if spec.matches(site):
-                    sites.append(site)
+        match view:
+            case domain.SiteView.BASIC:
+                sites = await self._search_sites_basic(auth, query)
+            case domain.SiteView.FULL:
+                sites = await self._search_sites_full(auth, query)
+            case _:
+                raise NotImplementedError(view)
 
         sites.sort(key=lambda s: s.id)
         return sites[offset : offset + limit]
 
-    async def get_site_details(
-        self, auth: AuthConfig, site_id: str
-    ) -> domain.SiteDetails:
-        site = await self._enapter_api.get_site(auth, site_id)
+    async def _search_sites_basic(
+        self, auth: AuthConfig, query: SiteSearchQuery
+    ) -> list[domain.Site]:
+        sites: list[domain.Site] = []
+        async with self._enapter_api.list_sites(auth) as sites_gen:
+            async for site_dto in sites_gen:
+                if not query.matches(site_dto):
+                    continue
+                gateway_id: str | None = None
+                gateway_online = False
+                devices_online = 0
+                device_ids: list[str] = []
 
-        gateway_id: str | None = None
-        gateway_online = False
-        devices_total = 0
-        devices_online = 0
-        active_alerts_total = 0
-        device_ids: list[str] = []
+                async with self._enapter_api.list_devices(
+                    auth, site_id=site_dto.id, expand_connectivity=True
+                ) as devices_gen:
+                    async for device_dto in devices_gen:
+                        device_ids.append(device_dto.id)
+                        is_online = (
+                            device_dto.connectivity == domain.ConnectivityStatus.ONLINE
+                        )
+                        if is_online:
+                            devices_online += 1
 
-        async with self._enapter_api.list_devices(
-            auth, site_id=site_id, expand_connectivity=True
-        ) as devices_gen:
-            async for device_dto in devices_gen:
-                device_ids.append(device_dto.id)
-                is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
-                if is_online:
-                    devices_online += 1
+                        if device_dto.type == domain.DeviceType.GATEWAY:
+                            gateway_id = device_dto.id
+                            gateway_online = is_online
 
-                if device_dto.type == domain.DeviceType.GATEWAY:
-                    gateway_id = device_dto.id
-                    gateway_online = is_online
+                latest_telemetry_by_device = (
+                    await self._enapter_api.get_latest_telemetry(
+                        auth, {device_id: ["alerts"] for device_id in device_ids}
+                    )
+                )
+                active_alerts_total = sum(
+                    len(device_telemetry.get("alerts") or [])
+                    for device_telemetry in latest_telemetry_by_device.values()
+                )
 
-        latest_telemetry_by_device = await self._enapter_api.get_latest_telemetry(
-            auth, {device_id: ["alerts"] for device_id in device_ids}
-        )
-        active_alerts_total = sum(
-            len(device_telemetry.get("alerts") or [])
-            for device_telemetry in latest_telemetry_by_device.values()
-        )
-        devices_total = len(device_ids)
+                sites.append(
+                    domain.Site(
+                        id=site_dto.id,
+                        name=site_dto.name,
+                        timezone=site_dto.timezone,
+                        gateway_id=gateway_id,
+                        gateway_online=gateway_online,
+                        devices_total=len(device_ids),
+                        devices_online=devices_online,
+                        active_alerts_total=active_alerts_total,
+                    )
+                )
 
-        return domain.SiteDetails(
-            timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
-            site=site,
-            gateway_id=gateway_id,
-            gateway_online=gateway_online,
-            devices_total=devices_total,
-            devices_online=devices_online,
-            active_alerts_total=active_alerts_total,
-        )
+        return sites
+
+    async def _search_sites_full(
+        self, auth: AuthConfig, query: SiteSearchQuery
+    ) -> list[domain.Site]:
+        return await self._search_sites_basic(auth, query)
 
     async def search_devices(
         self,

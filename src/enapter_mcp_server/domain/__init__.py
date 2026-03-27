@@ -12,8 +12,7 @@ from .device_view import DeviceView
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
 from .site import Site
-from .site_details import SiteDetails
-from .site_specification import SiteSpecification
+from .site_view import SiteView
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 __all__ = [
@@ -31,7 +30,6 @@ __all__ = [
     "HistoricalTelemetry",
     "PropertyDeclaration",
     "Site",
-    "SiteDetails",
-    "SiteSpecification",
+    "SiteView",
     "TelemetryAttributeDeclaration",
 ]

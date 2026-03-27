@@ -21,7 +21,7 @@ INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy sy
 
 Workflow:
 - Search: Find sites (`search_sites`) or devices (`search_devices`) to obtain IDs.
-- Details: Use `get_site_details` or `search_devices(view="FULL")` for comprehensive views.
+- Details: Use `search_sites` or `search_devices(view="FULL")` for comprehensive views.
 - Deep Dive: Explore device manifests with `read_blueprint_manifest` and fetch historical data with `get_historical_telemetry`.
 """
 
@@ -106,7 +106,6 @@ class Server(enapter.async_.Routine):
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
         read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
-            (self.get_site_details, "Get Site Details"),
             (self.search_devices, "Search Devices"),
             (self.read_blueprint_manifest, "Read Blueprint Manifest"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
@@ -148,23 +147,18 @@ class Server(enapter.async_.Routine):
     ) -> list[models.Site]:
         """Search among all sites to which the authenticated user has access."""
         auth = await self._get_auth_config()
-        spec = domain.SiteSpecification(
+        query = core.SiteSearchQuery(
             name_pattern=name_pattern,
             timezone_pattern=timezone_pattern,
         )
         sites = await self._app.search_sites(
             auth=auth,
-            spec=spec,
+            query=query,
             offset=offset,
             limit=limit,
+            view=domain.SiteView.BASIC,
         )
         return [models.Site.from_domain(s) for s in sites]
-
-    async def get_site_details(self, site_id: str) -> models.SiteDetails:
-        """Get site details, including gateway, device, and active alert stats."""
-        auth = await self._get_auth_config()
-        details = await self._app.get_site_details(auth=auth, site_id=site_id)
-        return models.SiteDetails.from_domain(details)
 
     async def search_devices(
         self,
