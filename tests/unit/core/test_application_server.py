@@ -305,64 +305,6 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].active_alerts == []
 
-    async def test_get_device_details(self) -> None:
-        manifest = {
-            "description": "Desc",
-            "vendor": "Enapter",
-            "properties": {"p1": {}},
-            "telemetry": {"t1": {}},
-            "alerts": {"a1": {}},
-        }
-        device = core.DeviceDTO(
-            id="dev-1",
-            name="Dev 1",
-            site_id="s1",
-            type=domain.DeviceType.NATIVE,
-            connectivity=domain.ConnectivityStatus.ONLINE,
-            properties={"p1": "v1"},
-            manifest=manifest,
-        )
-        api = MockEnapterAPI(
-            devices=[device],
-            telemetry={"dev-1": {"alerts": ["a1", "a2"]}},
-        )
-        app = core.ApplicationServer(api)
-        auth = core.AuthConfig(token="test")
-
-        device_details = await app.get_device_details(auth, "dev-1")
-
-        assert device_details.id == "dev-1"
-        assert device_details.connectivity_status == domain.ConnectivityStatus.ONLINE
-        assert device_details.properties == {"p1": "v1"}
-        assert device_details.active_alerts == ["a1", "a2"]
-        assert device_details.blueprint_summary is not None
-        assert device_details.blueprint_summary.properties_total == 1
-        assert device_details.blueprint_summary.commands_total == 0
-
-    async def test_get_device_details_with_missing_active_alerts(self) -> None:
-        manifest: dict[str, object] = {
-            "properties": {"p1": {}},
-            "telemetry": {"t1": {}},
-            "alerts": {"a1": {}},
-        }
-        device = core.DeviceDTO(
-            id="dev-1",
-            name="Dev 1",
-            site_id="s1",
-            type=domain.DeviceType.NATIVE,
-            connectivity=domain.ConnectivityStatus.ONLINE,
-            properties={"p1": "v1"},
-            manifest=manifest,
-        )
-        api = MockEnapterAPI(devices=[device], telemetry={"dev-1": {}})
-        app = core.ApplicationServer(api)
-
-        device_details = await app.get_device_details(
-            core.AuthConfig(token="test"), "dev-1"
-        )
-
-        assert device_details.active_alerts == []
-
     async def test_read_blueprint_manifest(self) -> None:
         manifest = {
             "properties": {

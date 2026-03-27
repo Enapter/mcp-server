@@ -21,7 +21,7 @@ INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy sy
 
 Workflow:
 - Search: Find sites (`search_sites`) or devices (`search_devices`) to obtain IDs.
-- Details: Use `get_site_details` or `get_device_details` for comprehensive views.
+- Details: Use `get_site_details` or `search_devices(view="FULL")` for comprehensive views.
 - Deep Dive: Explore device manifests with `read_blueprint_manifest` and fetch historical data with `get_historical_telemetry`.
 """
 
@@ -108,7 +108,6 @@ class Server(enapter.async_.Routine):
             (self.search_sites, "Search Sites"),
             (self.get_site_details, "Get Site Details"),
             (self.search_devices, "Search Devices"),
-            (self.get_device_details, "Get Device Details"),
             (self.read_blueprint_manifest, "Read Blueprint Manifest"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
@@ -192,12 +191,6 @@ class Server(enapter.async_.Routine):
             view=domain.DeviceView(view),
         )
         return [models.Device.from_domain(d) for d in devices]
-
-    async def get_device_details(self, device_id: str) -> models.Device:
-        """Get a full device record, including connectivity, properties, and active alerts."""
-        auth = await self._get_auth_config()
-        device = await self._app.get_device_details(auth=auth, device_id=device_id)
-        return models.Device.from_domain(device)
 
     async def read_blueprint_manifest(
         self,

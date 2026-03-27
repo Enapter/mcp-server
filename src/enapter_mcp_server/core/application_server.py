@@ -164,38 +164,6 @@ class ApplicationServer:
 
         return devices
 
-    async def get_device_details(
-        self, auth: AuthConfig, device_id: str
-    ) -> domain.Device:
-        device_dto = await self._enapter_api.get_device(
-            auth,
-            device_id,
-            expand_manifest=True,
-            expand_connectivity=True,
-            expand_properties=True,
-        )
-        assert device_dto.manifest is not None
-        assert device_dto.connectivity is not None
-        assert device_dto.properties is not None
-        latest_telemetry = await self._enapter_api.get_latest_telemetry(
-            auth, {device_id: ["alerts"]}
-        )
-
-        blueprint_summary = domain.BlueprintSummary.from_manifest(device_dto.manifest)
-
-        device = device_dto.to_domain()
-
-        return dataclasses.replace(
-            device,
-            connectivity_status=device_dto.connectivity,
-            properties={
-                k: device_dto.properties.get(k)
-                for k in device_dto.manifest.get("properties", {})
-            },
-            active_alerts=latest_telemetry.get(device_id, {}).get("alerts") or [],
-            blueprint_summary=blueprint_summary,
-        )
-
     async def read_blueprint_manifest(
         self,
         auth: AuthConfig,
