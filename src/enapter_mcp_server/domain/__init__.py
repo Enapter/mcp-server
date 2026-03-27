@@ -10,6 +10,7 @@ from .device import Device
 from .device_details import DeviceDetails
 from .device_specification import DeviceSpecification
 from .device_type import DeviceType
+from .device_view import DeviceView
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
 from .site import Site
@@ -30,6 +31,7 @@ __all__ = [
     "DeviceDetails",
     "DeviceSpecification",
     "DeviceType",
+    "DeviceView",
     "HistoricalTelemetry",
     "PropertyDeclaration",
     "Site",
