@@ -41,11 +41,16 @@ class EnapterAPI:
         self,
         auth: core.AuthConfig,
         site_id: str | None = None,
+        expand_manifest: bool = False,
+        expand_properties: bool = False,
         expand_connectivity: bool = False,
     ) -> AsyncGenerator[core.DeviceDTO, None]:
         async with self._new_client(auth) as client:
             async with client.devices.list(
-                site_id=site_id, expand_connectivity=expand_connectivity
+                site_id=site_id,
+                expand_manifest=expand_manifest,
+                expand_properties=expand_properties,
+                expand_connectivity=expand_connectivity,
             ) as s:
                 async for device in s:
                     connectivity = None
@@ -60,6 +65,8 @@ class EnapterAPI:
                         site_id=device.site_id,
                         type=domain.DeviceType(device.type.value),
                         connectivity=connectivity,
+                        properties=device.properties,
+                        manifest=device.manifest,
                     )
 
     async def get_device(

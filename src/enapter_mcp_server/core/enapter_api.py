@@ -22,6 +22,8 @@ class EnapterAPI(Protocol):
         self,
         auth: AuthConfig,
         site_id: str | None = None,
+        expand_manifest: bool = False,
+        expand_properties: bool = False,
         expand_connectivity: bool = False,
     ) -> AsyncGenerator[DeviceDTO, None]:
         yield  # type: ignore
