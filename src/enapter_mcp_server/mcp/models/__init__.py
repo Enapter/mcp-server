@@ -1,6 +1,6 @@
 from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
-from .blueprint_manifest_section import BlueprintManifestSection
+from .blueprint_section import BlueprintSection
 from .blueprint_summary import BlueprintSummary
 from .command_argument_declaration import CommandArgumentDeclaration
 from .command_declaration import CommandDeclaration
@@ -17,7 +17,7 @@ from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 __all__ = [
     "AlertDeclaration",
     "AlertSeverity",
-    "BlueprintManifestSection",
+    "BlueprintSection",
     "BlueprintSummary",
     "CommandArgumentDeclaration",
     "CommandDeclaration",

@@ -174,11 +174,11 @@ class ApplicationServer:
 
         return devices
 
-    async def read_blueprint_manifest(
+    async def read_blueprint(
         self,
         auth: AuthConfig,
         device_id: str,
-        section: domain.BlueprintManifestSection,
+        section: domain.BlueprintSection,
         name_pattern: str,
         offset: int,
         limit: int,
@@ -202,7 +202,7 @@ class ApplicationServer:
         ]
 
         match section:
-            case domain.BlueprintManifestSection.PROPERTIES:
+            case domain.BlueprintSection.PROPERTIES:
                 entities = [
                     domain.PropertyDeclaration(
                         name=name,
@@ -216,7 +216,7 @@ class ApplicationServer:
                         device_dto.manifest.get("properties") or {}
                     ).items()
                 ]
-            case domain.BlueprintManifestSection.TELEMETRY:
+            case domain.BlueprintSection.TELEMETRY:
                 entities = [
                     domain.TelemetryAttributeDeclaration(
                         name=name,
@@ -230,7 +230,7 @@ class ApplicationServer:
                         device_dto.manifest.get("telemetry") or {}
                     ).items()
                 ]
-            case domain.BlueprintManifestSection.ALERTS:
+            case domain.BlueprintSection.ALERTS:
                 entities = [
                     domain.AlertDeclaration(
                         name=name,
@@ -243,7 +243,7 @@ class ApplicationServer:
                     )
                     for name, dto in (device_dto.manifest.get("alerts") or {}).items()
                 ]
-            case domain.BlueprintManifestSection.COMMANDS:
+            case domain.BlueprintSection.COMMANDS:
                 entities = [
                     domain.CommandDeclaration(
                         name=name,

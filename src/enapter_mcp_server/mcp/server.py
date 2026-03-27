@@ -22,7 +22,7 @@ INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy sy
 Workflow:
 - Search: Find sites (`search_sites`) or devices (`search_devices`) to obtain IDs.
 - Details: Use `search_sites` or `search_devices(view="FULL")` for comprehensive views.
-- Deep Dive: Explore device manifests with `read_blueprint_manifest` and fetch historical data with `get_historical_telemetry`.
+- Deep Dive: Explore device blueprints with `read_blueprint` and fetch historical data with `get_historical_telemetry`.
 """
 
 
@@ -107,7 +107,7 @@ class Server(enapter.async_.Routine):
         read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
             (self.search_devices, "Search Devices"),
-            (self.read_blueprint_manifest, "Read Blueprint Manifest"),
+            (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
         for tool, title in read_only_tools:
@@ -185,10 +185,10 @@ class Server(enapter.async_.Routine):
         )
         return [models.Device.from_domain(d) for d in devices]
 
-    async def read_blueprint_manifest(
+    async def read_blueprint(
         self,
         device_id: str,
-        section: models.BlueprintManifestSection,
+        section: models.BlueprintSection,
         name_pattern: str = ".*",
         offset: int = 0,
         limit: int = 20,
@@ -198,12 +198,12 @@ class Server(enapter.async_.Routine):
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
-        """Read a specific section of the device blueprint manifest."""
+        """Read a specific section of the device blueprint."""
         auth = await self._get_auth_config()
-        declarations = await self._app.read_blueprint_manifest(
+        declarations = await self._app.read_blueprint(
             auth=auth,
             device_id=device_id,
-            section=domain.BlueprintManifestSection(section),
+            section=domain.BlueprintSection(section),
             name_pattern=name_pattern,
             offset=offset,
             limit=limit,
