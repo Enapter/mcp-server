@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Any
+
+from .device_manifest import DeviceManifest
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -12,12 +13,12 @@ class BlueprintSummary:
     alerts_total: int
 
     @classmethod
-    def from_manifest(cls, manifest: dict[str, Any]) -> "BlueprintSummary":
+    def from_device_manifest(cls, manifest: DeviceManifest) -> "BlueprintSummary":
         return cls(
-            description=manifest.get("description"),
-            vendor=manifest.get("vendor"),
-            commands_total=len(manifest.get("commands") or {}),
-            properties_total=len(manifest.get("properties") or {}),
-            telemetry_attributes_total=len(manifest.get("telemetry") or {}),
-            alerts_total=len(manifest.get("alerts") or {}),
+            description=manifest.description,
+            vendor=manifest.vendor,
+            commands_total=len(manifest.commands),
+            properties_total=len(manifest.properties),
+            telemetry_attributes_total=len(manifest.telemetry),
+            alerts_total=len(manifest.alerts),
         )

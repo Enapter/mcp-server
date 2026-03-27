@@ -6,6 +6,25 @@ import enapter
 from enapter_mcp_server import core, domain
 
 
+def make_device_manifest(
+    *,
+    description: str | None = None,
+    vendor: str | None = None,
+    properties: dict[str, domain.PropertyDeclaration] | None = None,
+    telemetry: dict[str, domain.TelemetryAttributeDeclaration] | None = None,
+    alerts: dict[str, domain.AlertDeclaration] | None = None,
+    commands: dict[str, domain.CommandDeclaration] | None = None,
+) -> domain.DeviceManifest:
+    return domain.DeviceManifest(
+        description=description,
+        vendor=vendor,
+        properties=properties or {},
+        telemetry=telemetry or {},
+        alerts=alerts or {},
+        commands=commands or {},
+    )
+
+
 class MockEnapterAPI:
     def __init__(
         self,
@@ -212,14 +231,49 @@ class TestApplicationServer:
         assert api.latest_telemetry_batch_calls == 1
 
     async def test_search_devices(self) -> None:
-        manifest = {
-            "description": "Desc",
-            "vendor": "Enapter",
-            "properties": {"p1": {}},
-            "telemetry": {"t1": {}},
-            "alerts": {"a1": {}},
-            "commands": {"c1": {}},
-        }
+        manifest = make_device_manifest(
+            description="Desc",
+            vendor="Enapter",
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            telemetry={
+                "t1": domain.TelemetryAttributeDeclaration(
+                    name="t1",
+                    display_name="T1",
+                    data_type=domain.DataType.FLOAT,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            alerts={
+                "a1": domain.AlertDeclaration(
+                    name="a1",
+                    display_name="A1",
+                    severity=domain.AlertSeverity.WARNING,
+                    description=None,
+                    troubleshooting=None,
+                    components=None,
+                    conditions=None,
+                )
+            },
+            commands={
+                "c1": domain.CommandDeclaration(
+                    name="c1",
+                    display_name="C1",
+                    description=None,
+                    arguments=[],
+                )
+            },
+        )
         devices = [
             core.DeviceDTO(
                 id="1",
@@ -282,14 +336,57 @@ class TestApplicationServer:
         assert result[0].id == "2"
 
     async def test_search_devices_full_view(self) -> None:
-        manifest = {
-            "description": "Desc",
-            "vendor": "Enapter",
-            "properties": {"p1": {}, "p2": {}},
-            "telemetry": {"t1": {}},
-            "alerts": {"a1": {}},
-            "commands": {"c1": {}},
-        }
+        manifest = make_device_manifest(
+            description="Desc",
+            vendor="Enapter",
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                ),
+                "p2": domain.PropertyDeclaration(
+                    name="p2",
+                    display_name="P2",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                ),
+            },
+            telemetry={
+                "t1": domain.TelemetryAttributeDeclaration(
+                    name="t1",
+                    display_name="T1",
+                    data_type=domain.DataType.FLOAT,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            alerts={
+                "a1": domain.AlertDeclaration(
+                    name="a1",
+                    display_name="A1",
+                    severity=domain.AlertSeverity.WARNING,
+                    description=None,
+                    troubleshooting=None,
+                    components=None,
+                    conditions=None,
+                )
+            },
+            commands={
+                "c1": domain.CommandDeclaration(
+                    name="c1",
+                    display_name="C1",
+                    description=None,
+                    arguments=[],
+                )
+            },
+        )
         devices = [
             core.DeviceDTO(
                 id="1",
@@ -319,14 +416,41 @@ class TestApplicationServer:
         assert result[0].active_alerts == ["a1"]
 
     async def test_search_devices_full_view_with_missing_alerts(self) -> None:
-        manifest = {
-            "description": "Desc",
-            "vendor": "Enapter",
-            "properties": {"p1": {}},
-            "telemetry": {"t1": {}},
-            "alerts": {"a1": {}},
-            "commands": {},
-        }
+        manifest = make_device_manifest(
+            description="Desc",
+            vendor="Enapter",
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            telemetry={
+                "t1": domain.TelemetryAttributeDeclaration(
+                    name="t1",
+                    display_name="T1",
+                    data_type=domain.DataType.FLOAT,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            alerts={
+                "a1": domain.AlertDeclaration(
+                    name="a1",
+                    display_name="A1",
+                    severity=domain.AlertSeverity.WARNING,
+                    description=None,
+                    troubleshooting=None,
+                    components=None,
+                    conditions=None,
+                )
+            },
+        )
         devices = [
             core.DeviceDTO(
                 id="1",
@@ -353,26 +477,56 @@ class TestApplicationServer:
         assert result[0].active_alerts == []
 
     async def test_read_blueprint(self) -> None:
-        manifest = {
-            "properties": {
-                "p1": {"display_name": "P1", "type": "string", "description": "D1"}
+        manifest = make_device_manifest(
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description="D1",
+                    enum=None,
+                    unit=None,
+                )
             },
-            "telemetry": {"t1": {"display_name": "T1", "type": "float", "unit": "V"}},
-            "alerts": {"a1": {"display_name": "A1", "severity": "warning"}},
-            "commands": {
-                "c1": {
-                    "display_name": "C1",
-                    "description": "D1",
-                    "arguments": {
-                        "a1": {
-                            "display_name": "A1",
-                            "type": "integer",
-                            "required": True,
-                        }
-                    },
-                }
+            telemetry={
+                "t1": domain.TelemetryAttributeDeclaration(
+                    name="t1",
+                    display_name="T1",
+                    data_type=domain.DataType.FLOAT,
+                    description=None,
+                    enum=None,
+                    unit="V",
+                )
             },
-        }
+            alerts={
+                "a1": domain.AlertDeclaration(
+                    name="a1",
+                    display_name="A1",
+                    severity=domain.AlertSeverity.WARNING,
+                    description=None,
+                    troubleshooting=None,
+                    components=None,
+                    conditions=None,
+                )
+            },
+            commands={
+                "c1": domain.CommandDeclaration(
+                    name="c1",
+                    display_name="C1",
+                    description="D1",
+                    arguments=[
+                        domain.CommandArgumentDeclaration(
+                            name="a1",
+                            display_name="A1",
+                            data_type=domain.DataType.INTEGER,
+                            required=True,
+                            description=None,
+                            enum=None,
+                        )
+                    ],
+                )
+            },
+        )
         device = core.DeviceDTO(
             id="dev-1",
             name="Dev 1",

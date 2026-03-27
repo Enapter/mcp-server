@@ -12,4 +12,4 @@ class DeviceDTO:
     type: domain.DeviceType
     connectivity: domain.ConnectivityStatus | None = None
     properties: dict[str, Any] | None = None
-    manifest: dict[str, Any] | None = None
+    manifest: domain.DeviceManifest | None = None

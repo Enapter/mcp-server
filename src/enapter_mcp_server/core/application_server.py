@@ -118,7 +118,7 @@ class ApplicationServer:
                             name=device_dto.name,
                             site_id=device_dto.site_id,
                             type=device_dto.type,
-                            blueprint_summary=domain.BlueprintSummary.from_manifest(
+                            blueprint_summary=domain.BlueprintSummary.from_device_manifest(
                                 device_dto.manifest
                             ),
                             connectivity_status=device_dto.connectivity,
@@ -159,13 +159,13 @@ class ApplicationServer:
                     name=device_dto.name,
                     site_id=device_dto.site_id,
                     type=device_dto.type,
-                    blueprint_summary=domain.BlueprintSummary.from_manifest(
+                    blueprint_summary=domain.BlueprintSummary.from_device_manifest(
                         device_dto.manifest
                     ),
                     connectivity_status=device_dto.connectivity,
                     properties={
                         k: device_dto.properties.get(k)
-                        for k in device_dto.manifest.get("properties", {})
+                        for k in device_dto.manifest.properties
                     },
                     active_alerts=latest_telemetry.get(device_dto.id, {}).get("alerts")
                     or [],
@@ -203,68 +203,13 @@ class ApplicationServer:
 
         match section:
             case domain.BlueprintSection.PROPERTIES:
-                entities = [
-                    domain.PropertyDeclaration(
-                        name=name,
-                        display_name=dto["display_name"],
-                        data_type=domain.DataType(dto["type"]),
-                        description=dto.get("description"),
-                        enum=dto.get("enum"),
-                        unit=dto.get("unit"),
-                    )
-                    for name, dto in (
-                        device_dto.manifest.get("properties") or {}
-                    ).items()
-                ]
+                entities = list(device_dto.manifest.properties.values())
             case domain.BlueprintSection.TELEMETRY:
-                entities = [
-                    domain.TelemetryAttributeDeclaration(
-                        name=name,
-                        display_name=dto["display_name"],
-                        data_type=domain.DataType(dto["type"]),
-                        description=dto.get("description"),
-                        enum=dto.get("enum"),
-                        unit=dto.get("unit"),
-                    )
-                    for name, dto in (
-                        device_dto.manifest.get("telemetry") or {}
-                    ).items()
-                ]
+                entities = list(device_dto.manifest.telemetry.values())
             case domain.BlueprintSection.ALERTS:
-                entities = [
-                    domain.AlertDeclaration(
-                        name=name,
-                        display_name=dto["display_name"],
-                        severity=domain.AlertSeverity(dto["severity"]),
-                        description=dto.get("description"),
-                        troubleshooting=dto.get("troubleshooting"),
-                        components=dto.get("components"),
-                        conditions=dto.get("conditions"),
-                    )
-                    for name, dto in (device_dto.manifest.get("alerts") or {}).items()
-                ]
+                entities = list(device_dto.manifest.alerts.values())
             case domain.BlueprintSection.COMMANDS:
-                entities = [
-                    domain.CommandDeclaration(
-                        name=name,
-                        display_name=dto.get("display_name", name),
-                        description=dto.get("description"),
-                        arguments=[
-                            domain.CommandArgumentDeclaration(
-                                name=arg_name,
-                                display_name=arg_dto.get("display_name", arg_name),
-                                data_type=domain.DataType(arg_dto["type"]),
-                                required=arg_dto.get("required", False),
-                                description=arg_dto.get("description"),
-                                enum=arg_dto.get("enum"),
-                            )
-                            for arg_name, arg_dto in (
-                                dto.get("arguments") or {}
-                            ).items()
-                        ],
-                    )
-                    for name, dto in (device_dto.manifest.get("commands") or {}).items()
-                ]
+                entities = list(device_dto.manifest.commands.values())
             case _:
                 raise NotImplementedError(section)
 
