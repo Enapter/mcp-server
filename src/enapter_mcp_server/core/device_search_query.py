@@ -13,6 +13,7 @@ class DeviceSearchQuery:
     site_id: str | None = None
     device_type: domain.DeviceType | None = None
     name_pattern: str | None = None
+    connectivity_status: domain.ConnectivityStatus | None = None
 
     @functools.cached_property
     def _name_re(self) -> re.Pattern[str] | None:
@@ -26,6 +27,11 @@ class DeviceSearchQuery:
         if self.device_type is not None and device_dto.type != self.device_type:
             return False
         if self.site_id is not None and device_dto.site_id != self.site_id:
+            return False
+        if (
+            self.connectivity_status is not None
+            and device_dto.connectivity != self.connectivity_status
+        ):
             return False
         if self._name_re is not None and not self._name_re.search(device_dto.name):
             return False

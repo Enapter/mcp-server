@@ -167,11 +167,12 @@ class Server(enapter.async_.Routine):
         site_id: str | None = None,
         type: models.DeviceType | None = None,
         name_pattern: str = ".*",
+        connectivity_status: models.ConnectivityStatus | None = None,
         view: models.DeviceView = "BASIC",
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search devices by ID, site, type, and name pattern with BASIC or FULL views."""
+        """Search devices by ID, site, type, name pattern, and connectivity status with BASIC or FULL views."""
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
         query = core.DeviceSearchQuery(
@@ -179,6 +180,11 @@ class Server(enapter.async_.Routine):
             site_id=site_id,
             device_type=device_type,
             name_pattern=name_pattern,
+            connectivity_status=(
+                domain.ConnectivityStatus(connectivity_status)
+                if connectivity_status is not None
+                else None
+            ),
         )
         devices = await self._app.search_devices(
             auth=auth,

@@ -347,6 +347,19 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].id == "2"
 
+        # Filter by connectivity status
+        result = await app.search_devices(
+            auth,
+            query=core.DeviceSearchQuery(
+                connectivity_status=domain.ConnectivityStatus.OFFLINE
+            ),
+            offset=0,
+            limit=10,
+            view=domain.DeviceView.BASIC,
+        )
+        assert len(result) == 1
+        assert result[0].id == "3"
+
     async def test_search_devices_full_view(self) -> None:
         manifest = make_device_manifest(
             description="Desc",
