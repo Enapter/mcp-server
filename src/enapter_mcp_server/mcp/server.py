@@ -140,6 +140,7 @@ class Server(enapter.async_.Routine):
 
     async def search_sites(
         self,
+        site_id: str | None = None,
         name_pattern: str = ".*",
         timezone_pattern: str = ".*",
         offset: int = 0,
@@ -148,6 +149,7 @@ class Server(enapter.async_.Routine):
         """Search among all sites to which the authenticated user has access."""
         auth = await self._get_auth_config()
         query = core.SiteSearchQuery(
+            site_id=site_id,
             name_pattern=name_pattern,
             timezone_pattern=timezone_pattern,
         )

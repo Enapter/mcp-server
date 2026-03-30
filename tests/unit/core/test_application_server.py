@@ -164,6 +164,18 @@ class TestApplicationServer:
         assert result[0].devices_total == 2
         assert result[0].devices_online == 1
 
+        # Test site ID filtering
+        result = await app.search_sites(
+            auth,
+            query=core.SiteSearchQuery(
+                site_id="2", name_pattern=".*", timezone_pattern=".*"
+            ),
+            offset=0,
+            limit=20,
+        )
+        assert len(result) == 1
+        assert result[0].id == "2"
+
         # Test timezone filtering
         result = await app.search_sites(
             auth,
