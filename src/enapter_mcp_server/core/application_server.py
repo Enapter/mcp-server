@@ -4,6 +4,7 @@ import re
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
+from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
@@ -232,3 +233,72 @@ class ApplicationServer:
         return await self._enapter_api.get_historical_telemetry(
             auth, device_id, attributes, time_from, time_to, granularity
         )
+
+    async def search_command_executions(
+        self,
+        auth: AuthConfig,
+        query: CommandExecutionSearchQuery,
+        offset: int,
+        limit: int,
+        view: domain.CommandExecutionView,
+    ) -> list[domain.CommandExecution]:
+        match view:
+            case domain.CommandExecutionView.BASIC:
+                executions = await self._search_command_executions_basic(auth, query)
+            case domain.CommandExecutionView.FULL:
+                executions = await self._search_command_executions_full(auth, query)
+            case _:
+                raise NotImplementedError(view)
+
+        executions.sort(key=lambda e: e.created_at, reverse=True)
+        return executions[offset : offset + limit]
+
+    async def _search_command_executions_basic(
+        self, auth: AuthConfig, query: CommandExecutionSearchQuery
+    ) -> list[domain.CommandExecution]:
+        if query.site_id is None and query.device_id is None:
+            raise SearchQueryTooBroad(
+                "Command execution search requires site_id or device_id"
+            )
+
+        device_ids: list[str] = []
+        async with self._enapter_api.list_devices(
+            auth, site_id=query.site_id
+        ) as devices_gen:
+            async for device_dto in devices_gen:
+                if query.device_id is None or device_dto.id == query.device_id:
+                    device_ids.append(device_dto.id)
+
+        executions: list[domain.CommandExecution] = []
+        for device_id in device_ids:
+            async with self._enapter_api.list_command_executions(
+                auth, device_id=device_id
+            ) as executions_gen:
+                async for execution in executions_gen:
+                    if query.matches(execution):
+                        executions.append(execution.strip())
+
+        return executions
+
+    async def _search_command_executions_full(
+        self, auth: AuthConfig, query: CommandExecutionSearchQuery
+    ) -> list[domain.CommandExecution]:
+        if query.device_id is None:
+            raise SearchQueryTooBroad(
+                "FULL command execution search requires device_id"
+            )
+
+        if query.site_id is not None:
+            device_dto = await self._enapter_api.get_device(auth, query.device_id)
+            if device_dto.site_id != query.site_id:
+                return []
+
+        executions: list[domain.CommandExecution] = []
+        async with self._enapter_api.list_command_executions(
+            auth, device_id=query.device_id
+        ) as executions_gen:
+            async for execution in executions_gen:
+                if query.matches(execution):
+                    executions.append(execution)
+
+        return executions

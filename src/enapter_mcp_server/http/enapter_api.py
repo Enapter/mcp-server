@@ -72,6 +72,15 @@ class EnapterAPI:
             )
             return self._data_mapper.to_device_dto(device)
 
+    @enapter.async_.generator
+    async def list_command_executions(
+        self, auth: core.AuthConfig, device_id: str
+    ) -> AsyncGenerator[domain.CommandExecution, None]:
+        async with self._new_client(auth) as client:
+            async with client.commands.list_executions(device_id) as executions:
+                async for execution in executions:
+                    yield self._data_mapper.to_command_execution(device_id, execution)
+
     async def get_latest_telemetry(
         self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
     ) -> dict[str, dict[str, Any]]:

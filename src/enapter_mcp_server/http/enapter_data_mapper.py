@@ -110,6 +110,19 @@ class EnapterDataMapper:
             enum=dto.get("enum"),
         )
 
+    def to_command_execution(
+        self, device_id: str, execution: enapter.http.api.commands.Execution
+    ) -> domain.CommandExecution:
+        return domain.CommandExecution(
+            id=execution.id,
+            device_id=device_id,
+            command_name=execution.request.name,
+            state=domain.CommandExecutionState(execution.state.value),
+            created_at=execution.created_at,
+            arguments=execution.request.arguments,
+            response_payload=execution.response.payload if execution.response else None,
+        )
+
     def to_latest_telemetry(
         self,
         telemetry_by_device: dict[

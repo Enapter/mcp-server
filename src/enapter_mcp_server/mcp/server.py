@@ -20,8 +20,8 @@ from .server_config import ServerConfig
 INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy systems.
 
 Workflow:
-- Search: Find sites (`search_sites`) or devices (`search_devices`) to obtain IDs.
-- Details: Use `search_sites` or `search_devices(view="FULL")` for comprehensive views.
+- Search: Find sites (`search_sites`), devices (`search_devices`), or command executions (`search_command_executions`) to obtain IDs and history.
+- Details: Use `search_sites`, `search_devices(view="FULL")`, or `search_command_executions(view="FULL")` for comprehensive views.
 - Deep Dive: Explore device blueprints with `read_blueprint` and fetch historical data with `get_historical_telemetry`.
 """
 
@@ -107,6 +107,7 @@ class Server(enapter.async_.Routine):
         read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
             (self.search_devices, "Search Devices"),
+            (self.search_command_executions, "Search Command Executions"),
             (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
@@ -239,6 +240,33 @@ class Server(enapter.async_.Routine):
                 raise NotImplementedError(type(d))
 
         return models_list
+
+    async def search_command_executions(
+        self,
+        device_id: str | None = None,
+        site_id: str | None = None,
+        command_name_pattern: str = ".*",
+        state: models.CommandExecutionState | None = None,
+        view: models.CommandExecutionView = "BASIC",
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[models.CommandExecution]:
+        """Search command executions by device ID, site ID, command name pattern, and state with BASIC or FULL views."""
+        auth = await self._get_auth_config()
+        query = core.CommandExecutionSearchQuery(
+            device_id=device_id,
+            site_id=site_id,
+            command_name_pattern=command_name_pattern,
+            state=(domain.CommandExecutionState(state) if state is not None else None),
+        )
+        executions = await self._app.search_command_executions(
+            auth=auth,
+            query=query,
+            offset=offset,
+            limit=limit,
+            view=domain.CommandExecutionView(view),
+        )
+        return [models.CommandExecution.from_domain(e) for e in executions]
 
     async def get_historical_telemetry(
         self,

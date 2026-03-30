@@ -33,12 +33,14 @@ class MockEnapterAPI:
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
         latest_telemetry_unavailable: bool = False,
+        command_executions: dict[str, list[domain.CommandExecution]] | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
         self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
         self._latest_telemetry_unavailable = latest_telemetry_unavailable
+        self._command_executions = command_executions or {}
         self.latest_telemetry_batch_calls = 0
 
     @enapter.async_.generator
@@ -57,9 +59,16 @@ class MockEnapterAPI:
         expand_properties: bool = False,
         expand_connectivity: bool = False,
     ) -> AsyncGenerator[core.DeviceDTO, None]:
-        for device in self._devices:
-            if site_id is None or device.site_id == site_id:
-                yield device
+        for d in self._devices:
+            if site_id is None or d.site_id == site_id:
+                yield d
+
+    @enapter.async_.generator
+    async def list_command_executions(
+        self, auth: core.AuthConfig, device_id: str
+    ) -> AsyncGenerator[domain.CommandExecution, None]:
+        for execution in self._command_executions.get(device_id, []):
+            yield execution
 
     async def get_device(
         self,
@@ -739,3 +748,175 @@ class TestApplicationServer:
         )
 
         assert result == historical
+
+    async def test_search_command_executions_basic(self) -> None:
+        devices = [
+            core.DeviceDTO(
+                id="d1",
+                name="D1",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+            ),
+            core.DeviceDTO(
+                id="d2",
+                name="D2",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+            ),
+            core.DeviceDTO(
+                id="d3",
+                name="D3",
+                site_id="s2",
+                type=domain.DeviceType.NATIVE,
+            ),
+        ]
+        executions = {
+            "d1": [
+                domain.CommandExecution(
+                    id="e1",
+                    device_id="d1",
+                    command_name="cmd1",
+                    state=domain.CommandExecutionState.SUCCESS,
+                    created_at=datetime.datetime(2023, 1, 1),
+                    arguments={"arg1": "val1"},
+                    response_payload={"res1": "val1"},
+                )
+            ],
+            "d2": [
+                domain.CommandExecution(
+                    id="e2",
+                    device_id="d2",
+                    command_name="cmd2",
+                    state=domain.CommandExecutionState.ERROR,
+                    created_at=datetime.datetime(2023, 1, 2),
+                )
+            ],
+            "d3": [
+                domain.CommandExecution(
+                    id="e3",
+                    device_id="d3",
+                    command_name="cmd3",
+                    state=domain.CommandExecutionState.SUCCESS,
+                    created_at=datetime.datetime(2023, 1, 3),
+                )
+            ],
+        }
+        api = MockEnapterAPI(devices=devices, command_executions=executions)
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # By site
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(site_id="s1"),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.BASIC,
+        )
+        assert len(result) == 2
+        assert result[0].id == "e2"  # Sorted by created_at desc
+        assert result[0].arguments is None
+        assert result[0].response_payload is None
+        assert result[1].id == "e1"
+        assert result[1].arguments is None
+        assert result[1].response_payload is None
+
+        # By device and site, filtering
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(site_id="s1", device_id="d1"),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.BASIC,
+        )
+        assert len(result) == 1
+        assert result[0].id == "e1"
+
+        # By site and mismatching device
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(site_id="s1", device_id="d3"),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.BASIC,
+        )
+        assert len(result) == 0
+
+    async def test_search_command_executions_full(self) -> None:
+        devices = [
+            core.DeviceDTO(
+                id="d1",
+                name="D1",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+            )
+        ]
+        executions = {
+            "d1": [
+                domain.CommandExecution(
+                    id="e1",
+                    device_id="d1",
+                    command_name="cmd1",
+                    state=domain.CommandExecutionState.SUCCESS,
+                    created_at=datetime.datetime(2023, 1, 1),
+                    arguments={"arg1": "val1"},
+                    response_payload={"res1": "val1"},
+                )
+            ]
+        }
+        api = MockEnapterAPI(devices=devices, command_executions=executions)
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(device_id="d1"),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.FULL,
+        )
+        assert len(result) == 1
+        assert result[0].id == "e1"
+        assert result[0].arguments == {"arg1": "val1"}
+        assert result[0].response_payload == {"res1": "val1"}
+
+        # Validate site_id scoping checks
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(site_id="s2", device_id="d1"),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.FULL,
+        )
+        assert len(result) == 0
+
+    async def test_search_command_executions_requires_scope(self) -> None:
+        api = MockEnapterAPI()
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.search_command_executions(
+                auth,
+                query=core.CommandExecutionSearchQuery(),
+                offset=0,
+                limit=10,
+                view=domain.CommandExecutionView.BASIC,
+            )
+        except core.SearchQueryTooBroad as exc:
+            assert str(exc) == "Command execution search requires site_id or device_id"
+        else:
+            raise AssertionError("Expected SearchQueryTooBroad")
+
+        try:
+            await app.search_command_executions(
+                auth,
+                query=core.CommandExecutionSearchQuery(site_id="s1"),
+                offset=0,
+                limit=10,
+                view=domain.CommandExecutionView.FULL,
+            )
+        except core.SearchQueryTooBroad as exc:
+            assert str(exc) == "FULL command execution search requires device_id"
+        else:
+            raise AssertionError("Expected SearchQueryTooBroad")

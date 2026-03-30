@@ -1,5 +1,6 @@
 from .application_server import ApplicationServer
 from .auth_config import AuthConfig
+from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
@@ -13,6 +14,7 @@ from .site_search_query import SiteSearchQuery
 __all__ = [
     "ApplicationServer",
     "AuthConfig",
+    "CommandExecutionSearchQuery",
     "DeviceDTO",
     "DeviceSearchQuery",
     "EnapterAPI",
