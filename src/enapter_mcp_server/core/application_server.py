@@ -183,7 +183,7 @@ class ApplicationServer:
         auth: AuthConfig,
         device_id: str,
         section: domain.BlueprintSection,
-        name_pattern: str,
+        name_regexp: str,
         offset: int,
         limit: int,
     ) -> list[
@@ -192,7 +192,7 @@ class ApplicationServer:
         | domain.AlertDeclaration
         | domain.CommandDeclaration
     ]:
-        name_regexp = re.compile(name_pattern)
+        name_pattern = re.compile(name_regexp)
         device_dto = await self._enapter_api.get_device(
             auth, device_id, expand_manifest=True
         )
@@ -217,7 +217,7 @@ class ApplicationServer:
             case _:
                 raise NotImplementedError(section)
 
-        entities = [e for e in entities if name_regexp.search(e.name)]
+        entities = [e for e in entities if name_pattern.search(e.name)]
         entities.sort(key=lambda e: e.name)
         return entities[offset : offset + limit]
 

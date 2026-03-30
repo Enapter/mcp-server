@@ -8,12 +8,12 @@ class TestSiteSearchQuery:
         assert query.matches(core.SiteDTO(id="2", name="A", timezone="UTC")) is False
 
     def test_matches_name(self) -> None:
-        query = core.SiteSearchQuery(name_pattern="Alpha")
+        query = core.SiteSearchQuery(name_regexp="Alpha")
         assert query.matches(core.SiteDTO(id="1", name="Alpha", timezone="UTC")) is True
         assert query.matches(core.SiteDTO(id="2", name="Beta", timezone="UTC")) is False
 
     def test_matches_timezone(self) -> None:
-        query = core.SiteSearchQuery(timezone_pattern="Berlin")
+        query = core.SiteSearchQuery(timezone_regexp="Berlin")
         assert (
             query.matches(core.SiteDTO(id="1", name="A", timezone="Europe/Berlin"))
             is True
@@ -24,7 +24,7 @@ class TestSiteSearchQuery:
         )
 
     def test_matches_both(self) -> None:
-        query = core.SiteSearchQuery(name_pattern="Alpha", timezone_pattern="Berlin")
+        query = core.SiteSearchQuery(name_regexp="Alpha", timezone_regexp="Berlin")
         assert (
             query.matches(core.SiteDTO(id="1", name="Alpha", timezone="Europe/Berlin"))
             is True
@@ -40,6 +40,6 @@ class TestSiteSearchQuery:
 
     def test_matches_all_with_none(self) -> None:
         query = core.SiteSearchQuery(
-            site_id=None, name_pattern=None, timezone_pattern=None
+            site_id=None, name_regexp=None, timezone_regexp=None
         )
         assert query.matches(core.SiteDTO(id="1", name="A", timezone="B")) is True

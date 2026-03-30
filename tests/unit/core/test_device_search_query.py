@@ -3,7 +3,7 @@ from enapter_mcp_server import core, domain
 
 class TestDeviceSearchQuery:
     def test_matches_name(self) -> None:
-        query = core.DeviceSearchQuery(name_pattern="Alpha")
+        query = core.DeviceSearchQuery(name_regexp="Alpha")
         assert (
             query.matches(
                 core.DeviceDTO(
@@ -133,7 +133,7 @@ class TestDeviceSearchQuery:
 
     def test_matches_all_with_none(self) -> None:
         query = core.DeviceSearchQuery(
-            device_id=None, site_id=None, device_type=None, name_pattern=None
+            device_id=None, site_id=None, device_type=None, name_regexp=None
         )
         assert (
             query.matches(

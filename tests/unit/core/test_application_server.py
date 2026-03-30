@@ -162,7 +162,7 @@ class TestApplicationServer:
         # Test name filtering
         result = await app.search_sites(
             auth,
-            query=core.SiteSearchQuery(name_pattern="Alpha", timezone_pattern=".*"),
+            query=core.SiteSearchQuery(name_regexp="Alpha", timezone_regexp=".*"),
             offset=0,
             limit=20,
         )
@@ -177,7 +177,7 @@ class TestApplicationServer:
         result = await app.search_sites(
             auth,
             query=core.SiteSearchQuery(
-                site_id="2", name_pattern=".*", timezone_pattern=".*"
+                site_id="2", name_regexp=".*", timezone_regexp=".*"
             ),
             offset=0,
             limit=20,
@@ -188,7 +188,7 @@ class TestApplicationServer:
         # Test timezone filtering
         result = await app.search_sites(
             auth,
-            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern="Berlin"),
+            query=core.SiteSearchQuery(name_regexp=".*", timezone_regexp="Berlin"),
             offset=0,
             limit=20,
         )
@@ -199,7 +199,7 @@ class TestApplicationServer:
         # Test sorting and pagination
         result = await app.search_sites(
             auth,
-            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
+            query=core.SiteSearchQuery(name_regexp=".*", timezone_regexp=".*"),
             offset=0,
             limit=1,
         )
@@ -238,7 +238,7 @@ class TestApplicationServer:
 
         result = await app.search_sites(
             auth,
-            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
+            query=core.SiteSearchQuery(name_regexp=".*", timezone_regexp=".*"),
             offset=0,
             limit=20,
         )
@@ -328,7 +328,7 @@ class TestApplicationServer:
         result = await app.search_devices(
             auth,
             query=core.DeviceSearchQuery(
-                device_id=None, site_id="s1", device_type=None, name_pattern=".*"
+                device_id=None, site_id="s1", device_type=None, name_regexp=".*"
             ),
             offset=0,
             limit=10,
@@ -347,7 +347,7 @@ class TestApplicationServer:
                 device_id=None,
                 site_id=None,
                 device_type=domain.DeviceType.GATEWAY,
-                name_pattern=".*",
+                name_regexp=".*",
             ),
             offset=0,
             limit=10,
@@ -437,7 +437,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -501,7 +501,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -549,7 +549,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -565,7 +565,7 @@ class TestApplicationServer:
         try:
             await app.search_devices(
                 core.AuthConfig(token="test"),
-                query=core.DeviceSearchQuery(name_pattern=".*"),
+                query=core.DeviceSearchQuery(name_regexp=".*"),
                 offset=0,
                 limit=10,
                 view=domain.DeviceView.FULL,
@@ -621,7 +621,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(device_id="2", name_pattern=".*"),
+            query=core.DeviceSearchQuery(device_id="2", name_regexp=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,

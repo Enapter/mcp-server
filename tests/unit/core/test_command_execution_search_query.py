@@ -44,8 +44,8 @@ class TestCommandExecutionSearchQuery:
         assert query.matches(e1) is True
         assert query.matches(e2) is False
 
-    def test_matches_command_name_pattern(self) -> None:
-        query = core.CommandExecutionSearchQuery(command_name_pattern="^start_.*")
+    def test_matches_command_name_regexp(self) -> None:
+        query = core.CommandExecutionSearchQuery(command_name_regexp="^start_.*")
         e1 = domain.CommandExecution(
             id="e1",
             device_id="d1",

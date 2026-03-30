@@ -142,8 +142,8 @@ class Server(enapter.async_.Routine):
     async def search_sites(
         self,
         site_id: str | None = None,
-        name_pattern: str = ".*",
-        timezone_pattern: str = ".*",
+        name_regexp: str = ".*",
+        timezone_regexp: str = ".*",
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Site]:
@@ -151,8 +151,8 @@ class Server(enapter.async_.Routine):
         auth = await self._get_auth_config()
         query = core.SiteSearchQuery(
             site_id=site_id,
-            name_pattern=name_pattern,
-            timezone_pattern=timezone_pattern,
+            name_regexp=name_regexp,
+            timezone_regexp=timezone_regexp,
         )
         sites = await self._app.search_sites(
             auth=auth,
@@ -167,7 +167,7 @@ class Server(enapter.async_.Routine):
         device_id: str | None = None,
         site_id: str | None = None,
         type: models.DeviceType | None = None,
-        name_pattern: str = ".*",
+        name_regexp: str = ".*",
         connectivity_status: models.ConnectivityStatus | None = None,
         view: models.DeviceView = "BASIC",
         offset: int = 0,
@@ -180,7 +180,7 @@ class Server(enapter.async_.Routine):
             device_id=device_id,
             site_id=site_id,
             device_type=device_type,
-            name_pattern=name_pattern,
+            name_regexp=name_regexp,
             connectivity_status=(
                 domain.ConnectivityStatus(connectivity_status)
                 if connectivity_status is not None
@@ -200,7 +200,7 @@ class Server(enapter.async_.Routine):
         self,
         device_id: str,
         section: models.BlueprintSection,
-        name_pattern: str = ".*",
+        name_regexp: str = ".*",
         offset: int = 0,
         limit: int = 20,
     ) -> list[
@@ -215,7 +215,7 @@ class Server(enapter.async_.Routine):
             auth=auth,
             device_id=device_id,
             section=domain.BlueprintSection(section),
-            name_pattern=name_pattern,
+            name_regexp=name_regexp,
             offset=offset,
             limit=limit,
         )
@@ -245,7 +245,7 @@ class Server(enapter.async_.Routine):
         self,
         device_id: str | None = None,
         site_id: str | None = None,
-        command_name_pattern: str = ".*",
+        command_name_regexp: str = ".*",
         state: models.CommandExecutionState | None = None,
         view: models.CommandExecutionView = "BASIC",
         offset: int = 0,
@@ -256,7 +256,7 @@ class Server(enapter.async_.Routine):
         query = core.CommandExecutionSearchQuery(
             device_id=device_id,
             site_id=site_id,
-            command_name_pattern=command_name_pattern,
+            command_name_regexp=command_name_regexp,
             state=(domain.CommandExecutionState(state) if state is not None else None),
         )
         executions = await self._app.search_command_executions(

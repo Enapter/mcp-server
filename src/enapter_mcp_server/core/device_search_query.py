@@ -12,14 +12,14 @@ class DeviceSearchQuery:
     device_id: str | None = None
     site_id: str | None = None
     device_type: domain.DeviceType | None = None
-    name_pattern: str | None = None
+    name_regexp: str | None = None
     connectivity_status: domain.ConnectivityStatus | None = None
 
     @functools.cached_property
-    def _name_re(self) -> re.Pattern[str] | None:
-        if self.name_pattern is None:
+    def _name_pattern(self) -> re.Pattern[str] | None:
+        if self.name_regexp is None:
             return None
-        return re.compile(self.name_pattern)
+        return re.compile(self.name_regexp)
 
     def matches(self, device_dto: DeviceDTO) -> bool:
         if self.device_id is not None and device_dto.id != self.device_id:
@@ -33,6 +33,8 @@ class DeviceSearchQuery:
             and device_dto.connectivity != self.connectivity_status
         ):
             return False
-        if self._name_re is not None and not self._name_re.search(device_dto.name):
+        if self._name_pattern is not None and not self._name_pattern.search(
+            device_dto.name
+        ):
             return False
         return True
