@@ -2,12 +2,12 @@ import enum
 
 
 class DeviceType(enum.Enum):
-    LUA = "LUA"
-    VIRTUAL_UCM = "VIRTUAL_UCM"
-    HARDWARE_UCM = "HARDWARE_UCM"
-    STANDALONE = "STANDALONE"
-    GATEWAY = "GATEWAY"
-    LINK_MASTER_UCM = "LINK_MASTER_UCM"
-    LINK_SLAVE_UCM = "LINK_SLAVE_UCM"
-    EMBEDDED_UCM = "EMBEDDED_UCM"
-    NATIVE = "NATIVE"
+    LUA = "lua"
+    VIRTUAL_UCM = "virtual_ucm"
+    HARDWARE_UCM = "hardware_ucm"
+    STANDALONE = "standalone"
+    GATEWAY = "gateway"
+    LINK_MASTER_UCM = "link_master_ucm"
+    LINK_SLAVE_UCM = "link_slave_ucm"
+    EMBEDDED_UCM = "embedded_ucm"
+    NATIVE = "native"

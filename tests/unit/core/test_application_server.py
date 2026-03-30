@@ -571,7 +571,7 @@ class TestApplicationServer:
                 view=domain.DeviceView.FULL,
             )
         except core.SearchQueryTooBroad as exc:
-            assert str(exc) == "FULL device search requires site_id or device_id"
+            assert str(exc) == "full device search requires site_id or device_id"
             pass
         else:
             raise AssertionError("Expected SearchQueryTooBroad")
@@ -904,7 +904,7 @@ class TestApplicationServer:
                 view=domain.CommandExecutionView.BASIC,
             )
         except core.SearchQueryTooBroad as exc:
-            assert str(exc) == "Command execution search requires site_id or device_id"
+            assert str(exc) == "command execution search requires site_id or device_id"
         else:
             raise AssertionError("Expected SearchQueryTooBroad")
 
@@ -917,6 +917,6 @@ class TestApplicationServer:
                 view=domain.CommandExecutionView.FULL,
             )
         except core.SearchQueryTooBroad as exc:
-            assert str(exc) == "FULL command execution search requires device_id"
+            assert str(exc) == "full command execution search requires device_id"
         else:
             raise AssertionError("Expected SearchQueryTooBroad")

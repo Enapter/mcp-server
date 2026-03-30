@@ -45,7 +45,7 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | Tool                       | Description                                                             |
 | -------------------------- | ----------------------------------------------------------------------- |
 | `search_sites`             | Search sites with regex filtering and bounded aggregate stats           |
-| `search_devices`           | Filter devices by site, type, and name pattern, with BASIC or FULL view |
+| `search_devices`           | Filter devices by site, type, and name pattern, with basic or full view |
 | `read_blueprint`           | Access device blueprint sections (properties, telemetry, alerts)        |
 | `get_historical_telemetry` | Retrieve time-series telemetry with configurable granularity            |
 

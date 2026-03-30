@@ -1,3 +1,3 @@
 from typing import Literal
 
-CommandExecutionView = Literal["BASIC", "FULL"]
+CommandExecutionView = Literal["basic", "full"]

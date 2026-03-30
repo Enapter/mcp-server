@@ -1,13 +1,13 @@
 from typing import Literal
 
 DeviceType = Literal[
-    "LUA",
-    "VIRTUAL_UCM",
-    "HARDWARE_UCM",
-    "STANDALONE",
-    "GATEWAY",
-    "LINK_MASTER_UCM",
-    "LINK_SLAVE_UCM",
-    "EMBEDDED_UCM",
-    "NATIVE",
+    "lua",
+    "virtual_ucm",
+    "hardware_ucm",
+    "standalone",
+    "gateway",
+    "link_master_ucm",
+    "link_slave_ucm",
+    "embedded_ucm",
+    "native",
 ]

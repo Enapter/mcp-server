@@ -9,13 +9,15 @@ class EnapterDataMapper:
     def to_device_dto(self, device: Any) -> core.DeviceDTO:
         connectivity = None
         if device.connectivity is not None:
-            connectivity = domain.ConnectivityStatus(device.connectivity.status.value)
+            connectivity = domain.ConnectivityStatus(
+                device.connectivity.status.value.lower()
+            )
 
         return core.DeviceDTO(
             id=device.id,
             name=device.name,
             site_id=device.site_id,
-            type=domain.DeviceType(device.type.value),
+            type=domain.DeviceType(device.type.value.lower()),
             connectivity=connectivity,
             properties=device.properties,
             manifest=self.to_device_manifest(device.manifest),
@@ -117,7 +119,7 @@ class EnapterDataMapper:
             id=execution.id,
             device_id=device_id,
             command_name=execution.request.name,
-            state=domain.CommandExecutionState(execution.state.value),
+            state=domain.CommandExecutionState(execution.state.value.lower()),
             created_at=execution.created_at,
             arguments=execution.request.arguments,
             response_payload=execution.response.payload if execution.response else None,

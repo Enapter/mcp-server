@@ -2,8 +2,8 @@ from enapter_mcp_server import mcp
 
 
 def test_device_view_literals() -> None:
-    basic: mcp.models.DeviceView = "BASIC"
-    full: mcp.models.DeviceView = "FULL"
+    basic: mcp.models.DeviceView = "basic"
+    full: mcp.models.DeviceView = "full"
 
-    assert basic == "BASIC"
-    assert full == "FULL"
+    assert basic == "basic"
+    assert full == "full"

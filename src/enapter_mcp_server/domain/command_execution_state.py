@@ -2,9 +2,9 @@ import enum
 
 
 class CommandExecutionState(enum.Enum):
-    NEW = "NEW"
-    IN_PROGRESS = "IN_PROGRESS"
-    SUCCESS = "SUCCESS"
-    ERROR = "ERROR"
-    TIMEOUT = "TIMEOUT"
-    UNSYNC = "UNSYNC"
+    NEW = "new"
+    IN_PROGRESS = "in_progress"
+    SUCCESS = "success"
+    ERROR = "error"
+    TIMEOUT = "timeout"
+    UNSYNC = "unsync"

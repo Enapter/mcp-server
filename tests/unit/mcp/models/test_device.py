@@ -27,8 +27,8 @@ class TestDevice:
         assert device.id == "device-789"
         assert device.name == "Production Device"
         assert device.site_id == "site-999"
-        assert device.type == "NATIVE"
-        assert device.connectivity_status == "ONLINE"
+        assert device.type == "native"
+        assert device.connectivity_status == "online"
         assert device.blueprint_summary.alerts_total == 0
 
     def test_device_from_domain_with_details(self) -> None:
@@ -53,7 +53,7 @@ class TestDevice:
         device = mcp.models.Device.from_domain(domain_device)
 
         assert device.id == "device-123"
-        assert device.connectivity_status == "ONLINE"
+        assert device.connectivity_status == "online"
         assert device.properties == {"mode": "auto"}
         assert device.active_alerts == ["a1", "a2"]
         assert device.blueprint_summary is not None

@@ -2,6 +2,6 @@ import enum
 
 
 class ConnectivityStatus(enum.Enum):
-    UNKNOWN = "UNKNOWN"
-    ONLINE = "ONLINE"
-    OFFLINE = "OFFLINE"
+    UNKNOWN = "unknown"
+    ONLINE = "online"
+    OFFLINE = "offline"

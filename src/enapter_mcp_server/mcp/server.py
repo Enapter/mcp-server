@@ -25,7 +25,7 @@ INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy sy
 
 **Goal**: Investigate a specific device failure or alert.
 
-- Identify the device using `search_devices(view="FULL")` to see `active_alerts`.
+- Identify the device using `search_devices(view="full")` to see `active_alerts`.
 - Cross-reference alerts with `read_blueprint(section="alerts")` for their definitions.
 - Use `search_command_executions` to audit actions recently taken.
 
@@ -185,24 +185,24 @@ class Server(enapter.async_.Routine):
         type: models.DeviceType | None = None,
         name_regexp: str = ".*",
         connectivity_status: models.ConnectivityStatus | None = None,
-        view: models.DeviceView = "BASIC",
+        view: models.DeviceView = "basic",
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
         """Search among all devices to which the authenticated user has access.
 
-        The `FULL` view provides `properties` and `active_alerts` but requires
+        The `full` view provides `properties` and `active_alerts` but requires
         `site_id` or `device_id` to keep the amount of data manageable.
         """
         auth = await self._get_auth_config()
-        device_type = domain.DeviceType(type) if type is not None else None
+        device_type = domain.DeviceType(type.lower()) if type is not None else None
         query = core.DeviceSearchQuery(
             device_id=device_id,
             site_id=site_id,
             device_type=device_type,
             name_regexp=name_regexp,
             connectivity_status=(
-                domain.ConnectivityStatus(connectivity_status)
+                domain.ConnectivityStatus(connectivity_status.lower())
                 if connectivity_status is not None
                 else None
             ),
@@ -212,7 +212,7 @@ class Server(enapter.async_.Routine):
             query=query,
             offset=offset,
             limit=limit,
-            view=domain.DeviceView(view),
+            view=domain.DeviceView(view.lower()),
         )
         return [models.Device.from_domain(d) for d in devices]
 
@@ -267,13 +267,13 @@ class Server(enapter.async_.Routine):
         site_id: str | None = None,
         command_name_regexp: str = ".*",
         state: models.CommandExecutionState | None = None,
-        view: models.CommandExecutionView = "BASIC",
+        view: models.CommandExecutionView = "basic",
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.CommandExecution]:
         """Search the history of command executions.
 
-        The `FULL` view provides `arguments` and and `response_payload` but
+        The `full` view provides `arguments` and and `response_payload` but
         requires `device_id` to keep the amount of data manageable.
         """
         auth = await self._get_auth_config()
@@ -281,14 +281,18 @@ class Server(enapter.async_.Routine):
             device_id=device_id,
             site_id=site_id,
             command_name_regexp=command_name_regexp,
-            state=(domain.CommandExecutionState(state) if state is not None else None),
+            state=(
+                domain.CommandExecutionState(state.lower())
+                if state is not None
+                else None
+            ),
         )
         executions = await self._app.search_command_executions(
             auth=auth,
             query=query,
             offset=offset,
             limit=limit,
-            view=domain.CommandExecutionView(view),
+            view=domain.CommandExecutionView(view.lower()),
         )
         return [models.CommandExecution.from_domain(e) for e in executions]
 
