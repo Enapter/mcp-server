@@ -32,11 +32,13 @@ class MockEnapterAPI:
         devices: list[core.DeviceDTO] | None = None,
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
+        latest_telemetry_unavailable: bool = False,
     ):
         self._sites = sites or []
         self._devices = devices or []
         self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
+        self._latest_telemetry_unavailable = latest_telemetry_unavailable
         self.latest_telemetry_batch_calls = 0
 
     @enapter.async_.generator
@@ -76,6 +78,8 @@ class MockEnapterAPI:
         self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
     ) -> dict[str, dict[str, Any]]:
         self.latest_telemetry_batch_calls += 1
+        if self._latest_telemetry_unavailable:
+            raise core.LatestTelemetryUnavailable()
         return {
             device_id: self._telemetry.get(device_id, {})
             for device_id in attributes_by_device
@@ -458,6 +462,54 @@ class TestApplicationServer:
             ),
         ]
         api = MockEnapterAPI(devices=devices, telemetry={"1": {}})
+        app = core.ApplicationServer(api)
+
+        result = await app.search_devices(
+            core.AuthConfig(token="test"),
+            query=core.DeviceSearchQuery(name_pattern=".*"),
+            offset=0,
+            limit=10,
+            view=domain.DeviceView.FULL,
+        )
+
+        assert len(result) == 1
+        assert result[0].active_alerts == []
+
+    async def test_search_devices_full_view_with_unavailable_latest_telemetry(
+        self,
+    ) -> None:
+        manifest = make_device_manifest(
+            description="Desc",
+            vendor="Enapter",
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            telemetry={},
+            alerts={},
+            commands={},
+        )
+        devices = [
+            core.DeviceDTO(
+                id="1",
+                name="Alpha",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+                properties={"p1": "v1"},
+                manifest=manifest,
+            ),
+        ]
+        api = MockEnapterAPI(
+            devices=devices,
+            latest_telemetry_unavailable=True,
+        )
         app = core.ApplicationServer(api)
 
         result = await app.search_devices(

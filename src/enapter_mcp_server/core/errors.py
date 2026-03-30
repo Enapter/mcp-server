@@ -1,0 +1,2 @@
+class LatestTelemetryUnavailable(Exception):
+    pass

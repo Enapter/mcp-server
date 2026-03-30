@@ -76,9 +76,12 @@ class EnapterAPI:
         self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
     ) -> dict[str, dict[str, Any]]:
         async with self._new_client(auth) as client:
-            return self._data_mapper.to_latest_telemetry(
-                await client.telemetry.latest(attributes_by_device)
-            )
+            try:
+                return self._data_mapper.to_latest_telemetry(
+                    await client.telemetry.latest(attributes_by_device)
+                )
+            except (enapter.http.api.Error, enapter.http.api.MultiError) as exc:
+                raise core.LatestTelemetryUnavailable() from exc
 
     async def get_historical_telemetry(
         self,

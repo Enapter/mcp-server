@@ -7,6 +7,7 @@ from .auth_config import AuthConfig
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
+from .errors import LatestTelemetryUnavailable
 from .site_search_query import SiteSearchQuery
 
 
@@ -134,9 +135,6 @@ class ApplicationServer:
         if not matched_device_dtos:
             return []
 
-        latest_telemetry = await self._enapter_api.get_latest_telemetry(
-            auth, {device_dto.id: ["alerts"] for device_dto in matched_device_dtos}
-        )
         devices: list[domain.Device] = []
         for device_dto in matched_device_dtos:
             assert device_dto.manifest is not None
@@ -156,12 +154,20 @@ class ApplicationServer:
                         k: device_dto.properties.get(k)
                         for k in device_dto.manifest.properties
                     },
-                    active_alerts=latest_telemetry.get(device_dto.id, {}).get("alerts")
-                    or [],
+                    active_alerts=await self._get_active_alerts(auth, device_dto.id),
                 )
             )
 
         return devices
+
+    async def _get_active_alerts(self, auth: AuthConfig, device_id: str) -> list[str]:
+        try:
+            latest_telemetry = await self._enapter_api.get_latest_telemetry(
+                auth, {device_id: ["alerts"]}
+            )
+        except LatestTelemetryUnavailable:
+            return []
+        return latest_telemetry.get(device_id, {}).get("alerts") or []
 
     async def read_blueprint(
         self,
