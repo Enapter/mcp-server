@@ -50,6 +50,23 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | `read_blueprint`            | Access device blueprint sections (properties, telemetry, alerts) |
 | `get_historical_telemetry`  | Retrieve time-series telemetry with configurable granularity     |
 
+## Example Workflows
+
+### 1. Diagnostic Troubleshooting
+
+**Goal**: Investigate a specific device failure or alert.
+
+- Identify the device using `search_devices(view="full")` to see `active_alerts`.
+- Cross-reference alerts with `read_blueprint(section="alerts")` for their definitions.
+- Use `search_command_executions` to audit actions recently taken.
+
+### 2. Historical Analysis & Performance Yield
+
+**Goal**: Analyze performance trends (e.g., hydrogen yield, energy storage).
+
+- Find the correct metric name via `read_blueprint(section="telemetry")`.
+- Fetch the data with `get_historical_telemetry`.
+
 ## Support
 
 For issues, questions, or contributions, please:
