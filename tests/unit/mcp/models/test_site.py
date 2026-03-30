@@ -14,7 +14,6 @@ class TestSite:
             gateway_online=False,
             devices_total=0,
             devices_online=0,
-            active_alerts_total=0,
         )
 
         site = mcp.models.Site.from_domain(domain_site)
@@ -32,7 +31,6 @@ class TestSite:
             gateway_online=True,
             devices_total=4,
             devices_online=3,
-            active_alerts_total=5,
         )
 
         site = mcp.models.Site.from_domain(domain_site)
@@ -41,4 +39,3 @@ class TestSite:
         assert site.gateway_online is True
         assert site.devices_total == 4
         assert site.devices_online == 3
-        assert site.active_alerts_total == 5

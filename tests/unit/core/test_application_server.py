@@ -159,7 +159,6 @@ class TestApplicationServer:
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
         assert result[0].devices_online == 1
-        assert result[0].active_alerts_total == 1
 
         # Test timezone filtering
         result = await app.search_sites(
@@ -171,8 +170,6 @@ class TestApplicationServer:
         assert len(result) == 2
         assert result[0].name == "Alpha"
         assert result[1].name == "Gamma"
-        assert result[0].active_alerts_total == 1
-        assert result[1].active_alerts_total == 0
 
         # Test sorting and pagination
         result = await app.search_sites(
@@ -227,8 +224,6 @@ class TestApplicationServer:
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
         assert result[0].devices_online == 1
-        assert result[0].active_alerts_total == 3
-        assert api.latest_telemetry_batch_calls == 1
 
     async def test_search_devices(self) -> None:
         manifest = make_device_manifest(
@@ -594,33 +589,3 @@ class TestApplicationServer:
         )
 
         assert result == historical
-
-    async def test_search_sites_full_view_with_missing_alerts(self) -> None:
-        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
-        devices = [
-            core.DeviceDTO(
-                id="dev-1",
-                name="Device 1",
-                site_id="site-1",
-                type=domain.DeviceType.NATIVE,
-                connectivity=domain.ConnectivityStatus.ONLINE,
-            ),
-        ]
-        api = MockEnapterAPI(
-            sites=[site],
-            devices=devices,
-            telemetry={
-                "dev-1": {"alerts": None},
-            },
-        )
-        app = core.ApplicationServer(api)
-        auth = core.AuthConfig(token="test")
-
-        result = await app.search_sites(
-            auth,
-            query=core.SiteSearchQuery(name_pattern=".*", timezone_pattern=".*"),
-            offset=0,
-            limit=20,
-        )
-        assert len(result) == 1
-        assert result[0].active_alerts_total == 0

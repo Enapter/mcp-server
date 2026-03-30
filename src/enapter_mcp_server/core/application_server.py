@@ -54,16 +54,6 @@ class ApplicationServer:
                             gateway_id = device_dto.id
                             gateway_online = is_online
 
-                latest_telemetry_by_device = (
-                    await self._enapter_api.get_latest_telemetry(
-                        auth, {device_id: ["alerts"] for device_id in device_ids}
-                    )
-                )
-                active_alerts_total = sum(
-                    len(device_telemetry.get("alerts") or [])
-                    for device_telemetry in latest_telemetry_by_device.values()
-                )
-
                 sites.append(
                     domain.Site(
                         id=site_dto.id,
@@ -73,7 +63,6 @@ class ApplicationServer:
                         gateway_online=gateway_online,
                         devices_total=len(device_ids),
                         devices_online=devices_online,
-                        active_alerts_total=active_alerts_total,
                     )
                 )
 
