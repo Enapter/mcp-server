@@ -319,7 +319,7 @@ class TestApplicationServer:
         result = await app.search_devices(
             auth,
             query=core.DeviceSearchQuery(
-                site_id="s1", device_type=None, name_pattern=".*"
+                device_id=None, site_id="s1", device_type=None, name_pattern=".*"
             ),
             offset=0,
             limit=10,
@@ -335,6 +335,7 @@ class TestApplicationServer:
         result = await app.search_devices(
             auth,
             query=core.DeviceSearchQuery(
+                device_id=None,
                 site_id=None,
                 device_type=domain.DeviceType.GATEWAY,
                 name_pattern=".*",
@@ -414,7 +415,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -478,7 +479,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -526,7 +527,7 @@ class TestApplicationServer:
 
         result = await app.search_devices(
             core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(name_pattern=".*"),
+            query=core.DeviceSearchQuery(site_id="s1", name_pattern=".*"),
             offset=0,
             limit=10,
             view=domain.DeviceView.FULL,
@@ -534,6 +535,78 @@ class TestApplicationServer:
 
         assert len(result) == 1
         assert result[0].active_alerts == []
+
+    async def test_search_devices_full_view_requires_site_or_device_id(self) -> None:
+        api = MockEnapterAPI(devices=[])
+        app = core.ApplicationServer(api)
+
+        try:
+            await app.search_devices(
+                core.AuthConfig(token="test"),
+                query=core.DeviceSearchQuery(name_pattern=".*"),
+                offset=0,
+                limit=10,
+                view=domain.DeviceView.FULL,
+            )
+        except core.SearchQueryTooBroad as exc:
+            assert str(exc) == "FULL device search requires site_id or device_id"
+            pass
+        else:
+            raise AssertionError("Expected SearchQueryTooBroad")
+
+    async def test_search_devices_full_view_allows_device_id_without_site_id(
+        self,
+    ) -> None:
+        manifest = make_device_manifest(
+            description="Desc",
+            vendor="Enapter",
+            properties={
+                "p1": domain.PropertyDeclaration(
+                    name="p1",
+                    display_name="P1",
+                    data_type=domain.DataType.STRING,
+                    description=None,
+                    enum=None,
+                    unit=None,
+                )
+            },
+            telemetry={},
+            alerts={},
+            commands={},
+        )
+        devices = [
+            core.DeviceDTO(
+                id="1",
+                name="Alpha",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+                properties={"p1": "v1"},
+                manifest=manifest,
+            ),
+            core.DeviceDTO(
+                id="2",
+                name="Beta",
+                site_id="s2",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+                properties={"p1": "v2"},
+                manifest=manifest,
+            ),
+        ]
+        api = MockEnapterAPI(devices=devices)
+        app = core.ApplicationServer(api)
+
+        result = await app.search_devices(
+            core.AuthConfig(token="test"),
+            query=core.DeviceSearchQuery(device_id="2", name_pattern=".*"),
+            offset=0,
+            limit=10,
+            view=domain.DeviceView.FULL,
+        )
+
+        assert len(result) == 1
+        assert result[0].id == "2"
 
     async def test_read_blueprint(self) -> None:
         manifest = make_device_manifest(

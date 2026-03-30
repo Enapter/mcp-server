@@ -163,6 +163,7 @@ class Server(enapter.async_.Routine):
 
     async def search_devices(
         self,
+        device_id: str | None = None,
         site_id: str | None = None,
         type: models.DeviceType | None = None,
         name_pattern: str = ".*",
@@ -170,10 +171,11 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search among all devices in a site with BASIC or FULL views."""
+        """Search devices by ID, site, type, and name pattern with BASIC or FULL views."""
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
         query = core.DeviceSearchQuery(
+            device_id=device_id,
             site_id=site_id,
             device_type=device_type,
             name_pattern=name_pattern,

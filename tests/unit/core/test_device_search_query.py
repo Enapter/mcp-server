@@ -77,9 +77,34 @@ class TestDeviceSearchQuery:
             is False
         )
 
+    def test_matches_device_id(self) -> None:
+        query = core.DeviceSearchQuery(device_id="1")
+        assert (
+            query.matches(
+                core.DeviceDTO(
+                    id="1",
+                    name="A",
+                    site_id="s1",
+                    type=domain.DeviceType.NATIVE,
+                )
+            )
+            is True
+        )
+        assert (
+            query.matches(
+                core.DeviceDTO(
+                    id="2",
+                    name="A",
+                    site_id="s1",
+                    type=domain.DeviceType.NATIVE,
+                )
+            )
+            is False
+        )
+
     def test_matches_all_with_none(self) -> None:
         query = core.DeviceSearchQuery(
-            site_id=None, device_type=None, name_pattern=None
+            device_id=None, site_id=None, device_type=None, name_pattern=None
         )
         assert (
             query.matches(

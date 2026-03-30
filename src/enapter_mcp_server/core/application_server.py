@@ -7,7 +7,10 @@ from .auth_config import AuthConfig
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
-from .errors import LatestTelemetryUnavailable
+from .errors import (
+    LatestTelemetryUnavailable,
+    SearchQueryTooBroad,
+)
 from .site_search_query import SiteSearchQuery
 
 
@@ -120,6 +123,11 @@ class ApplicationServer:
     async def _search_devices_full(
         self, auth: AuthConfig, query: DeviceSearchQuery
     ) -> list[domain.Device]:
+        if query.site_id is None and query.device_id is None:
+            raise SearchQueryTooBroad(
+                "FULL device search requires site_id or device_id"
+            )
+
         matched_device_dtos: list[DeviceDTO] = []
         async with self._enapter_api.list_devices(
             auth,
