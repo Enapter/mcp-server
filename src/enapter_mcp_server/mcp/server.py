@@ -19,10 +19,26 @@ from .server_config import ServerConfig
 
 INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy systems.
 
-Workflow:
-- Search: Find sites (`search_sites`), devices (`search_devices`), or command executions (`search_command_executions`) to obtain IDs and history.
-- Details: Use `search_sites`, `search_devices(view="FULL")`, or `search_command_executions(view="FULL")` for comprehensive views.
-- Deep Dive: Explore device blueprints with `read_blueprint` and fetch historical data with `get_historical_telemetry`.
+## Example Workflows
+
+### 1. Diagnostic Troubleshooting
+
+**Goal**: Investigate a specific device failure or alert.
+
+- Identify the device using `search_devices(view="FULL")` to see `active_alerts`.
+- Cross-reference alerts with `read_blueprint(section="alerts")` for their definitions.
+- Use `search_command_executions` to audit actions recently taken.
+
+### 2. Historical Analysis & Performance Yield
+
+**Goal**: Analyze performance trends (e.g., hydrogen yield, energy storage).
+
+- Find the correct metric name via `read_blueprint(section="telemetry")`.
+- Fetch the data with `get_historical_telemetry`.
+
+## Usage Tips
+
+- **Filtering**: Parameters ending in `_regexp` (e.g., `name_regexp`) accept Python-style regular expressions.
 """
 
 
@@ -173,7 +189,11 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search devices by ID, site, type, name pattern, and connectivity status with BASIC or FULL views."""
+        """Search among all devices to which the authenticated user has access.
+
+        The `FULL` view provides `properties` and `active_alerts` but requires
+        `site_id` or `device_id` to keep the amount of data manageable.
+        """
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type) if type is not None else None
         query = core.DeviceSearchQuery(
@@ -251,7 +271,11 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.CommandExecution]:
-        """Search command executions by device ID, site ID, command name pattern, and state with BASIC or FULL views."""
+        """Search the history of command executions.
+
+        The `FULL` view provides `arguments` and and `response_payload` but
+        requires `device_id` to keep the amount of data manageable.
+        """
         auth = await self._get_auth_config()
         query = core.CommandExecutionSearchQuery(
             device_id=device_id,
@@ -276,7 +300,7 @@ class Server(enapter.async_.Routine):
         time_to: datetime.datetime,
         granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
-        """Get historical telemetry by device ID, attributes, time range, and granularity.
+        """Retrieve aggregated telemetry data.
 
         Most devices send telemetry data once per second. To reduce the amount
         of data transferred, the `granularity` parameter can be used to
