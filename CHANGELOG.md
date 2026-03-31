@@ -1,3 +1,35 @@
+## [0.12.0] - 2026-03-31
+
+### 🚀 Features
+
+- Add device view types
+- Support site id lookups in site search
+- Narrow full device searches
+- Support connectivity status filter in device search
+- *(mcp)* Implement command execution search
+
+### 🚜 Refactor
+
+- Expose device list expansions in Enapter API
+- Collapse device reads into one shape
+- Make device search the primary read path
+- Remove the legacy device details read
+- Separate raw device transport from search reads
+- Make site search the only site read path
+- Drop internal site view branching
+- Restore blueprint terminology
+- Parse device manifests before app-layer reads
+- Isolate Enapter HTTP payload mapping
+- Simplify site search payload
+- Isolate unavailable latest telemetry handling
+- *(mcp)* Rename search parameters to '_regexp' to clarify regex support
+- *(mcp)* Unify all enum values to lowercase
+
+### 📚 Documentation
+
+- *(mcp)* Update server instructions and tool documentation
+- *(readme)* Add search_command_executions and refine tool list
+- *(readme)* Add example workflows for troubleshooting and performance analysis
 ## [0.11.0] - 2026-03-26
 
 ### 🚀 Features
@@ -20,6 +52,10 @@
 
 - Simplify tool descriptions and consolidate instructions
 - Remove redundant attribute sections from MCP models
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 0.11.0
 ## [0.10.0] - 2026-03-24
 
 ### 🚀 Features
