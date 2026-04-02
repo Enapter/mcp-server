@@ -50,22 +50,52 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | `read_blueprint`            | Access device blueprint sections (properties, telemetry, alerts) |
 | `get_historical_telemetry`  | Retrieve time-series telemetry with configurable granularity     |
 
-## Example Workflows
+## Usage Examples
 
-### 1. Diagnostic Troubleshooting
+Here are realistic examples of how you can interact with your Enapter devices using AI assistants:
 
-**Goal**: Investigate a specific device failure or alert.
+### Example 1: Diagnostic Troubleshooting
 
-- Identify the device using `search_devices(view="full")` to see `active_alerts`.
-- Cross-reference alerts with `read_blueprint(section="alerts")` for their definitions.
-- Use `search_command_executions` to audit actions recently taken.
+**User prompt:**
 
-### 2. Historical Analysis & Performance Yield
+> One of our inverters just went offline. Can you check its status and tell me
+> what the active alerts mean?
 
-**Goal**: Analyze performance trends (e.g., hydrogen yield, energy storage).
+**What happens:**
 
-- Find the correct metric name via `read_blueprint(section="telemetry")`.
-- Fetch the data with `get_historical_telemetry`.
+- Server finds the specific inverter device
+- Retrieves its current connectivity status and active alerts
+- Reads the device blueprint to translate alert codes into human-readable descriptions
+- Presents a summary of the issue to the user
+
+### Example 2: Historical Analysis & Performance
+
+**User prompt:**
+
+> What was the average power consumption and temperature for the main HVAC
+> system over the last 7 days?
+
+**What happens:**
+
+- Server locates the HVAC system device
+- Checks its blueprint to identify the correct telemetry metric names for power consumption and temperature
+- Fetches the historical telemetry data for the requested time period
+- Calculates and presents the averages to the user
+
+### Example 3: Auditing Command Executions
+
+**User prompt:**
+
+> Check if anyone tried to turn on the water pump this morning. Were there any
+> errors during the execution?
+
+**What happens:**
+
+- Server locates the specific water pump device
+- Reads the device blueprint to find the exact command name for "turning on" the device
+- Searches the command execution history for that specific command executed this morning
+- Retrieves the execution status and any associated error messages
+- Reports back whether the command succeeded or failed
 
 ## Support
 
