@@ -1,3 +1,17 @@
+## [0.12.1] - 2026-04-07
+
+### 🚀 Features
+
+- Add CHILD device type
+
+### 📚 Documentation
+
+- *(readme)* Update usage examples for MCP submission guidelines
+
+### ⚙️ Miscellaneous Tasks
+
+- *(.gitignore)* Add .DS_Store to ignored files
+- Bump enapter sdk to v0.17.1
 ## [0.12.0] - 2026-03-31
 
 ### 🚀 Features
@@ -30,6 +44,10 @@
 - *(mcp)* Update server instructions and tool documentation
 - *(readme)* Add search_command_executions and refine tool list
 - *(readme)* Add example workflows for troubleshooting and performance analysis
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 0.12.0
 ## [0.11.0] - 2026-03-26
 
 ### 🚀 Features
