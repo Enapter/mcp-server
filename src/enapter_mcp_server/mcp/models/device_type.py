@@ -10,4 +10,5 @@ DeviceType = Literal[
     "link_slave_ucm",
     "embedded_ucm",
     "native",
+    "child",
 ]
