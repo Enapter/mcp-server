@@ -245,14 +245,14 @@ class ApplicationServer:
             aggregation=aggregation,
         )
 
-    async def get_telemetry_extremes(
+    async def get_historical_telemetry_stats(
         self,
         auth: AuthConfig,
         device_id: str,
         attributes: list[str],
         time_from: datetime.datetime,
         time_to: datetime.datetime,
-    ) -> domain.TelemetryExtremes:
+    ) -> domain.HistoricalTelemetryStats:
         granularity = int((time_to - time_from).total_seconds())
 
         async def query(
@@ -268,9 +268,11 @@ class ApplicationServer:
                 aggregation=aggregation,
             )
 
-        min_ts, max_ts = await asyncio.gather(
+        min_ts, max_ts, avg_ts, last_ts = await asyncio.gather(
             query(enapter.http.api.telemetry.Aggregation.MIN),
             query(enapter.http.api.telemetry.Aggregation.MAX),
+            query(enapter.http.api.telemetry.Aggregation.AVG),
+            query(enapter.http.api.telemetry.Aggregation.LAST),
         )
 
         # Platform API may return 1-2 points per attribute when PG time_bucket
@@ -284,12 +286,16 @@ class ApplicationServer:
 
         min_by_attr = reduce(min_ts, min)
         max_by_attr = reduce(max_ts, max)
+        avg_by_attr = reduce(avg_ts, lambda xs: sum(xs) / len(xs))
+        last_by_attr = reduce(last_ts, lambda xs: xs[-1])
 
-        return domain.TelemetryExtremes(
+        return domain.HistoricalTelemetryStats(
             values={
-                attr: domain.AttributeExtremes(
+                attr: domain.HistoricalTelemetryAttributeStats(
                     min=min_by_attr.get(attr),
                     max=max_by_attr.get(attr),
+                    avg=avg_by_attr.get(attr),
+                    last=last_by_attr.get(attr),
                 )
                 for attr in attributes
             }

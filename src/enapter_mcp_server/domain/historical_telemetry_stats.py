@@ -3,11 +3,13 @@ from typing import Any
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class AttributeExtremes:
+class HistoricalTelemetryAttributeStats:
     min: Any
     max: Any
+    avg: Any
+    last: Any
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class TelemetryExtremes:
-    values: dict[str, AttributeExtremes]
+class HistoricalTelemetryStats:
+    values: dict[str, HistoricalTelemetryAttributeStats]

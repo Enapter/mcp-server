@@ -126,7 +126,7 @@ class Server(enapter.async_.Routine):
             (self.search_command_executions, "Search Command Executions"),
             (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
-            (self.get_telemetry_extremes, "Get Telemetry Extremes"),
+            (self.get_historical_telemetry_stats, "Get Historical Telemetry Stats"),
         ]
         for tool, title in read_only_tools:
             fastmcp_server.tool(
@@ -306,16 +306,14 @@ class Server(enapter.async_.Routine):
         granularity: int = 60 * 60,
         aggregation: models.TelemetryAggregation = "auto",
     ) -> models.HistoricalTelemetry:
-        """Retrieve aggregated telemetry data.
+        """Retrieve telemetry aggregated into time buckets over a time period.
 
-        Most devices send telemetry data once per second. To reduce the amount
-        of data transferred, the `granularity` parameter can be used to
-        aggregate data over a specified interval (in seconds). For example, a
-        granularity of 3600 seconds (1 hour) will return hourly averages of the
-        telemetry data.
+        `granularity` (seconds) sets bucket size — e.g. 3600 = hourly.
+        `aggregation` picks the reducer per bucket: `auto` adapts per attribute
+        type; override with `avg`/`min`/`max` (numeric), `bool_or` (boolean),
+        or `last` (any).
 
-        The `aggregation` parameter controls how datapoints within a bucket
-        are combined. `auto` picks a sensible per-attribute default.
+        For a single set of raw min/max/avg/last, use `get_historical_telemetry_stats`.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(
@@ -329,31 +327,29 @@ class Server(enapter.async_.Routine):
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
 
-    async def get_telemetry_extremes(
+    async def get_historical_telemetry_stats(
         self,
         device_id: str,
         attributes: list[str],
         time_from: datetime.datetime,
         time_to: datetime.datetime,
-    ) -> models.TelemetryExtremes:
-        """Retrieve true per-attribute min/max over the given time period.
+    ) -> models.HistoricalTelemetryStats:
+        """Retrieve per-attribute min/max/avg/last over a time period.
 
-        Computed over the raw datapoints across the entire period, so short
-        dropouts or spikes are preserved — unlike `get_historical_telemetry`,
-        whose bucket-level averages smooth them away.
+        Computed over raw datapoints — brief dropouts and spikes are preserved,
+        unlike the bucket averages in `get_historical_telemetry`.
 
-        Use this tool when you need real extremes (e.g. detecting a momentary
-        power dropout to zero that would be hidden by 5-minute averages).
+        Numeric attributes only.
         """
         auth = await self._get_auth_config()
-        extremes = await self._app.get_telemetry_extremes(
+        stats = await self._app.get_historical_telemetry_stats(
             auth=auth,
             device_id=device_id,
             attributes=attributes,
             time_from=time_from,
             time_to=time_to,
         )
-        return models.TelemetryExtremes.from_domain(extremes)
+        return models.HistoricalTelemetryStats.from_domain(stats)
 
     async def _get_auth_config(self) -> core.AuthConfig:
         if self._config.oauth_proxy is None:
