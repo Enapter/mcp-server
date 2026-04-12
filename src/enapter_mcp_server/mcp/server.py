@@ -303,6 +303,7 @@ class Server(enapter.async_.Routine):
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int = 60 * 60,
+        aggregation: models.TelemetryAggregation = "auto",
     ) -> models.HistoricalTelemetry:
         """Retrieve aggregated telemetry data.
 
@@ -311,6 +312,9 @@ class Server(enapter.async_.Routine):
         aggregate data over a specified interval (in seconds). For example, a
         granularity of 3600 seconds (1 hour) will return hourly averages of the
         telemetry data.
+
+        The `aggregation` parameter controls how datapoints within a bucket
+        are combined. `auto` picks a sensible per-attribute default.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(
@@ -320,6 +324,7 @@ class Server(enapter.async_.Routine):
             time_from=time_from,
             time_to=time_to,
             granularity=granularity,
+            aggregation=enapter.http.api.telemetry.Aggregation(aggregation.upper()),
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
 

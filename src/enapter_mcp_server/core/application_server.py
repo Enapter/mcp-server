@@ -1,6 +1,8 @@
 import datetime
 import re
 
+import enapter
+
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
@@ -229,9 +231,16 @@ class ApplicationServer:
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int,
+        aggregation: enapter.http.api.telemetry.Aggregation | None = None,
     ) -> domain.HistoricalTelemetry:
         return await self._enapter_api.get_historical_telemetry(
-            auth, device_id, attributes, time_from, time_to, granularity
+            auth,
+            device_id,
+            attributes,
+            time_from,
+            time_to,
+            granularity,
+            aggregation=aggregation,
         )
 
     async def search_command_executions(
