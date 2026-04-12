@@ -340,6 +340,10 @@ class Server(enapter.async_.Routine):
         unlike the bucket averages in `get_historical_telemetry`.
 
         Numeric attributes only.
+
+        `min`/`max`/`last` are exact for any period. `avg` is exact under 8h;
+        typical drift <1% for 8h–30 days, up to several % for longer periods
+        (read from pre-aggregated data).
         """
         auth = await self._get_auth_config()
         stats = await self._app.get_historical_telemetry_stats(
