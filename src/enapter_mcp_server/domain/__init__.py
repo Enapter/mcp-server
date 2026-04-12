@@ -17,10 +17,12 @@ from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
 from .site import Site
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
+from .telemetry_extremes import AttributeExtremes, TelemetryExtremes
 
 __all__ = [
     "AlertDeclaration",
     "AlertSeverity",
+    "AttributeExtremes",
     "BlueprintSection",
     "BlueprintSummary",
     "CommandArgumentDeclaration",
@@ -38,4 +40,5 @@ __all__ = [
     "PropertyDeclaration",
     "Site",
     "TelemetryAttributeDeclaration",
+    "TelemetryExtremes",
 ]

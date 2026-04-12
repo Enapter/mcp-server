@@ -1,5 +1,7 @@
+import asyncio
 import datetime
 import re
+from typing import Any
 
 import enapter
 
@@ -241,6 +243,56 @@ class ApplicationServer:
             time_to,
             granularity,
             aggregation=aggregation,
+        )
+
+    async def get_telemetry_extremes(
+        self,
+        auth: AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.TelemetryExtremes:
+        granularity = int((time_to - time_from).total_seconds())
+
+        async def query(
+            aggregation: enapter.http.api.telemetry.Aggregation,
+        ) -> domain.HistoricalTelemetry:
+            return await self._enapter_api.get_historical_telemetry(
+                auth,
+                device_id,
+                attributes,
+                time_from,
+                time_to,
+                granularity,
+                aggregation=aggregation,
+            )
+
+        min_ts, max_ts = await asyncio.gather(
+            query(enapter.http.api.telemetry.Aggregation.MIN),
+            query(enapter.http.api.telemetry.Aggregation.MAX),
+        )
+
+        # Platform API may return 1-2 points per attribute when PG time_bucket
+        # boundaries don't align with time_from; reduce locally to one scalar.
+        def reduce(ts: domain.HistoricalTelemetry, reducer: Any) -> dict[str, Any]:
+            out: dict[str, Any] = {}
+            for attr, values in ts.values.items():
+                non_null = [v for v in values if v is not None]
+                out[attr] = reducer(non_null) if non_null else None
+            return out
+
+        min_by_attr = reduce(min_ts, min)
+        max_by_attr = reduce(max_ts, max)
+
+        return domain.TelemetryExtremes(
+            values={
+                attr: domain.AttributeExtremes(
+                    min=min_by_attr.get(attr),
+                    max=max_by_attr.get(attr),
+                )
+                for attr in attributes
+            }
         )
 
     async def search_command_executions(

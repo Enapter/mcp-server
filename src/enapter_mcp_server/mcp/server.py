@@ -126,6 +126,7 @@ class Server(enapter.async_.Routine):
             (self.search_command_executions, "Search Command Executions"),
             (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
+            (self.get_telemetry_extremes, "Get Telemetry Extremes"),
         ]
         for tool, title in read_only_tools:
             fastmcp_server.tool(
@@ -327,6 +328,32 @@ class Server(enapter.async_.Routine):
             aggregation=enapter.http.api.telemetry.Aggregation(aggregation.upper()),
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
+
+    async def get_telemetry_extremes(
+        self,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> models.TelemetryExtremes:
+        """Retrieve true per-attribute min/max over the given time period.
+
+        Computed over the raw datapoints across the entire period, so short
+        dropouts or spikes are preserved — unlike `get_historical_telemetry`,
+        whose bucket-level averages smooth them away.
+
+        Use this tool when you need real extremes (e.g. detecting a momentary
+        power dropout to zero that would be hidden by 5-minute averages).
+        """
+        auth = await self._get_auth_config()
+        extremes = await self._app.get_telemetry_extremes(
+            auth=auth,
+            device_id=device_id,
+            attributes=attributes,
+            time_from=time_from,
+            time_to=time_to,
+        )
+        return models.TelemetryExtremes.from_domain(extremes)
 
     async def _get_auth_config(self) -> core.AuthConfig:
         if self._config.oauth_proxy is None:
