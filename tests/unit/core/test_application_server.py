@@ -102,6 +102,7 @@ class MockEnapterAPI:
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int,
+        aggregation: domain.AggregationFunction,
     ) -> domain.HistoricalTelemetry:
         if self._historical_telemetry is None:
             raise NotImplementedError()
@@ -745,6 +746,7 @@ class TestApplicationServer:
             datetime.datetime.now(),
             datetime.datetime.now(),
             60,
+            domain.AggregationFunction.AVG,
         )
 
         assert result == historical

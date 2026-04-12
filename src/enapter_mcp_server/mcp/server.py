@@ -302,15 +302,15 @@ class Server(enapter.async_.Routine):
         attributes: list[str],
         time_from: datetime.datetime,
         time_to: datetime.datetime,
+        aggregation: models.AggregationFunction,
         granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
-        """Retrieve aggregated telemetry data.
+        """Retrieve aggregated historical telemetry data for a specific device.
 
-        Most devices send telemetry data once per second. To reduce the amount
-        of data transferred, the `granularity` parameter can be used to
-        aggregate data over a specified interval (in seconds). For example, a
-        granularity of 3600 seconds (1 hour) will return hourly averages of the
-        telemetry data.
+        The data is divided into time buckets of `granularity` seconds. Each
+        returned timestamp marks the start of a bucket, and its values are the
+        result of applying the `aggregation` function to all data points within
+        that bucket.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(
@@ -320,6 +320,7 @@ class Server(enapter.async_.Routine):
             time_from=time_from,
             time_to=time_to,
             granularity=granularity,
+            aggregation=domain.AggregationFunction(aggregation),
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
 
