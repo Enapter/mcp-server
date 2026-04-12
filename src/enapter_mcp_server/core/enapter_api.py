@@ -53,4 +53,5 @@ class EnapterAPI(Protocol):
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int,
+        aggregation: enapter.http.api.telemetry.Aggregation | None = None,
     ) -> domain.HistoricalTelemetry: ...
