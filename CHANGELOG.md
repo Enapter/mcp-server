@@ -1,3 +1,12 @@
+## [1.0.0] - 2026-04-13
+
+### 🚀 Features
+
+- *(telemetry)* [**breaking**] Require explicit aggregation function for historical telemetry
+
+### ⚙️ Miscellaneous Tasks
+
+- *(.gitignore)* Add .codex
 ## [0.12.1] - 2026-04-07
 
 ### 🚀 Features
@@ -12,6 +21,7 @@
 
 - *(.gitignore)* Add .DS_Store to ignored files
 - Bump enapter sdk to v0.17.1
+- *(release)* Bump version to 0.12.1
 ## [0.12.0] - 2026-03-31
 
 ### 🚀 Features
