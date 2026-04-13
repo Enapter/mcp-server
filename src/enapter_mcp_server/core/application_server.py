@@ -243,6 +243,22 @@ class ApplicationServer:
             aggregation,
         )
 
+    async def get_historical_telemetry_stats(
+        self,
+        auth: AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.HistoricalTelemetryStats:
+        return await self._enapter_api.get_historical_telemetry_stats(
+            auth,
+            device_id,
+            attributes,
+            time_from,
+            time_to,
+        )
+
     async def search_command_executions(
         self,
         auth: AuthConfig,

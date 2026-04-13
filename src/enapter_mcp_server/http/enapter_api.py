@@ -1,6 +1,6 @@
 import contextlib
 import datetime
-from typing import Any, AsyncGenerator, Self
+from typing import Any, AsyncGenerator, Callable, Self
 
 import enapter
 
@@ -116,6 +116,59 @@ class EnapterAPI:
                 ],
             )
             return self._data_mapper.to_historical_telemetry(telemetry)
+
+    async def get_historical_telemetry_stats(
+        self,
+        auth: core.AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.HistoricalTelemetryStats:
+        # Platform API may return 1-2 points per attribute when PG time_bucket
+        # boundaries don't align with time_from; the reducer collapses them
+        # into a single scalar consistent with the requested aggregation.
+        reducers: dict[str, Callable[[list[Any]], Any]] = {
+            "min": min,
+            "max": max,
+            "avg": lambda xs: sum(xs) / len(xs),
+            "last": lambda xs: xs[-1],
+        }
+        granularity = int((time_to - time_from).total_seconds())
+        async with self._new_client(auth) as client:
+            telemetry = await client.telemetry.wide_timeseries(
+                from_=time_from,
+                to=time_to,
+                granularity=granularity,
+                selectors=[
+                    enapter.http.api.telemetry.Selector(
+                        device=device_id,
+                        attributes=attributes,
+                        aggregation=enapter.http.api.telemetry.Aggregation(agg.upper()),
+                    )
+                    for agg in reducers
+                ],
+            )
+
+        scalars: dict[str, dict[str, Any]] = {agg: {} for agg in reducers}
+        for column in telemetry.columns:
+            agg = column.labels["aggregation"]
+            non_null = [v for v in column.values if v is not None]
+            scalars[agg][column.labels.telemetry] = (
+                reducers[agg](non_null) if non_null else None
+            )
+
+        return domain.HistoricalTelemetryStats(
+            values={
+                attr: domain.HistoricalTelemetryAttributeStats(
+                    min=scalars["min"].get(attr),
+                    max=scalars["max"].get(attr),
+                    avg=scalars["avg"].get(attr),
+                    last=scalars["last"].get(attr),
+                )
+                for attr in attributes
+            }
+        )
 
     @contextlib.asynccontextmanager
     async def _new_client(
