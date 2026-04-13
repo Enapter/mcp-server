@@ -13,9 +13,9 @@ from .device import Device
 from .device_type import DeviceType
 from .device_view import DeviceView
 from .historical_telemetry import HistoricalTelemetry
+from .historical_telemetry_aggregation import HistoricalTelemetryAggregation
 from .property_declaration import PropertyDeclaration
 from .site import Site
-from .telemetry_aggregation import TelemetryAggregation
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 __all__ = [
@@ -34,8 +34,8 @@ __all__ = [
     "DeviceType",
     "DeviceView",
     "HistoricalTelemetry",
+    "HistoricalTelemetryAggregation",
     "PropertyDeclaration",
     "Site",
-    "TelemetryAggregation",
     "TelemetryAttributeDeclaration",
 ]

@@ -303,7 +303,7 @@ class Server(enapter.async_.Routine):
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int = 60 * 60,
-        aggregation: models.TelemetryAggregation = "auto",
+        aggregation: models.HistoricalTelemetryAggregation = "auto",
     ) -> models.HistoricalTelemetry:
         """Retrieve aggregated telemetry data.
 
