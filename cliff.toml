@@ -49,6 +49,8 @@ split_commits = false
 commit_preprocessors = [
     # Replace Revert "..." with revert: ... to make it conventional.
     { pattern = '^Revert "(.*)"', replace = "revert: $1" },
+    # Replace "Merge pull request #..." with a conventional format to avoid parse errors.
+    { pattern = '^Merge pull request #(\d+) from (.*)', replace = "chore(pull): merge pull request #$1 from $2" },
     # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
     #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
     # Check spelling of the commit message using https://github.com/crate-ci/typos.
