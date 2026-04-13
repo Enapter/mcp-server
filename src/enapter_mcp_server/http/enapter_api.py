@@ -117,6 +117,70 @@ class EnapterAPI:
             )
             return self._data_mapper.to_historical_telemetry(telemetry)
 
+    async def get_historical_telemetry_stats(
+        self,
+        auth: core.AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.HistoricalTelemetryStats:
+        granularity = int((time_to - time_from).total_seconds())
+        aggregations = [
+            enapter.http.api.telemetry.Aggregation.MIN,
+            enapter.http.api.telemetry.Aggregation.MAX,
+            enapter.http.api.telemetry.Aggregation.AVG,
+            enapter.http.api.telemetry.Aggregation.LAST,
+        ]
+        async with self._new_client(auth) as client:
+            telemetry = await client.telemetry.wide_timeseries(
+                from_=time_from,
+                to=time_to,
+                granularity=granularity,
+                selectors=[
+                    enapter.http.api.telemetry.Selector(
+                        device=device_id, attributes=attributes, aggregation=a
+                    )
+                    for a in aggregations
+                ],
+            )
+
+        buckets: dict[str, dict[str, list[Any]]] = {
+            a.value.lower(): {} for a in aggregations
+        }
+        for column in telemetry.columns:
+            buckets[column.labels["aggregation"]][column.labels.telemetry] = (
+                column.values
+            )
+
+        # Platform API may return 1-2 points per attribute when PG time_bucket
+        # boundaries don't align with time_from; reduce to one scalar.
+        def reduce(
+            by_attr: dict[str, list[Any]], reducer: Any
+        ) -> dict[str, Any]:
+            out: dict[str, Any] = {}
+            for attr, values in by_attr.items():
+                non_null = [v for v in values if v is not None]
+                out[attr] = reducer(non_null) if non_null else None
+            return out
+
+        min_by_attr = reduce(buckets["min"], min)
+        max_by_attr = reduce(buckets["max"], max)
+        avg_by_attr = reduce(buckets["avg"], lambda xs: sum(xs) / len(xs))
+        last_by_attr = reduce(buckets["last"], lambda xs: xs[-1])
+
+        return domain.HistoricalTelemetryStats(
+            values={
+                attr: domain.HistoricalTelemetryAttributeStats(
+                    min=min_by_attr.get(attr),
+                    max=max_by_attr.get(attr),
+                    avg=avg_by_attr.get(attr),
+                    last=last_by_attr.get(attr),
+                )
+                for attr in attributes
+            }
+        )
+
     @contextlib.asynccontextmanager
     async def _new_client(
         self, auth: core.AuthConfig

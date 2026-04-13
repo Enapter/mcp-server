@@ -32,6 +32,7 @@ class MockEnapterAPI:
         devices: list[core.DeviceDTO] | None = None,
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
+        historical_telemetry_stats: domain.HistoricalTelemetryStats | None = None,
         latest_telemetry_unavailable: bool = False,
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
     ):
@@ -39,6 +40,7 @@ class MockEnapterAPI:
         self._devices = devices or []
         self._telemetry = telemetry or {}
         self._historical_telemetry = historical_telemetry
+        self._historical_telemetry_stats = historical_telemetry_stats
         self._latest_telemetry_unavailable = latest_telemetry_unavailable
         self._command_executions = command_executions or {}
         self.latest_telemetry_batch_calls = 0
@@ -107,6 +109,18 @@ class MockEnapterAPI:
         if self._historical_telemetry is None:
             raise NotImplementedError()
         return self._historical_telemetry
+
+    async def get_historical_telemetry_stats(
+        self,
+        auth: core.AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.HistoricalTelemetryStats:
+        if self._historical_telemetry_stats is None:
+            raise NotImplementedError()
+        return self._historical_telemetry_stats
 
 
 class TestApplicationServer:

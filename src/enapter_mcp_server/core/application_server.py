@@ -1,9 +1,5 @@
-import asyncio
 import datetime
 import re
-from typing import Any
-
-import enapter
 
 import enapter
 
@@ -255,52 +251,12 @@ class ApplicationServer:
         time_from: datetime.datetime,
         time_to: datetime.datetime,
     ) -> domain.HistoricalTelemetryStats:
-        granularity = int((time_to - time_from).total_seconds())
-
-        async def query(
-            aggregation: enapter.http.api.telemetry.Aggregation,
-        ) -> domain.HistoricalTelemetry:
-            return await self._enapter_api.get_historical_telemetry(
-                auth,
-                device_id,
-                attributes,
-                time_from,
-                time_to,
-                granularity,
-                aggregation,
-            )
-
-        min_ts, max_ts, avg_ts, last_ts = await asyncio.gather(
-            query(enapter.http.api.telemetry.Aggregation.MIN),
-            query(enapter.http.api.telemetry.Aggregation.MAX),
-            query(enapter.http.api.telemetry.Aggregation.AVG),
-            query(enapter.http.api.telemetry.Aggregation.LAST),
-        )
-
-        # Platform API may return 1-2 points per attribute when PG time_bucket
-        # boundaries don't align with time_from; reduce locally to one scalar.
-        def reduce(ts: domain.HistoricalTelemetry, reducer: Any) -> dict[str, Any]:
-            out: dict[str, Any] = {}
-            for attr, values in ts.values.items():
-                non_null = [v for v in values if v is not None]
-                out[attr] = reducer(non_null) if non_null else None
-            return out
-
-        min_by_attr = reduce(min_ts, min)
-        max_by_attr = reduce(max_ts, max)
-        avg_by_attr = reduce(avg_ts, lambda xs: sum(xs) / len(xs))
-        last_by_attr = reduce(last_ts, lambda xs: xs[-1])
-
-        return domain.HistoricalTelemetryStats(
-            values={
-                attr: domain.HistoricalTelemetryAttributeStats(
-                    min=min_by_attr.get(attr),
-                    max=max_by_attr.get(attr),
-                    avg=avg_by_attr.get(attr),
-                    last=last_by_attr.get(attr),
-                )
-                for attr in attributes
-            }
+        return await self._enapter_api.get_historical_telemetry_stats(
+            auth,
+            device_id,
+            attributes,
+            time_from,
+            time_to,
         )
 
     async def search_command_executions(
