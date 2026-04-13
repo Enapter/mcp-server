@@ -17,6 +17,7 @@ from .historical_telemetry_stats import (
     HistoricalTelemetryAttributeStats,
     HistoricalTelemetryStats,
 )
+from .historical_telemetry_aggregation import HistoricalTelemetryAggregation
 from .property_declaration import PropertyDeclaration
 from .site import Site
 from .telemetry_aggregation import TelemetryAggregation
@@ -40,8 +41,8 @@ __all__ = [
     "HistoricalTelemetry",
     "HistoricalTelemetryAttributeStats",
     "HistoricalTelemetryStats",
+    "HistoricalTelemetryAggregation",
     "PropertyDeclaration",
     "Site",
-    "TelemetryAggregation",
     "TelemetryAttributeDeclaration",
 ]

@@ -5,6 +5,8 @@ from typing import Any
 
 import enapter
 
+import enapter
+
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
@@ -233,7 +235,7 @@ class ApplicationServer:
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int,
-        aggregation: enapter.http.api.telemetry.Aggregation | None = None,
+        aggregation: enapter.http.api.telemetry.Aggregation,
     ) -> domain.HistoricalTelemetry:
         return await self._enapter_api.get_historical_telemetry(
             auth,
@@ -242,7 +244,7 @@ class ApplicationServer:
             time_from,
             time_to,
             granularity,
-            aggregation=aggregation,
+            aggregation,
         )
 
     async def get_historical_telemetry_stats(
@@ -265,7 +267,7 @@ class ApplicationServer:
                 time_from,
                 time_to,
                 granularity,
-                aggregation=aggregation,
+                aggregation,
             )
 
         min_ts, max_ts, avg_ts, last_ts = await asyncio.gather(

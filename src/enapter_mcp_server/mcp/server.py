@@ -304,11 +304,16 @@ class Server(enapter.async_.Routine):
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int = 60 * 60,
-        aggregation: models.TelemetryAggregation = "auto",
+        aggregation: models.HistoricalTelemetryAggregation = "auto",
     ) -> models.HistoricalTelemetry:
         """Retrieve telemetry aggregated into time buckets over a time period.
 
-        `granularity` (seconds) sets bucket size — e.g. 3600 = hourly.
+        Most devices send telemetry data once per second. To reduce the amount
+        of data transferred, the `granularity` parameter can be used to
+        aggregate data over a specified interval (in seconds). For example, a
+        granularity of 3600 seconds (1 hour) will return hourly averages of the
+        telemetry data.
+
         `aggregation` picks the reducer per bucket: `auto` adapts per attribute
         type; override with `avg`/`min`/`max` (numeric), `bool_or` (boolean),
         or `last` (any).
