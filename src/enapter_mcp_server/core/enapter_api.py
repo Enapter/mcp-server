@@ -55,3 +55,12 @@ class EnapterAPI(Protocol):
         granularity: int,
         aggregation: enapter.http.api.telemetry.Aggregation,
     ) -> domain.HistoricalTelemetry: ...
+
+    async def get_historical_telemetry_stats(
+        self,
+        auth: AuthConfig,
+        device_id: str,
+        attributes: list[str],
+        time_from: datetime.datetime,
+        time_to: datetime.datetime,
+    ) -> domain.HistoricalTelemetryStats: ...
