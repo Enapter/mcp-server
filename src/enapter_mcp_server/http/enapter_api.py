@@ -100,6 +100,7 @@ class EnapterAPI:
         time_from: datetime.datetime,
         time_to: datetime.datetime,
         granularity: int,
+        aggregation: domain.AggregationFunction,
     ) -> domain.HistoricalTelemetry:
         async with self._new_client(auth) as client:
             telemetry = await client.telemetry.wide_timeseries(
@@ -108,7 +109,11 @@ class EnapterAPI:
                 granularity=granularity,
                 selectors=[
                     enapter.http.api.telemetry.Selector(
-                        device=device_id, attributes=attributes
+                        device=device_id,
+                        attributes=attributes,
+                        aggregation=enapter.http.api.telemetry.Aggregation(
+                            aggregation.value.upper()
+                        ),
                     )
                 ],
             )

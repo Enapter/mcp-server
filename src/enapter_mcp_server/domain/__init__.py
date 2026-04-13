@@ -1,3 +1,4 @@
+from .aggregation_function import AggregationFunction
 from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
 from .blueprint_section import BlueprintSection
@@ -19,6 +20,7 @@ from .site import Site
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 __all__ = [
+    "AggregationFunction",
     "AlertDeclaration",
     "AlertSeverity",
     "BlueprintSection",
