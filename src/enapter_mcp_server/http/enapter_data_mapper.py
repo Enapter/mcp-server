@@ -6,12 +6,16 @@ from enapter_mcp_server import core, domain
 
 
 class EnapterDataMapper:
-    def to_device_dto(self, device: Any) -> core.DeviceDTO:
+    def to_device_dto(self, device: enapter.http.api.devices.Device) -> core.DeviceDTO:
         connectivity = None
         if device.connectivity is not None:
             connectivity = domain.ConnectivityStatus(
                 device.connectivity.status.value.lower()
             )
+
+        active_alerts = []
+        if device.raised_alert_names is not None:
+            active_alerts = device.raised_alert_names
 
         return core.DeviceDTO(
             id=device.id,
@@ -20,6 +24,7 @@ class EnapterDataMapper:
             type=domain.DeviceType(device.type.value.lower()),
             connectivity=connectivity,
             properties=device.properties,
+            active_alerts=active_alerts,
             manifest=self.to_device_manifest(device.manifest),
         )
 

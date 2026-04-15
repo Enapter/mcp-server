@@ -185,6 +185,7 @@ class Server(enapter.async_.Routine):
         type: models.DeviceType | None = None,
         name_regexp: str = ".*",
         connectivity_status: models.ConnectivityStatus | None = None,
+        has_active_alerts: bool | None = None,
         view: models.DeviceView = "basic",
         offset: int = 0,
         limit: int = 20,
@@ -206,6 +207,7 @@ class Server(enapter.async_.Routine):
                 if connectivity_status is not None
                 else None
             ),
+            has_active_alerts=has_active_alerts,
         )
         devices = await self._app.search_devices(
             auth=auth,

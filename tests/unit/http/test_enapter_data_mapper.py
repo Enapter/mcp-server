@@ -127,3 +127,20 @@ class TestEnapterDataMapper:
             timestamps=[timestamp],
             values={"temperature": [21.5]},
         )
+
+    def test_to_device_dto_null_alerts_mapped_to_empty_list(self) -> None:
+        device = enapter.http.api.devices.Device(
+            id="dev-1",
+            blueprint_id="bp-1",
+            name="Dev 1",
+            site_id="s1",
+            updated_at=datetime.datetime.now(),
+            slug="dev-1",
+            type=enapter.http.api.devices.DeviceType.NATIVE,
+            authorized_role=enapter.http.api.devices.AuthorizedRole.USER,
+            raised_alert_names=None,
+        )
+
+        dto = http.EnapterDataMapper().to_device_dto(device)
+
+        assert dto.active_alerts == []

@@ -58,6 +58,7 @@ class MockEnapterAPI:
         expand_manifest: bool = False,
         expand_properties: bool = False,
         expand_connectivity: bool = False,
+        expand_active_alerts: bool = False,
     ) -> AsyncGenerator[core.DeviceDTO, None]:
         for d in self._devices:
             if site_id is None or d.site_id == site_id:
@@ -77,6 +78,7 @@ class MockEnapterAPI:
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
+        expand_active_alerts: bool = False,
     ) -> core.DeviceDTO:
         for device in self._devices:
             if device.id == device_id:
@@ -302,6 +304,7 @@ class TestApplicationServer:
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.ONLINE,
+                active_alerts=["a1"],
                 manifest=manifest,
             ),
             core.DeviceDTO(
@@ -310,6 +313,7 @@ class TestApplicationServer:
                 site_id="s1",
                 type=domain.DeviceType.GATEWAY,
                 connectivity=domain.ConnectivityStatus.ONLINE,
+                active_alerts=[],
                 manifest=manifest,
             ),
             core.DeviceDTO(
@@ -318,6 +322,7 @@ class TestApplicationServer:
                 site_id="s2",
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
+                active_alerts=[],
                 manifest=manifest,
             ),
         ]
@@ -338,6 +343,7 @@ class TestApplicationServer:
         assert len(result) == 2
         assert result[0].connectivity_status == domain.ConnectivityStatus.ONLINE
         assert result[0].blueprint_summary is not None
+        assert result[0].active_alerts_total == 1
         assert result[0].properties is None
         assert result[0].active_alerts is None
 
@@ -430,10 +436,11 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1", "p2": "v2", "extra": "ignored"},
+                active_alerts=["a1"],
                 manifest=manifest,
             ),
         ]
-        api = MockEnapterAPI(devices=devices, telemetry={"1": {"alerts": ["a1"]}})
+        api = MockEnapterAPI(devices=devices)
         app = core.ApplicationServer(api)
 
         result = await app.search_devices(
@@ -449,6 +456,7 @@ class TestApplicationServer:
         assert result[0].blueprint_summary is not None
         assert result[0].properties == {"p1": "v1", "p2": "v2"}
         assert result[0].active_alerts == ["a1"]
+        assert result[0].active_alerts_total == 1
 
     async def test_search_devices_full_view_with_missing_alerts(self) -> None:
         manifest = make_device_manifest(
@@ -494,10 +502,11 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1"},
+                active_alerts=[],
                 manifest=manifest,
             ),
         ]
-        api = MockEnapterAPI(devices=devices, telemetry={"1": {}})
+        api = MockEnapterAPI(devices=devices)
         app = core.ApplicationServer(api)
 
         result = await app.search_devices(
@@ -510,54 +519,7 @@ class TestApplicationServer:
 
         assert len(result) == 1
         assert result[0].active_alerts == []
-
-    async def test_search_devices_full_view_with_unavailable_latest_telemetry(
-        self,
-    ) -> None:
-        manifest = make_device_manifest(
-            description="Desc",
-            vendor="Enapter",
-            properties={
-                "p1": domain.PropertyDeclaration(
-                    name="p1",
-                    display_name="P1",
-                    data_type=domain.DataType.STRING,
-                    description=None,
-                    enum=None,
-                    unit=None,
-                )
-            },
-            telemetry={},
-            alerts={},
-            commands={},
-        )
-        devices = [
-            core.DeviceDTO(
-                id="1",
-                name="Alpha",
-                site_id="s1",
-                type=domain.DeviceType.NATIVE,
-                connectivity=domain.ConnectivityStatus.ONLINE,
-                properties={"p1": "v1"},
-                manifest=manifest,
-            ),
-        ]
-        api = MockEnapterAPI(
-            devices=devices,
-            latest_telemetry_unavailable=True,
-        )
-        app = core.ApplicationServer(api)
-
-        result = await app.search_devices(
-            core.AuthConfig(token="test"),
-            query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
-            offset=0,
-            limit=10,
-            view=domain.DeviceView.FULL,
-        )
-
-        assert len(result) == 1
-        assert result[0].active_alerts == []
+        assert result[0].active_alerts_total == 0
 
     async def test_search_devices_full_view_requires_site_or_device_id(self) -> None:
         api = MockEnapterAPI(devices=[])
@@ -605,6 +567,7 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1"},
+                active_alerts=[],
                 manifest=manifest,
             ),
             core.DeviceDTO(
@@ -614,6 +577,7 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v2"},
+                active_alerts=[],
                 manifest=manifest,
             ),
         ]
