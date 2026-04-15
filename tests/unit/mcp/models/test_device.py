@@ -20,6 +20,7 @@ class TestDevice:
                 alerts_total=0,
             ),
             connectivity_status=domain.ConnectivityStatus.ONLINE,
+            active_alerts_total=0,
         )
 
         device = mcp.models.Device.from_domain(domain_device)
@@ -38,6 +39,7 @@ class TestDevice:
             site_id="site-456",
             type=domain.DeviceType.GATEWAY,
             connectivity_status=domain.ConnectivityStatus.ONLINE,
+            active_alerts_total=2,
             properties={"mode": "auto"},
             active_alerts=["a1", "a2"],
             blueprint_summary=domain.BlueprintSummary(
@@ -54,6 +56,7 @@ class TestDevice:
 
         assert device.id == "device-123"
         assert device.connectivity_status == "online"
+        assert device.active_alerts_total == 2
         assert device.properties == {"mode": "auto"}
         assert device.active_alerts == ["a1", "a2"]
         assert device.blueprint_summary is not None
@@ -75,6 +78,7 @@ class TestDevice:
                 alerts_total=0,
             ),
             connectivity_status=domain.ConnectivityStatus.ONLINE,
+            active_alerts_total=0,
         )
 
         device = mcp.models.Device.from_domain(domain_device)

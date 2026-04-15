@@ -44,6 +44,7 @@ class EnapterAPI:
         expand_manifest: bool = False,
         expand_properties: bool = False,
         expand_connectivity: bool = False,
+        expand_active_alerts: bool = False,
     ) -> AsyncGenerator[core.DeviceDTO, None]:
         async with self._new_client(auth) as client:
             async with client.devices.list(
@@ -51,6 +52,7 @@ class EnapterAPI:
                 expand_manifest=expand_manifest,
                 expand_properties=expand_properties,
                 expand_connectivity=expand_connectivity,
+                expand_raised_alert_names=expand_active_alerts,
             ) as s:
                 async for device in s:
                     yield self._data_mapper.to_device_dto(device)
@@ -62,6 +64,7 @@ class EnapterAPI:
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
+        expand_active_alerts: bool = False,
     ) -> core.DeviceDTO:
         async with self._new_client(auth) as client:
             device = await client.devices.get(
@@ -69,6 +72,7 @@ class EnapterAPI:
                 expand_manifest=expand_manifest,
                 expand_connectivity=expand_connectivity,
                 expand_properties=expand_properties,
+                expand_raised_alert_names=expand_active_alerts,
             )
             return self._data_mapper.to_device_dto(device)
 

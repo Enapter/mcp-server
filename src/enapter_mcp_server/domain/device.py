@@ -14,5 +14,6 @@ class Device:
     type: DeviceType
     blueprint_summary: BlueprintSummary
     connectivity_status: ConnectivityStatus
+    active_alerts_total: int
     properties: dict[str, Any] | None = None
     active_alerts: list[str] | None = None

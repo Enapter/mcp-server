@@ -8,10 +8,7 @@ from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
-from .errors import (
-    LatestTelemetryUnavailable,
-    SearchQueryTooBroad,
-)
+from .errors import SearchQueryTooBroad
 from .site_search_query import SiteSearchQuery
 
 
@@ -101,11 +98,13 @@ class ApplicationServer:
             site_id=query.site_id,
             expand_manifest=True,
             expand_connectivity=True,
+            expand_active_alerts=True,
         ) as devices_gen:
             async for device_dto in devices_gen:
                 if query.matches(device_dto):
                     assert device_dto.manifest is not None
                     assert device_dto.connectivity is not None
+                    assert device_dto.active_alerts is not None
                     devices.append(
                         domain.Device(
                             id=device_dto.id,
@@ -116,6 +115,7 @@ class ApplicationServer:
                                 device_dto.manifest
                             ),
                             connectivity_status=device_dto.connectivity,
+                            active_alerts_total=len(device_dto.active_alerts),
                         )
                     )
 
@@ -136,6 +136,7 @@ class ApplicationServer:
             expand_manifest=True,
             expand_properties=True,
             expand_connectivity=True,
+            expand_active_alerts=True,
         ) as devices_gen:
             async for device_dto in devices_gen:
                 if query.matches(device_dto):
@@ -149,6 +150,7 @@ class ApplicationServer:
             assert device_dto.manifest is not None
             assert device_dto.connectivity is not None
             assert device_dto.properties is not None
+            assert device_dto.active_alerts is not None
             devices.append(
                 domain.Device(
                     id=device_dto.id,
@@ -159,24 +161,16 @@ class ApplicationServer:
                         device_dto.manifest
                     ),
                     connectivity_status=device_dto.connectivity,
+                    active_alerts_total=len(device_dto.active_alerts),
                     properties={
                         k: device_dto.properties.get(k)
                         for k in device_dto.manifest.properties
                     },
-                    active_alerts=await self._get_active_alerts(auth, device_dto.id),
+                    active_alerts=device_dto.active_alerts,
                 )
             )
 
         return devices
-
-    async def _get_active_alerts(self, auth: AuthConfig, device_id: str) -> list[str]:
-        try:
-            latest_telemetry = await self._enapter_api.get_latest_telemetry(
-                auth, {device_id: ["alerts"]}
-            )
-        except LatestTelemetryUnavailable:
-            return []
-        return latest_telemetry.get(device_id, {}).get("alerts") or []
 
     async def read_blueprint(
         self,

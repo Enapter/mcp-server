@@ -12,4 +12,5 @@ class DeviceDTO:
     type: domain.DeviceType
     connectivity: domain.ConnectivityStatus | None = None
     properties: dict[str, Any] | None = None
+    active_alerts: list[str] | None = None
     manifest: domain.DeviceManifest | None = None

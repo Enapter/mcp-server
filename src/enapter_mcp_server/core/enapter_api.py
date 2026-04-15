@@ -23,6 +23,7 @@ class EnapterAPI(Protocol):
         expand_manifest: bool = False,
         expand_properties: bool = False,
         expand_connectivity: bool = False,
+        expand_active_alerts: bool = False,
     ) -> AsyncGenerator[DeviceDTO, None]:
         yield  # type: ignore
 
@@ -33,6 +34,7 @@ class EnapterAPI(Protocol):
         expand_manifest: bool = False,
         expand_connectivity: bool = False,
         expand_properties: bool = False,
+        expand_active_alerts: bool = False,
     ) -> DeviceDTO: ...
 
     @enapter.async_.generator

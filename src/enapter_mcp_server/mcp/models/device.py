@@ -21,6 +21,7 @@ class Device(pydantic.BaseModel):
     type: DeviceType
     blueprint_summary: BlueprintSummary
     connectivity_status: ConnectivityStatus
+    active_alerts_total: int
     properties: dict[str, Any] | None = None
     active_alerts: list[str] | None = None
 
@@ -32,6 +33,7 @@ class Device(pydantic.BaseModel):
             site_id=device.site_id,
             type=device.type.value,
             connectivity_status=device.connectivity_status.value,
+            active_alerts_total=device.active_alerts_total,
             properties=device.properties,
             active_alerts=device.active_alerts,
             blueprint_summary=BlueprintSummary.from_domain(device.blueprint_summary),
