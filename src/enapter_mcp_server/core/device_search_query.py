@@ -14,6 +14,7 @@ class DeviceSearchQuery:
     device_type: domain.DeviceType | None = None
     name_regexp: str | None = None
     connectivity_status: domain.ConnectivityStatus | None = None
+    has_active_alerts: bool | None = None
 
     @functools.cached_property
     def _name_pattern(self) -> re.Pattern[str] | None:
@@ -37,4 +38,11 @@ class DeviceSearchQuery:
             device_dto.name
         ):
             return False
+
+        if self.has_active_alerts is not None:
+            assert device_dto.active_alerts is not None
+            has_active_alerts = len(device_dto.active_alerts) > 0
+            if self.has_active_alerts != has_active_alerts:
+                return False
+
         return True

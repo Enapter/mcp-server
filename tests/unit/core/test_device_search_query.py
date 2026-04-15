@@ -146,3 +146,27 @@ class TestDeviceSearchQuery:
             )
             is True
         )
+
+    def test_matches_has_active_alerts(self) -> None:
+        query_true = core.DeviceSearchQuery(has_active_alerts=True)
+        query_false = core.DeviceSearchQuery(has_active_alerts=False)
+
+        device_with_alerts = core.DeviceDTO(
+            id="1",
+            name="A",
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            active_alerts=["a1"],
+        )
+        device_without_alerts = core.DeviceDTO(
+            id="2",
+            name="B",
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            active_alerts=[],
+        )
+
+        assert query_true.matches(device_with_alerts) is True
+        assert query_true.matches(device_without_alerts) is False
+        assert query_false.matches(device_with_alerts) is False
+        assert query_false.matches(device_without_alerts) is True
