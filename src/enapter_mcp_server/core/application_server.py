@@ -126,7 +126,7 @@ class ApplicationServer:
     ) -> list[domain.Device]:
         if query.site_id is None and query.device_id is None:
             raise SearchQueryTooBroad(
-                "full device search requires site_id or device_id"
+                "Please provide `site_id` or `device_id` to narrow down the search."
             )
 
         matched_device_dtos: list[DeviceDTO] = []
@@ -259,7 +259,7 @@ class ApplicationServer:
     ) -> list[domain.CommandExecution]:
         if query.site_id is None and query.device_id is None:
             raise SearchQueryTooBroad(
-                "command execution search requires site_id or device_id"
+                "Please provide `site_id` or `device_id` to narrow down the search."
             )
 
         device_ids: list[str] = []
@@ -286,7 +286,7 @@ class ApplicationServer:
     ) -> list[domain.CommandExecution]:
         if query.device_id is None:
             raise SearchQueryTooBroad(
-                "full command execution search requires device_id"
+                "Please provide `device_id` to narrow down the search."
             )
 
         if query.site_id is not None:
