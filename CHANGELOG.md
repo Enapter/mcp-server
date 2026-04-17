@@ -1,3 +1,17 @@
+## [1.1.0] - 2026-04-17
+
+### 🚀 Features
+
+- *(core)* Optimize alert retrieval via SDK expansion
+- *(mcp)* Add 'has_active_alerts' parameter to search_devices tool
+
+### 💼 Other
+
+- *(deps)* Upgrade enapter SDK to 0.17.2
+
+### ⚙️ Miscellaneous Tasks
+
+- *(git-cliff)* Map merge pull requests to conventional format
 ## [1.0.0] - 2026-04-13
 
 ### 🚀 Features
@@ -7,6 +21,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(.gitignore)* Add .codex
+- *(release)* Bump version to 1.0.0
 ## [0.12.1] - 2026-04-07
 
 ### 🚀 Features
