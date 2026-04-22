@@ -1,9 +1,10 @@
 from unittest.mock import AsyncMock
 
+import mcp.types
+
 from enapter_mcp_server.mcp.server import INSTRUCTIONS, Server
 from enapter_mcp_server.mcp.server_config import ServerConfig
 
-import mcp.types
 
 def test_register_prompts():
     config = ServerConfig(
@@ -22,6 +23,7 @@ def test_register_prompts():
             def decorator(func):
                 self.prompts[name] = func
                 return func
+
             return decorator
 
     fastmcp_server = MockFastMCP()
