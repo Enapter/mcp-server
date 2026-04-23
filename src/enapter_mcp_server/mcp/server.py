@@ -70,7 +70,6 @@ class Server(enapter.async_.Routine):
             auth=auth_provider,
         )
         self._register_tools(fastmcp_server)
-        self._register_prompts(fastmcp_server)
         await fastmcp_server.run_async(
             transport="streamable-http",
             show_banner=False,
@@ -120,22 +119,6 @@ class Server(enapter.async_.Routine):
             case _:
                 raise NotImplementedError(f"{jwt_store_url.scheme}")
 
-    def _register_prompts(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        @fastmcp_server.prompt(
-            "mcp-server-instructions",
-            description="Instructions for how to use this MCP server.",
-        )
-        def mcp_server_instructions() -> list[mcp.types.PromptMessage]:
-            return [
-                mcp.types.PromptMessage(
-                    role="user",
-                    content=mcp.types.TextContent(
-                        type="text",
-                        text=INSTRUCTIONS,
-                    ),
-                )
-            ]
-
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
         read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
@@ -147,6 +130,7 @@ class Server(enapter.async_.Routine):
         for tool, title in read_only_tools:
             fastmcp_server.tool(
                 tool,
+                description=f"{tool.__doc__}\n\n{INSTRUCTIONS}",
                 annotations=mcp.types.ToolAnnotations(
                     readOnlyHint=True,
                     title=title,
