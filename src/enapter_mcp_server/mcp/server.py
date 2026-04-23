@@ -127,10 +127,19 @@ class Server(enapter.async_.Routine):
             (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
         ]
-        for tool, title in read_only_tools:
+
+        # We append INSTRUCTIONS to the overall fastmcp server and also to the
+        # description of the first tool to ensure clients that ignore the server
+        # instructions (like Claude Desktop) still get them via the first tool.
+        # See https://github.com/google/adk-python/issues/1974
+        for i, (tool, title) in enumerate(read_only_tools):
+            description = tool.__doc__
+            if i == 0:
+                description = f"{description}\n\n{INSTRUCTIONS}"
+
             fastmcp_server.tool(
                 tool,
-                description=f"{tool.__doc__}\n\n{INSTRUCTIONS}",
+                description=description,
                 annotations=mcp.types.ToolAnnotations(
                     readOnlyHint=True,
                     title=title,
