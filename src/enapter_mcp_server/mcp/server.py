@@ -17,30 +17,6 @@ from enapter_mcp_server import __version__, core, domain
 from . import models
 from .server_config import ServerConfig
 
-INSTRUCTIONS = """This MCP server exposes the Enapter API for managing energy systems.
-
-## Example Workflows
-
-### 1. Diagnostic Troubleshooting
-
-**Goal**: Investigate a specific device failure or alert.
-
-- Identify the device using `search_devices(view="full")` to see `active_alerts`.
-- Cross-reference alerts with `read_blueprint(section="alerts")` for their definitions.
-- Use `search_command_executions` to audit actions recently taken.
-
-### 2. Historical Analysis & Performance Yield
-
-**Goal**: Analyze performance trends (e.g., hydrogen yield, energy storage).
-
-- Find the correct metric name via `read_blueprint(section="telemetry")`.
-- Fetch the data with `get_historical_telemetry`.
-
-## Usage Tips
-
-- **Filtering**: Parameters ending in `_regexp` (e.g., `name_regexp`) accept Python-style regular expressions.
-"""
-
 
 class Server(enapter.async_.Routine):
 
@@ -61,9 +37,13 @@ class Server(enapter.async_.Routine):
             else None
         )
         auth_provider = self._select_auth_provider()
+        # NOTE: Instructions are treated as metadata by some clients (e.g.,
+        # Claude Desktop) and are not used to guide the LLM's behavior. We
+        # provide instructions directly in the tool docstrings instead.
+        instructions = None
         fastmcp_server = fastmcp.FastMCP(
             name="Enapter MCP Server",
-            instructions=INSTRUCTIONS,
+            instructions=instructions,
             version=__version__,
             website_url="https://github.com/Enapter/mcp-server",
             icons=[icon] if icon is not None else [],
@@ -163,7 +143,17 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Site]:
-        """Search among all sites to which the authenticated user has access."""
+        """Search among energy system sites accessible to the authenticated user.
+
+        This tool is typically the first step to discover a `site_id`, which is often required by other tools to scope queries to a specific location.
+
+        Tips:
+        - Both `name_regexp` and `timezone_regexp` accept Python-style regular expressions.
+
+        Related tools:
+        - `search_devices`: Pass the discovered `site_id` to find devices located at this site.
+        - `search_command_executions`: Pass the discovered `site_id` to audit commands executed across the entire site.
+        """
         auth = await self._get_auth_config()
         query = core.SiteSearchQuery(
             site_id=site_id,
@@ -190,10 +180,19 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search among all devices to which the authenticated user has access.
+        """Search for energy system devices.
 
-        The `full` view provides `properties` and `active_alerts` but requires
-        `site_id` or `device_id` to keep the amount of data manageable.
+        This tool is the primary entry point for discovering devices, checking their connectivity, and finding active alerts during diagnostic troubleshooting.
+
+        Tips:
+        - Use `has_active_alerts=True` to quickly find devices that require attention.
+        - The default `view="basic"` returns summary information. To retrieve the `active_alerts` list and device `properties`, use `view="full"` (requires specifying either `site_id` or `device_id`).
+        - `name_regexp` accepts a Python-style regular expression.
+
+        Related tools:
+        - `read_blueprint`: Pass the device `id` to read its blueprint and discover its telemetry attributes, commands, alerts, and properties.
+        - `get_historical_telemetry`: Pass the device `id` to retrieve historical time-series data (e.g., hydrogen yield, energy storage).
+        - `search_command_executions`: Pass the device `id` to audit actions recently taken on this device.
         """
         auth = await self._get_auth_config()
         device_type = domain.DeviceType(type.lower()) if type is not None else None
@@ -231,7 +230,20 @@ class Server(enapter.async_.Routine):
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
-        """Read a specific section of the device blueprint."""
+        """Read the blueprint for a specific device.
+
+        This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', and 'properties'.
+
+        Tips:
+        - Use `section="alerts"` to get details about specific alerts.
+        - Use `section="telemetry"` to discover the exact names and metadata of telemetry attributes.
+        - Use `section="commands"` to see which actions can be executed on the device.
+        - `name_regexp` accepts a Python-style regular expression.
+
+        Related tools:
+        - `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.
+        - `search_command_executions`: Use the commands discovered here to audit their past executions.
+        """
         auth = await self._get_auth_config()
         declarations = await self._app.read_blueprint(
             auth=auth,
@@ -273,10 +285,15 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.CommandExecution]:
-        """Search the history of command executions.
+        """Search the history of commands executed on devices.
 
-        The `full` view provides `arguments` and and `response_payload` but
-        requires `device_id` to keep the amount of data manageable.
+        This tool helps audit recent actions taken on a device, whether to verify successful execution, check for failures (`state="error"`), or see if a command was misused.
+
+        Tips:
+        - The default `view="basic"` returns execution status and timestamps.
+        - Use `view="full"` to see the actual `arguments` sent and the `response_payload` received.
+        - `view="full"` requires specifying a `device_id`.
+        - `command_name_regexp` accepts a Python-style regular expression.
         """
         auth = await self._get_auth_config()
         query = core.CommandExecutionSearchQuery(
@@ -307,12 +324,15 @@ class Server(enapter.async_.Routine):
         aggregation: models.AggregationFunction,
         granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
-        """Retrieve aggregated historical telemetry data for a specific device.
+        """Retrieve aggregated historical time-series telemetry for a specific device.
 
-        The data is divided into time buckets of `granularity` seconds. Each
-        returned timestamp marks the start of a bucket, and its values are the
-        result of applying the `aggregation` function to all data points within
-        that bucket.
+        This tool is useful for performance analysis, yield calculation, and historical trending.
+
+        The data is divided into time buckets of `granularity` seconds. Each returned timestamp marks the start of a bucket, and its values are the result of applying the `aggregation` function to all data points within that bucket.
+
+        Tips:
+        - Use `read_blueprint` to discover exact telemetry attribute names for the `attributes` parameter.
+        - Choose an `aggregation` function suitable for the attribute's data type. For example, `last` works for booleans and strings, while `min`, `max`, and `avg` work for numerics.
         """
         auth = await self._get_auth_config()
         telemetry = await self._app.get_historical_telemetry(
