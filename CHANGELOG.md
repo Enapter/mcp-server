@@ -1,3 +1,12 @@
+## [1.2.0] - 2026-04-24
+
+### 🚜 Refactor
+
+- *(core)* Improve clarity and politeness of SearchQueryTooBroad messages
+
+### 📚 Documentation
+
+- Enrich tool docstrings to provide workflow context
 ## [1.1.0] - 2026-04-17
 
 ### 🚀 Features
@@ -12,6 +21,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(git-cliff)* Map merge pull requests to conventional format
+- *(release)* Bump version to 1.1.0
 ## [1.0.0] - 2026-04-13
 
 ### 🚀 Features
