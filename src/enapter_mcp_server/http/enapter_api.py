@@ -82,11 +82,15 @@ class EnapterAPI:
         auth: core.AuthConfig,
         device_id: str | None = None,
         site_id: str | None = None,
+        created_at_gte: datetime.datetime | None = None,
+        created_at_lt: datetime.datetime | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         async with self._new_client(auth) as client:
             async with client.commands.list_executions(
                 device_id=device_id,
                 site_id=site_id,
+                created_at_gte=created_at_gte,
+                created_at_lt=created_at_lt,
                 order=enapter.http.api.commands.ListExecutionsOrder.CREATED_AT_DESC,
             ) as executions:
                 async for execution in executions:

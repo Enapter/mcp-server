@@ -73,3 +73,48 @@ class TestCommandExecutionSearchQuery:
             created_at=datetime.datetime.now(),
         )
         assert query.matches(execution) is True
+
+    def test_matches_created_at(self) -> None:
+        e1 = domain.CommandExecution(
+            id="e1",
+            device_id="d1",
+            command_name="cmd",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2023, 1, 1, 12, 0, 0),
+        )
+        e2 = domain.CommandExecution(
+            id="e2",
+            device_id="d1",
+            command_name="cmd",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2023, 1, 1, 13, 0, 0),
+        )
+        e3 = domain.CommandExecution(
+            id="e3",
+            device_id="d1",
+            command_name="cmd",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2023, 1, 1, 14, 0, 0),
+        )
+
+        query_after = core.CommandExecutionSearchQuery(
+            created_at_gte=datetime.datetime(2023, 1, 1, 13, 0, 0)
+        )
+        assert query_after.matches(e1) is False
+        assert query_after.matches(e2) is True
+        assert query_after.matches(e3) is True
+
+        query_before = core.CommandExecutionSearchQuery(
+            created_at_lt=datetime.datetime(2023, 1, 1, 13, 0, 0)
+        )
+        assert query_before.matches(e1) is True
+        assert query_before.matches(e2) is False
+        assert query_before.matches(e3) is False
+
+        query_between = core.CommandExecutionSearchQuery(
+            created_at_gte=datetime.datetime(2023, 1, 1, 12, 30, 0),
+            created_at_lt=datetime.datetime(2023, 1, 1, 13, 30, 0),
+        )
+        assert query_between.matches(e1) is False
+        assert query_between.matches(e2) is True
+        assert query_between.matches(e3) is False

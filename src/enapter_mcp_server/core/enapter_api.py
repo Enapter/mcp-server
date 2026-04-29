@@ -43,6 +43,8 @@ class EnapterAPI(Protocol):
         auth: AuthConfig,
         device_id: str | None = None,
         site_id: str | None = None,
+        created_at_gte: datetime.datetime | None = None,
+        created_at_lt: datetime.datetime | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         yield  # type: ignore
 

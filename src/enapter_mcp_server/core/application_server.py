@@ -271,7 +271,11 @@ class ApplicationServer:
         skipped = 0
 
         async with self._enapter_api.list_command_executions(
-            auth, device_id=query.device_id, site_id=query.site_id
+            auth,
+            device_id=query.device_id,
+            site_id=query.site_id,
+            created_at_gte=query.created_at_gte,
+            created_at_lt=query.created_at_lt,
         ) as executions_gen:
             async for execution in executions_gen:
                 if query.matches(execution):
@@ -301,7 +305,11 @@ class ApplicationServer:
         skipped = 0
 
         async with self._enapter_api.list_command_executions(
-            auth, device_id=query.device_id, site_id=query.site_id
+            auth,
+            device_id=query.device_id,
+            site_id=query.site_id,
+            created_at_gte=query.created_at_gte,
+            created_at_lt=query.created_at_lt,
         ) as executions_gen:
             async for execution in executions_gen:
                 if query.matches(execution):

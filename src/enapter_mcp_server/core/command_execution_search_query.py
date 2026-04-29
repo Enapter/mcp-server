@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import functools
 import re
 
@@ -11,6 +12,8 @@ class CommandExecutionSearchQuery:
     site_id: str | None = None
     command_name_regexp: str | None = None
     state: domain.CommandExecutionState | None = None
+    created_at_gte: datetime.datetime | None = None
+    created_at_lt: datetime.datetime | None = None
 
     @functools.cached_property
     def _command_name_pattern(self) -> re.Pattern[str] | None:
@@ -26,6 +29,16 @@ class CommandExecutionSearchQuery:
         if (
             self._command_name_pattern is not None
             and not self._command_name_pattern.search(execution.command_name)
+        ):
+            return False
+        if (
+            self.created_at_gte is not None
+            and execution.created_at < self.created_at_gte
+        ):
+            return False
+        if (
+            self.created_at_lt is not None
+            and execution.created_at >= self.created_at_lt
         ):
             return False
         return True

@@ -281,6 +281,8 @@ class Server(enapter.async_.Routine):
         site_id: str | None = None,
         command_name_regexp: str = ".*",
         state: models.CommandExecutionState | None = None,
+        created_at_gte: datetime.datetime | None = None,
+        created_at_lt: datetime.datetime | None = None,
         view: models.CommandExecutionView = "basic",
         offset: int = 0,
         limit: int = 20,
@@ -294,6 +296,7 @@ class Server(enapter.async_.Routine):
         - Use `view="full"` to see the actual `arguments` sent and the `response_payload` received.
         - `view="full"` requires specifying a `device_id`.
         - `command_name_regexp` accepts a Python-style regular expression.
+        - `created_at_gte` and `created_at_lt` can be used to filter by time.
         """
         auth = await self._get_auth_config()
         query = core.CommandExecutionSearchQuery(
@@ -305,6 +308,8 @@ class Server(enapter.async_.Routine):
                 if state is not None
                 else None
             ),
+            created_at_gte=created_at_gte,
+            created_at_lt=created_at_lt,
         )
         executions = await self._app.search_command_executions(
             auth=auth,

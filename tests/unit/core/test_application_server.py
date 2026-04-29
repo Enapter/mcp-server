@@ -70,6 +70,8 @@ class MockEnapterAPI:
         auth: core.AuthConfig,
         device_id: str | None = None,
         site_id: str | None = None,
+        created_at_gte: datetime.datetime | None = None,
+        created_at_lt: datetime.datetime | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         all_executions = []
         for executions in self._command_executions.values():
@@ -82,6 +84,10 @@ class MockEnapterAPI:
                     )
                     if device is None or device.site_id != site_id:
                         continue
+                if created_at_gte is not None and execution.created_at < created_at_gte:
+                    continue
+                if created_at_lt is not None and execution.created_at >= created_at_lt:
+                    continue
                 all_executions.append(execution)
 
         all_executions.sort(key=lambda e: e.created_at, reverse=True)
