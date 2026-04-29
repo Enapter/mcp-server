@@ -1,3 +1,16 @@
+## [1.3.0] - 2026-04-29
+
+### 🚀 Features
+
+- *(commands)* Add timestamp filtering to command executions
+
+### ⚡ Performance
+
+- Optimize command search and upgrade SDK to 0.17.5
+
+### ⚙️ Miscellaneous Tasks
+
+- *(.gitignore)* Add opencode.json
 ## [1.2.0] - 2026-04-24
 
 ### 🚜 Refactor
@@ -7,6 +20,10 @@
 ### 📚 Documentation
 
 - Enrich tool docstrings to provide workflow context
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 1.2.0
 ## [1.1.0] - 2026-04-17
 
 ### 🚀 Features
