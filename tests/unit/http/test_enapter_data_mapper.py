@@ -144,3 +144,32 @@ class TestEnapterDataMapper:
         dto = http.EnapterDataMapper().to_device_dto(device)
 
         assert dto.active_alerts == []
+
+    def test_to_command_execution(self) -> None:
+        created_at = datetime.datetime.now()
+        execution = enapter.http.api.commands.Execution(
+            id="exec-1",
+            device_id="dev-1",
+            state=enapter.http.api.commands.ExecutionState.SUCCESS,
+            created_at=created_at,
+            request=enapter.http.api.commands.Request(
+                name="power",
+                arguments={"on": True},
+            ),
+            response=enapter.http.api.commands.Response(
+                state=enapter.http.api.commands.ResponseState.SUCCEEDED,
+                payload={"status": "ok"},
+                received_at=created_at,
+            ),
+            log=None,
+        )
+
+        mapped = http.EnapterDataMapper().to_command_execution(execution)
+
+        assert mapped.id == "exec-1"
+        assert mapped.device_id == "dev-1"
+        assert mapped.command_name == "power"
+        assert mapped.state == domain.CommandExecutionState.SUCCESS
+        assert mapped.created_at == created_at
+        assert mapped.arguments == {"on": True}
+        assert mapped.response_payload == {"status": "ok"}

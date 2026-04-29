@@ -66,9 +66,26 @@ class MockEnapterAPI:
 
     @enapter.async_.generator
     async def list_command_executions(
-        self, auth: core.AuthConfig, device_id: str
+        self,
+        auth: core.AuthConfig,
+        device_id: str | None = None,
+        site_id: str | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
-        for execution in self._command_executions.get(device_id, []):
+        all_executions = []
+        for executions in self._command_executions.values():
+            for execution in executions:
+                if device_id is not None and execution.device_id != device_id:
+                    continue
+                if site_id is not None:
+                    device = next(
+                        (d for d in self._devices if d.id == execution.device_id), None
+                    )
+                    if device is None or device.site_id != site_id:
+                        continue
+                all_executions.append(execution)
+
+        all_executions.sort(key=lambda e: e.created_at, reverse=True)
+        for execution in all_executions:
             yield execution
 
     async def get_device(

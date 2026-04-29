@@ -245,61 +245,72 @@ class ApplicationServer:
     ) -> list[domain.CommandExecution]:
         match view:
             case domain.CommandExecutionView.BASIC:
-                executions = await self._search_command_executions_basic(auth, query)
+                return await self._search_command_executions_basic(
+                    auth, query, offset, limit
+                )
             case domain.CommandExecutionView.FULL:
-                executions = await self._search_command_executions_full(auth, query)
+                return await self._search_command_executions_full(
+                    auth, query, offset, limit
+                )
             case _:
                 raise NotImplementedError(view)
 
-        executions.sort(key=lambda e: e.created_at, reverse=True)
-        return executions[offset : offset + limit]
-
     async def _search_command_executions_basic(
-        self, auth: AuthConfig, query: CommandExecutionSearchQuery
+        self,
+        auth: AuthConfig,
+        query: CommandExecutionSearchQuery,
+        offset: int,
+        limit: int,
     ) -> list[domain.CommandExecution]:
         if query.site_id is None and query.device_id is None:
             raise SearchQueryTooBroad(
                 "Please provide `site_id` or `device_id` to narrow down the search."
             )
 
-        device_ids: list[str] = []
-        async with self._enapter_api.list_devices(
-            auth, site_id=query.site_id
-        ) as devices_gen:
-            async for device_dto in devices_gen:
-                if query.device_id is None or device_dto.id == query.device_id:
-                    device_ids.append(device_dto.id)
-
         executions: list[domain.CommandExecution] = []
-        for device_id in device_ids:
-            async with self._enapter_api.list_command_executions(
-                auth, device_id=device_id
-            ) as executions_gen:
-                async for execution in executions_gen:
-                    if query.matches(execution):
-                        executions.append(execution.strip())
+        skipped = 0
+
+        async with self._enapter_api.list_command_executions(
+            auth, device_id=query.device_id, site_id=query.site_id
+        ) as executions_gen:
+            async for execution in executions_gen:
+                if query.matches(execution):
+                    if skipped < offset:
+                        skipped += 1
+                        continue
+
+                    executions.append(execution.strip())
+                    if len(executions) >= limit:
+                        break
 
         return executions
 
     async def _search_command_executions_full(
-        self, auth: AuthConfig, query: CommandExecutionSearchQuery
+        self,
+        auth: AuthConfig,
+        query: CommandExecutionSearchQuery,
+        offset: int,
+        limit: int,
     ) -> list[domain.CommandExecution]:
         if query.device_id is None:
             raise SearchQueryTooBroad(
                 "Please provide `device_id` to narrow down the search."
             )
 
-        if query.site_id is not None:
-            device_dto = await self._enapter_api.get_device(auth, query.device_id)
-            if device_dto.site_id != query.site_id:
-                return []
-
         executions: list[domain.CommandExecution] = []
+        skipped = 0
+
         async with self._enapter_api.list_command_executions(
-            auth, device_id=query.device_id
+            auth, device_id=query.device_id, site_id=query.site_id
         ) as executions_gen:
             async for execution in executions_gen:
                 if query.matches(execution):
+                    if skipped < offset:
+                        skipped += 1
+                        continue
+
                     executions.append(execution)
+                    if len(executions) >= limit:
+                        break
 
         return executions

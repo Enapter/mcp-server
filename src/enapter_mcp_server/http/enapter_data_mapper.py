@@ -118,11 +118,11 @@ class EnapterDataMapper:
         )
 
     def to_command_execution(
-        self, device_id: str, execution: enapter.http.api.commands.Execution
+        self, execution: enapter.http.api.commands.Execution
     ) -> domain.CommandExecution:
         return domain.CommandExecution(
             id=execution.id,
-            device_id=device_id,
+            device_id=execution.device_id,
             command_name=execution.request.name,
             state=domain.CommandExecutionState(execution.state.value.lower()),
             created_at=execution.created_at,

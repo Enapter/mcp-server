@@ -39,7 +39,10 @@ class EnapterAPI(Protocol):
 
     @enapter.async_.generator
     async def list_command_executions(
-        self, auth: AuthConfig, device_id: str
+        self,
+        auth: AuthConfig,
+        device_id: str | None = None,
+        site_id: str | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         yield  # type: ignore
 

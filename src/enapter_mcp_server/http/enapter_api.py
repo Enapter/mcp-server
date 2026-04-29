@@ -78,12 +78,19 @@ class EnapterAPI:
 
     @enapter.async_.generator
     async def list_command_executions(
-        self, auth: core.AuthConfig, device_id: str
+        self,
+        auth: core.AuthConfig,
+        device_id: str | None = None,
+        site_id: str | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         async with self._new_client(auth) as client:
-            async with client.commands.list_executions(device_id) as executions:
+            async with client.commands.list_executions(
+                device_id=device_id,
+                site_id=site_id,
+                order=enapter.http.api.commands.ListExecutionsOrder.CREATED_AT_DESC,
+            ) as executions:
                 async for execution in executions:
-                    yield self._data_mapper.to_command_execution(device_id, execution)
+                    yield self._data_mapper.to_command_execution(execution)
 
     async def get_latest_telemetry(
         self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
