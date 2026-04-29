@@ -1,6 +1,7 @@
 .codex
 .gemini
 .DS_Store
+opencode.json
 
 # What follows is based on
 # https://github.com/github/gitignore/blob/e5323759e387ba347a9d50f8b0ddd16502eb71d4/Python.gitignore.
