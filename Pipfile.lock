@@ -306,9 +306,9 @@
         },
         "enapter": {
             "hashes": [
-                "sha256:8110cc3d1e5b0a553f2de21013855af7c10271c4186deba6d291343103596d83"
+                "sha256:ebff7301e683fca09626986463ca9a84643dd182b9fd6c9df7b2fd1b07bc3417"
             ],
-            "version": "==0.17.5"
+            "version": "==0.18.0"
         },
         "enapter-mcp-server": {
             "editable": true,
