@@ -1,3 +1,8 @@
+## [1.3.1] - 2026-04-30
+
+### ⚡ Performance
+
+- *(api)* Implement filtering command executions by state
 ## [1.3.0] - 2026-04-29
 
 ### 🚀 Features
@@ -11,6 +16,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - *(.gitignore)* Add opencode.json
+- *(release)* Bump version to 1.3.0
 ## [1.2.0] - 2026-04-24
 
 ### 🚜 Refactor
