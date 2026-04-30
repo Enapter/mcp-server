@@ -45,6 +45,7 @@ class EnapterAPI(Protocol):
         site_id: str | None = None,
         created_at_gte: datetime.datetime | None = None,
         created_at_lt: datetime.datetime | None = None,
+        state: domain.CommandExecutionState | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         yield  # type: ignore
 

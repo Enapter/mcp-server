@@ -276,6 +276,7 @@ class ApplicationServer:
             site_id=query.site_id,
             created_at_gte=query.created_at_gte,
             created_at_lt=query.created_at_lt,
+            state=query.state,
         ) as executions_gen:
             async for execution in executions_gen:
                 if query.matches(execution):
@@ -310,6 +311,7 @@ class ApplicationServer:
             site_id=query.site_id,
             created_at_gte=query.created_at_gte,
             created_at_lt=query.created_at_lt,
+            state=query.state,
         ) as executions_gen:
             async for execution in executions_gen:
                 if query.matches(execution):

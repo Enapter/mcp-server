@@ -72,6 +72,7 @@ class MockEnapterAPI:
         site_id: str | None = None,
         created_at_gte: datetime.datetime | None = None,
         created_at_lt: datetime.datetime | None = None,
+        state: domain.CommandExecutionState | None = None,
     ) -> AsyncGenerator[domain.CommandExecution, None]:
         all_executions = []
         for executions in self._command_executions.values():
@@ -87,6 +88,8 @@ class MockEnapterAPI:
                 if created_at_gte is not None and execution.created_at < created_at_gte:
                     continue
                 if created_at_lt is not None and execution.created_at >= created_at_lt:
+                    continue
+                if state is not None and execution.state != state:
                     continue
                 all_executions.append(execution)
 
@@ -740,6 +743,65 @@ class TestApplicationServer:
         )
 
         assert result == historical
+
+    async def test_search_command_executions_by_state(self) -> None:
+        devices = [
+            core.DeviceDTO(
+                id="d1",
+                name="D1",
+                site_id="s1",
+                type=domain.DeviceType.NATIVE,
+            )
+        ]
+        executions = {
+            "d1": [
+                domain.CommandExecution(
+                    id="e1",
+                    device_id="d1",
+                    command_name="cmd1",
+                    state=domain.CommandExecutionState.SUCCESS,
+                    created_at=datetime.datetime(2023, 1, 1),
+                ),
+                domain.CommandExecution(
+                    id="e2",
+                    device_id="d1",
+                    command_name="cmd2",
+                    state=domain.CommandExecutionState.ERROR,
+                    created_at=datetime.datetime(2023, 1, 2),
+                ),
+            ]
+        }
+        api = MockEnapterAPI(devices=devices, command_executions=executions)
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # Filter by SUCCESS
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(
+                device_id="d1", state=domain.CommandExecutionState.SUCCESS
+            ),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.BASIC,
+        )
+        assert len(result) == 1
+        assert result[0].id == "e1"
+        assert result[0].state == domain.CommandExecutionState.SUCCESS
+
+        # Filter by ERROR
+        result = await app.search_command_executions(
+            auth,
+            query=core.CommandExecutionSearchQuery(
+                device_id="d1", state=domain.CommandExecutionState.ERROR
+            ),
+            offset=0,
+            limit=10,
+            view=domain.CommandExecutionView.BASIC,
+        )
+        assert len(result) == 1
+        assert result[0].id == "e2"
+        assert result[0].state == domain.CommandExecutionState.ERROR
 
     async def test_search_command_executions_basic(self) -> None:
         devices = [

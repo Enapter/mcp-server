@@ -117,6 +117,11 @@ class EnapterDataMapper:
             enum=dto.get("enum"),
         )
 
+    def from_command_execution_state(
+        self, state: domain.CommandExecutionState
+    ) -> enapter.http.api.commands.ExecutionState:
+        return enapter.http.api.commands.ExecutionState(state.value.upper())
+
     def to_command_execution(
         self, execution: enapter.http.api.commands.Execution
     ) -> domain.CommandExecution:
