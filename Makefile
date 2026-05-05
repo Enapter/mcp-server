@@ -1,6 +1,10 @@
 .PHONY: default
 default:
 
+.PHONY: serve
+serve:
+	pipenv run python -m enapter_mcp_server -v serve
+
 .PHONY: install-deps
 install-deps:
 	pipenv install --dev
