@@ -10,6 +10,7 @@ from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import SearchQueryTooBroad
+from .rule_search_query import RuleSearchQuery
 from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
 
@@ -87,6 +88,54 @@ class ApplicationServer:
             devices_online=devices_online,
             rule_engine_state=rule_engine_state,
         )
+
+    async def search_rules(
+        self,
+        auth: AuthConfig,
+        query: RuleSearchQuery,
+        offset: int,
+        limit: int,
+    ) -> list[domain.Rule]:
+        rules = await self._search_rules(auth, query)
+        rules.sort(key=lambda r: r.id)
+        return rules[offset : offset + limit]
+
+    async def _search_rules(
+        self, auth: AuthConfig, query: RuleSearchQuery
+    ) -> list[domain.Rule]:
+        rules: list[domain.Rule] = []
+        async with self._enapter_api.list_rules(auth, query.site_id) as rules_gen:
+            async for rule_dto in rules_gen:
+                if not query.matches(rule_dto):
+                    continue
+
+                rules.append(
+                    domain.Rule(
+                        id=rule_dto.id,
+                        slug=rule_dto.slug,
+                        enabled=not rule_dto.disabled,
+                        state=rule_dto.state,
+                        script_summary=domain.RuleScriptSummary(
+                            runtime_version=rule_dto.script_runtime_version,
+                            exec_interval=rule_dto.script_exec_interval,
+                            lines_count=len(rule_dto.script_code.splitlines()),
+                        ),
+                    )
+                )
+
+        return rules
+
+    async def read_rule(
+        self,
+        auth: AuthConfig,
+        site_id: str,
+        rule_id: str,
+        offset: int,
+        limit: int,
+    ) -> list[str]:
+        rule_dto = await self._enapter_api.get_rule(auth, site_id, rule_id)
+        lines = rule_dto.script_code.splitlines()
+        return lines[offset : offset + limit]
 
     async def search_devices(
         self,

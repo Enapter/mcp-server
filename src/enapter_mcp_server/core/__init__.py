@@ -8,7 +8,9 @@ from .errors import (
     LatestTelemetryUnavailable,
     SearchQueryTooBroad,
 )
+from .rule_dto import RuleDTO
 from .rule_engine_dto import RuleEngineDTO
+from .rule_search_query import RuleSearchQuery
 from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
 
@@ -21,6 +23,8 @@ __all__ = [
     "EnapterAPI",
     "LatestTelemetryUnavailable",
     "SearchQueryTooBroad",
+    "RuleDTO",
+    "RuleSearchQuery",
     "RuleEngineDTO",
     "SiteDTO",
     "SiteSearchQuery",

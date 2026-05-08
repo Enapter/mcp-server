@@ -48,6 +48,42 @@ class EnapterAPI:
             )
 
     @enapter.async_.generator
+    async def list_rules(
+        self, auth: core.AuthConfig, site_id: str
+    ) -> AsyncGenerator[core.RuleDTO, None]:
+        async with self._new_client(auth) as client:
+            async with client.rule_engine.list_rules(site_id) as rules:
+                async for rule in rules:
+                    yield core.RuleDTO(
+                        id=rule.id,
+                        slug=rule.slug,
+                        disabled=rule.disabled,
+                        state=domain.RuleState(rule.state.value.lower()),
+                        script_runtime_version=domain.RuleRuntimeVersion(
+                            rule.script.runtime_version.value.lower()
+                        ),
+                        script_exec_interval=rule.script.exec_interval,
+                        script_code=rule.script.code,
+                    )
+
+    async def get_rule(
+        self, auth: core.AuthConfig, site_id: str, rule_id: str
+    ) -> core.RuleDTO:
+        async with self._new_client(auth) as client:
+            rule = await client.rule_engine.get_rule(rule_id, site_id)
+            return core.RuleDTO(
+                id=rule.id,
+                slug=rule.slug,
+                disabled=rule.disabled,
+                state=domain.RuleState(rule.state.value.lower()),
+                script_runtime_version=domain.RuleRuntimeVersion(
+                    rule.script.runtime_version.value.lower()
+                ),
+                script_exec_interval=rule.script.exec_interval,
+                script_code=rule.script.code,
+            )
+
+    @enapter.async_.generator
     async def list_devices(
         self,
         auth: core.AuthConfig,

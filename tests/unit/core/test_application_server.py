@@ -35,6 +35,7 @@ class MockEnapterAPI:
         latest_telemetry_unavailable: bool = False,
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
         rule_engine_states: dict[str, core.RuleEngineDTO] | None = None,
+        rules: dict[str, list[core.RuleDTO]] | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
@@ -43,6 +44,7 @@ class MockEnapterAPI:
         self._latest_telemetry_unavailable = latest_telemetry_unavailable
         self._command_executions = command_executions or {}
         self._rule_engine_states = rule_engine_states or {}
+        self._rules = rules or {}
         self.latest_telemetry_batch_calls = 0
         self.get_rule_engine_calls = 0
 
@@ -59,6 +61,21 @@ class MockEnapterAPI:
                 response=httpx.Response(404, request=httpx.Request("GET", "")),
             )
         return self._rule_engine_states[site_id]
+
+    @enapter.async_.generator
+    async def list_rules(
+        self, auth: core.AuthConfig, site_id: str
+    ) -> AsyncGenerator[core.RuleDTO, None]:
+        for rule in self._rules.get(site_id, []):
+            yield rule
+
+    async def get_rule(
+        self, auth: core.AuthConfig, site_id: str, rule_id: str
+    ) -> core.RuleDTO:
+        for rule in self._rules.get(site_id, []):
+            if rule.id == rule_id:
+                return rule
+        raise ValueError(f"Rule {rule_id} not found")
 
     @enapter.async_.generator
     async def list_sites(
@@ -350,6 +367,78 @@ class TestApplicationServer:
         assert result[0].gateway_id is None
         assert result[0].rule_engine_state is None
         assert api.get_rule_engine_calls == 0
+
+    async def test_search_rules(self) -> None:
+        rules = [
+            core.RuleDTO(
+                id="rule-1",
+                slug="alpha",
+                disabled=False,
+                state=domain.RuleState.STARTED,
+                script_runtime_version=domain.RuleRuntimeVersion.V3,
+                script_exec_interval="1m",
+                script_code="line 1\nline 2",
+            ),
+            core.RuleDTO(
+                id="rule-2",
+                slug="beta",
+                disabled=True,
+                state=domain.RuleState.STOPPED,
+                script_runtime_version=domain.RuleRuntimeVersion.V1,
+                script_exec_interval=None,
+                script_code="line 1",
+            ),
+        ]
+        api = MockEnapterAPI(rules={"site-1": rules})
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # Test listing all
+        result = await app.search_rules(
+            auth,
+            query=core.RuleSearchQuery(site_id="site-1"),
+            offset=0,
+            limit=10,
+        )
+        assert len(result) == 2
+        assert result[0].id == "rule-1"
+        assert result[0].enabled is True
+        assert result[0].script_summary.lines_count == 2
+        assert result[1].id == "rule-2"
+        assert result[1].enabled is False
+        assert result[1].script_summary.lines_count == 1
+
+        # Test slug filtering
+        result = await app.search_rules(
+            auth,
+            query=core.RuleSearchQuery(site_id="site-1", slug_regexp="alpha"),
+            offset=0,
+            limit=10,
+        )
+        assert len(result) == 1
+        assert result[0].slug == "alpha"
+
+    async def test_read_rule(self) -> None:
+        rule = core.RuleDTO(
+            id="rule-1",
+            slug="test",
+            disabled=False,
+            state=domain.RuleState.STARTED,
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script_exec_interval=None,
+            script_code="line 1\nline 2\nline 3\nline 4",
+        )
+        api = MockEnapterAPI(rules={"site-1": [rule]})
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # Read full
+        result = await app.read_rule(auth, "site-1", "rule-1", offset=0, limit=10)
+        assert result == ["line 1", "line 2", "line 3", "line 4"]
+
+        # Read with pagination
+        result = await app.read_rule(auth, "site-1", "rule-1", offset=1, limit=2)
+        assert result == ["line 2", "line 3"]
 
     async def test_search_devices(self) -> None:
         manifest = make_device_manifest(

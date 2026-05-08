@@ -106,6 +106,8 @@ class Server(enapter.async_.Routine):
             (self.search_command_executions, "Search Command Executions"),
             (self.read_blueprint, "Read Blueprint"),
             (self.get_historical_telemetry, "Get Historical Telemetry"),
+            (self.search_rules, "Search Rules"),
+            (self.read_rule, "Read Rule"),
         ]
         for tool, title in read_only_tools:
             fastmcp_server.tool(
@@ -152,6 +154,7 @@ class Server(enapter.async_.Routine):
 
         Related tools:
         - `search_devices`: Pass the discovered `site_id` to find devices located at this site.
+        - `search_rules`: Pass the discovered `site_id` to list the automation rules running on the site.
         - `search_command_executions`: Pass the discovered `site_id` to audit commands executed across the entire site.
         """
         auth = await self._get_auth_config()
@@ -167,6 +170,61 @@ class Server(enapter.async_.Routine):
             limit=limit,
         )
         return [models.Site.from_domain(s) for s in sites]
+
+    async def search_rules(
+        self,
+        site_id: str,
+        rule_id: str | None = None,
+        slug_regexp: str | None = None,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[models.Rule]:
+        """Search for automation rules running on a specific site.
+
+        This tool allows you to list and filter the Rule Engine rules configured on a site.
+
+        Tips:
+        - `slug_regexp` accepts a Python-style regular expression.
+
+        Related tools:
+        - `read_rule`: Pass the discovered `rule_id` and `site_id` to read the actual Lua script code of the rule.
+        """
+        auth = await self._get_auth_config()
+        query = core.RuleSearchQuery(
+            site_id=site_id,
+            rule_id=rule_id,
+            slug_regexp=slug_regexp,
+        )
+        rules = await self._app.search_rules(
+            auth=auth,
+            query=query,
+            offset=offset,
+            limit=limit,
+        )
+        return [models.Rule.from_domain(r) for r in rules]
+
+    async def read_rule(
+        self,
+        site_id: str,
+        rule_id: str,
+        offset: int = 0,
+        limit: int = 2000,
+    ) -> list[str]:
+        """Read the Lua script code for a specific automation rule.
+
+        This tool returns the source code of a rule running on the Enapter Rule Engine, returned as a list of strings (lines of code).
+
+        Tips:
+        - Use `offset` and `limit` to paginate through the code if the rule's `lines_count` is very large, preventing context window overflow.
+        """
+        auth = await self._get_auth_config()
+        return await self._app.read_rule(
+            auth=auth,
+            site_id=site_id,
+            rule_id=rule_id,
+            offset=offset,
+            limit=limit,
+        )
 
     async def search_devices(
         self,
