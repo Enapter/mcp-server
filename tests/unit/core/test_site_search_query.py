@@ -1,3 +1,7 @@
+import re
+
+import pytest
+
 from enapter_mcp_server import core
 
 
@@ -43,3 +47,10 @@ class TestSiteSearchQuery:
             site_id=None, name_regexp=None, timezone_regexp=None
         )
         assert query.matches(core.SiteDTO(id="1", name="A", timezone="B")) is True
+
+    def test_invalid_regexp(self) -> None:
+        with pytest.raises(re.error):
+            core.SiteSearchQuery(name_regexp="[")
+
+        with pytest.raises(re.error):
+            core.SiteSearchQuery(timezone_regexp="*")

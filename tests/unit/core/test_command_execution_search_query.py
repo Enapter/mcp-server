@@ -1,4 +1,7 @@
 import datetime
+import re
+
+import pytest
 
 from enapter_mcp_server import core, domain
 
@@ -118,3 +121,7 @@ class TestCommandExecutionSearchQuery:
         assert query_between.matches(e1) is False
         assert query_between.matches(e2) is True
         assert query_between.matches(e3) is False
+
+    def test_invalid_regexp(self) -> None:
+        with pytest.raises(re.error):
+            core.CommandExecutionSearchQuery(command_name_regexp="[")

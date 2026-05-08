@@ -1,12 +1,11 @@
 import dataclasses
 import datetime
-import functools
 import re
 
 from enapter_mcp_server import domain
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class CommandExecutionSearchQuery:
     device_id: str | None = None
     site_id: str | None = None
@@ -15,11 +14,12 @@ class CommandExecutionSearchQuery:
     created_at_gte: datetime.datetime | None = None
     created_at_lt: datetime.datetime | None = None
 
-    @functools.cached_property
-    def _command_name_pattern(self) -> re.Pattern[str] | None:
-        if self.command_name_regexp is None:
-            return None
-        return re.compile(self.command_name_regexp)
+    def __post_init__(self) -> None:
+        self._command_name_pattern = (
+            re.compile(self.command_name_regexp)
+            if self.command_name_regexp is not None
+            else None
+        )
 
     def matches(self, execution: domain.CommandExecution) -> bool:
         if self.device_id is not None and execution.device_id != self.device_id:

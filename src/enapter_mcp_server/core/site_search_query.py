@@ -1,27 +1,24 @@
 import dataclasses
-import functools
 import re
 
 from .site_dto import SiteDTO
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class SiteSearchQuery:
     site_id: str | None = None
     name_regexp: str | None = None
     timezone_regexp: str | None = None
 
-    @functools.cached_property
-    def _name_pattern(self) -> re.Pattern[str] | None:
-        if self.name_regexp is None:
-            return None
-        return re.compile(self.name_regexp)
-
-    @functools.cached_property
-    def _timezone_pattern(self) -> re.Pattern[str] | None:
-        if self.timezone_regexp is None:
-            return None
-        return re.compile(self.timezone_regexp)
+    def __post_init__(self) -> None:
+        self._name_pattern = (
+            re.compile(self.name_regexp) if self.name_regexp is not None else None
+        )
+        self._timezone_pattern = (
+            re.compile(self.timezone_regexp)
+            if self.timezone_regexp is not None
+            else None
+        )
 
     def matches(self, site_dto: SiteDTO) -> bool:
         if self.site_id is not None and site_dto.id != self.site_id:

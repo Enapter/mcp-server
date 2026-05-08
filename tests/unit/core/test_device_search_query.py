@@ -1,3 +1,7 @@
+import re
+
+import pytest
+
 from enapter_mcp_server import core, domain
 
 
@@ -170,3 +174,7 @@ class TestDeviceSearchQuery:
         assert query_true.matches(device_without_alerts) is False
         assert query_false.matches(device_with_alerts) is False
         assert query_false.matches(device_without_alerts) is True
+
+    def test_invalid_regexp(self) -> None:
+        with pytest.raises(re.error):
+            core.DeviceSearchQuery(name_regexp="[")

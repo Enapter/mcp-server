@@ -1,5 +1,4 @@
 import dataclasses
-import functools
 import re
 
 from enapter_mcp_server import domain
@@ -7,7 +6,7 @@ from enapter_mcp_server import domain
 from .device_dto import DeviceDTO
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class DeviceSearchQuery:
     device_id: str | None = None
     site_id: str | None = None
@@ -16,11 +15,10 @@ class DeviceSearchQuery:
     connectivity_status: domain.ConnectivityStatus | None = None
     has_active_alerts: bool | None = None
 
-    @functools.cached_property
-    def _name_pattern(self) -> re.Pattern[str] | None:
-        if self.name_regexp is None:
-            return None
-        return re.compile(self.name_regexp)
+    def __post_init__(self) -> None:
+        self._name_pattern = (
+            re.compile(self.name_regexp) if self.name_regexp is not None else None
+        )
 
     def matches(self, device_dto: DeviceDTO) -> bool:
         if self.device_id is not None and device_dto.id != self.device_id:
