@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import re
 
@@ -9,6 +10,7 @@ from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import SearchQueryTooBroad
+from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
 
 
@@ -31,44 +33,54 @@ class ApplicationServer:
     async def _search_sites(
         self, auth: AuthConfig, query: SiteSearchQuery
     ) -> list[domain.Site]:
-        sites: list[domain.Site] = []
-        async with self._enapter_api.list_sites(auth) as sites_gen:
-            async for site_dto in sites_gen:
-                if not query.matches(site_dto):
-                    continue
-                gateway_id: str | None = None
-                gateway_online = False
-                devices_online = 0
-                device_ids: list[str] = []
+        semaphore = asyncio.Semaphore(10)
 
-                async with self._enapter_api.list_devices(
-                    auth, site_id=site_dto.id, expand_connectivity=True
-                ) as devices_gen:
-                    async for device_dto in devices_gen:
-                        device_ids.append(device_dto.id)
-                        is_online = (
-                            device_dto.connectivity == domain.ConnectivityStatus.ONLINE
-                        )
-                        if is_online:
-                            devices_online += 1
+        async def fetch(site_dto: SiteDTO) -> domain.Site:
+            async with semaphore:
+                return await self._fetch_site_context(auth, site_dto)
 
-                        if device_dto.type == domain.DeviceType.GATEWAY:
-                            gateway_id = device_dto.id
-                            gateway_online = is_online
+        tasks = []
+        async with asyncio.TaskGroup() as tg:
+            async with self._enapter_api.list_sites(auth) as sites_gen:
+                async for site_dto in sites_gen:
+                    if not query.matches(site_dto):
+                        continue
 
-                sites.append(
-                    domain.Site(
-                        id=site_dto.id,
-                        name=site_dto.name,
-                        timezone=site_dto.timezone,
-                        gateway_id=gateway_id,
-                        gateway_online=gateway_online,
-                        devices_total=len(device_ids),
-                        devices_online=devices_online,
-                    )
-                )
+                    task = tg.create_task(fetch(site_dto))
+                    tasks.append(task)
 
-        return sites
+        return [task.result() for task in tasks]
+
+    async def _fetch_site_context(
+        self, auth: AuthConfig, site_dto: SiteDTO
+    ) -> domain.Site:
+        gateway_id: str | None = None
+        gateway_online = False
+        devices_online = 0
+        device_ids: list[str] = []
+
+        async with self._enapter_api.list_devices(
+            auth, site_id=site_dto.id, expand_connectivity=True
+        ) as devices_gen:
+            async for device_dto in devices_gen:
+                device_ids.append(device_dto.id)
+                is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
+                if is_online:
+                    devices_online += 1
+
+                if device_dto.type == domain.DeviceType.GATEWAY:
+                    gateway_id = device_dto.id
+                    gateway_online = is_online
+
+        return domain.Site(
+            id=site_dto.id,
+            name=site_dto.name,
+            timezone=site_dto.timezone,
+            gateway_id=gateway_id,
+            gateway_online=gateway_online,
+            devices_total=len(device_ids),
+            devices_online=devices_online,
+        )
 
     async def search_devices(
         self,
