@@ -36,6 +36,17 @@ class EnapterAPI:
                         timezone=site.timezone,
                     )
 
+    async def get_rule_engine(
+        self, auth: core.AuthConfig, site_id: str
+    ) -> core.RuleEngineDTO:
+        async with self._new_client(auth) as client:
+            engine = await client.rule_engine.get(site_id)
+            return core.RuleEngineDTO(
+                id=engine.id,
+                state=domain.RuleEngineState(engine.state.value.lower()),
+                timezone=engine.timezone,
+            )
+
     @enapter.async_.generator
     async def list_devices(
         self,

@@ -15,6 +15,7 @@ from .device_type import DeviceType
 from .device_view import DeviceView
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
+from .rule_engine_state import RuleEngineState
 from .site import Site
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
@@ -36,6 +37,7 @@ __all__ = [
     "DeviceView",
     "HistoricalTelemetry",
     "PropertyDeclaration",
+    "RuleEngineState",
     "Site",
     "TelemetryAttributeDeclaration",
 ]

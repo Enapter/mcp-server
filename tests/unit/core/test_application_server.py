@@ -34,6 +34,7 @@ class MockEnapterAPI:
         historical_telemetry: domain.HistoricalTelemetry | None = None,
         latest_telemetry_unavailable: bool = False,
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
+        rule_engine_states: dict[str, core.RuleEngineDTO] | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
@@ -41,7 +42,23 @@ class MockEnapterAPI:
         self._historical_telemetry = historical_telemetry
         self._latest_telemetry_unavailable = latest_telemetry_unavailable
         self._command_executions = command_executions or {}
+        self._rule_engine_states = rule_engine_states or {}
         self.latest_telemetry_batch_calls = 0
+        self.get_rule_engine_calls = 0
+
+    async def get_rule_engine(
+        self, auth: core.AuthConfig, site_id: str
+    ) -> core.RuleEngineDTO:
+        import httpx
+
+        self.get_rule_engine_calls += 1
+        if site_id not in self._rule_engine_states:
+            raise httpx.HTTPStatusError(
+                "Not Found",
+                request=httpx.Request("GET", f"/v3/sites/{site_id}/rule_engine"),
+                response=httpx.Response(404, request=httpx.Request("GET", "")),
+            )
+        return self._rule_engine_states[site_id]
 
     @enapter.async_.generator
     async def list_sites(
@@ -184,6 +201,14 @@ class TestApplicationServer:
                 "dev-3": {"alerts": ["a2", "a3"]},
                 "dev-4": {"alerts": None},
             },
+            rule_engine_states={
+                "1": core.RuleEngineDTO(
+                    id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
+                ),
+                "2": core.RuleEngineDTO(
+                    id="eng-2", state=domain.RuleEngineState.SUSPENDED, timezone="UTC"
+                ),
+            },
         )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
@@ -201,6 +226,7 @@ class TestApplicationServer:
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
         assert result[0].devices_online == 1
+        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
 
         # Test site ID filtering
         result = await app.search_sites(
@@ -213,6 +239,7 @@ class TestApplicationServer:
         )
         assert len(result) == 1
         assert result[0].id == "2"
+        assert result[0].rule_engine_state is None
 
         # Test timezone filtering
         result = await app.search_sites(
@@ -223,7 +250,9 @@ class TestApplicationServer:
         )
         assert len(result) == 2
         assert result[0].name == "Alpha"
+        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
         assert result[1].name == "Gamma"
+        assert result[1].rule_engine_state is None
 
         # Test sorting and pagination
         result = await app.search_sites(
@@ -261,6 +290,11 @@ class TestApplicationServer:
                 "dev-1": {"alerts": ["a1"]},
                 "dev-2": {"alerts": ["a2", "a3"]},
             },
+            rule_engine_states={
+                "site-1": core.RuleEngineDTO(
+                    id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
+                )
+            },
         )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
@@ -278,6 +312,44 @@ class TestApplicationServer:
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
         assert result[0].devices_online == 1
+        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
+        assert api.get_rule_engine_calls == 1
+
+    async def test_search_sites_no_gateway_skips_rule_engine(self) -> None:
+        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
+        devices = [
+            core.DeviceDTO(
+                id="dev-1",
+                name="Device 1",
+                site_id="site-1",
+                type=domain.DeviceType.NATIVE,
+                connectivity=domain.ConnectivityStatus.ONLINE,
+            ),
+        ]
+        api = MockEnapterAPI(
+            sites=[site],
+            devices=devices,
+            rule_engine_states={
+                "site-1": core.RuleEngineDTO(
+                    id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
+                )
+            },
+        )
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        result = await app.search_sites(
+            auth,
+            query=core.SiteSearchQuery(name_regexp=".*", timezone_regexp=".*"),
+            offset=0,
+            limit=20,
+        )
+
+        assert len(result) == 1
+        assert result[0].id == "site-1"
+        assert result[0].gateway_id is None
+        assert result[0].rule_engine_state is None
+        assert api.get_rule_engine_calls == 0
 
     async def test_search_devices(self) -> None:
         manifest = make_device_manifest(

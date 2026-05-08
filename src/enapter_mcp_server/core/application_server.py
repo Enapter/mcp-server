@@ -72,6 +72,11 @@ class ApplicationServer:
                     gateway_id = device_dto.id
                     gateway_online = is_online
 
+        rule_engine_state: domain.RuleEngineState | None = None
+        if gateway_online:
+            engine_dto = await self._enapter_api.get_rule_engine(auth, site_dto.id)
+            rule_engine_state = engine_dto.state
+
         return domain.Site(
             id=site_dto.id,
             name=site_dto.name,
@@ -80,6 +85,7 @@ class ApplicationServer:
             gateway_online=gateway_online,
             devices_total=len(device_ids),
             devices_online=devices_online,
+            rule_engine_state=rule_engine_state,
         )
 
     async def search_devices(

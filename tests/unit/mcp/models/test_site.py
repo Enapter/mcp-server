@@ -31,6 +31,7 @@ class TestSite:
             gateway_online=True,
             devices_total=4,
             devices_online=3,
+            rule_engine_state=domain.RuleEngineState.ACTIVE,
         )
 
         site = mcp.models.Site.from_domain(domain_site)
@@ -39,3 +40,4 @@ class TestSite:
         assert site.gateway_online is True
         assert site.devices_total == 4
         assert site.devices_online == 3
+        assert site.rule_engine_state == "active"
