@@ -49,6 +49,8 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | `search_command_executions` | Search the history of command executions                         |
 | `read_blueprint`            | Access device blueprint sections (properties, telemetry, alerts) |
 | `get_historical_telemetry`  | Retrieve time-series telemetry with configurable granularity     |
+| `search_rules`              | Search for automation rules within a specific site               |
+| `read_rule`                 | Read the paginated lines of a rule's Lua script                  |
 
 ## Usage Examples
 
@@ -96,6 +98,21 @@ Here are realistic examples of how you can interact with your Enapter devices us
 - Searches the command execution history for that specific command executed this morning
 - Retrieves the execution status and any associated error messages
 - Reports back whether the command succeeded or failed
+
+### Example 4: Auditing Automation Rules
+
+**User prompt:**
+
+> Can you check the automation rules running at the Alpha site? I need to verify
+> the logic that automatically starts the electrolyser when excess solar power
+> is available.
+
+**What happens:**
+
+- Server searches for rules within the specified site using `search_rules`
+- Identifies the relevant rule based on its name/slug
+- Retrieves the rule's Lua script using `read_rule`
+- Analyzes the logic and confirms the exact threshold and conditions that trigger the electrolyser
 
 ## Support
 
