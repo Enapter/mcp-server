@@ -5,8 +5,8 @@ from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
-    LatestTelemetryUnavailable,
     GatewayUnavailable,
+    LatestTelemetryUnavailable,
     SearchQueryTooBroad,
 )
 from .rule_dto import RuleDTO
