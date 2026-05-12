@@ -32,7 +32,7 @@ Docker:
 ```bash
 docker run --rm --name enapter-mcp-server \
   -p 8000:8000 \
-  enapter/mcp-server:v1.3.1
+  enapter/mcp-server:v1.4.0
 ```
 
 The server can be configured using environment variables and command-line

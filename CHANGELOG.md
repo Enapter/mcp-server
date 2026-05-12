@@ -1,8 +1,41 @@
+## [1.4.0] - 2026-05-12
+
+### 🚀 Features
+
+- Add rule engine state to site searching
+- Add support for rule engine rule discovery and reading
+- Check for online gateway before attempting rule operations
+
+### 🐛 Bug Fixes
+
+- Validate regular expressions in search queries upfront
+
+### 📚 Documentation
+
+- Add rule management tools to documentation
+
+### ⚡ Performance
+
+- Fetch site context concurrently in search_sites
+
+### 🎨 Styling
+
+- Fix isort error in core/__init__.py
+
+### ⚙️ Miscellaneous Tasks
+
+- *(Makefile)* Add `serve` target to start the server
+- Upgrade enapter SDK to v0.20.1
+- Upgrade enapter SDK to v0.21.1
 ## [1.3.1] - 2026-04-30
 
 ### ⚡ Performance
 
 - *(api)* Implement filtering command executions by state
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 1.3.1
 ## [1.3.0] - 2026-04-29
 
 ### 🚀 Features
