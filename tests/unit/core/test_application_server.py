@@ -95,8 +95,9 @@ class MockEnapterAPI:
         expand_active_alerts: bool = False,
     ) -> AsyncGenerator[core.DeviceDTO, None]:
         for d in self._devices:
-            if site_id is None or d.site_id == site_id:
-                yield d
+            if site_id is not None and d.site_id != site_id:
+                continue
+            yield d
 
     @enapter.async_.generator
     async def list_command_executions(
@@ -369,6 +370,13 @@ class TestApplicationServer:
         assert api.get_rule_engine_calls == 0
 
     async def test_search_rules(self) -> None:
+        gateway = core.DeviceDTO(
+            id="gw-1",
+            name="Gateway",
+            site_id="site-1",
+            type=domain.DeviceType.GATEWAY,
+            connectivity=domain.ConnectivityStatus.ONLINE,
+        )
         rules = [
             core.RuleDTO(
                 id="rule-1",
@@ -389,7 +397,7 @@ class TestApplicationServer:
                 script_code="line 1",
             ),
         ]
-        api = MockEnapterAPI(rules={"site-1": rules})
+        api = MockEnapterAPI(devices=[gateway], rules={"site-1": rules})
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -419,6 +427,13 @@ class TestApplicationServer:
         assert result[0].slug == "alpha"
 
     async def test_read_rule(self) -> None:
+        gateway = core.DeviceDTO(
+            id="gw-1",
+            name="Gateway",
+            site_id="site-1",
+            type=domain.DeviceType.GATEWAY,
+            connectivity=domain.ConnectivityStatus.ONLINE,
+        )
         rule = core.RuleDTO(
             id="rule-1",
             slug="test",
@@ -428,7 +443,7 @@ class TestApplicationServer:
             script_exec_interval=None,
             script_code="line 1\nline 2\nline 3\nline 4",
         )
-        api = MockEnapterAPI(rules={"site-1": [rule]})
+        api = MockEnapterAPI(devices=[gateway], rules={"site-1": [rule]})
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -439,6 +454,47 @@ class TestApplicationServer:
         # Read with pagination
         result = await app.read_rule(auth, "site-1", "rule-1", offset=1, limit=2)
         assert result == ["line 2", "line 3"]
+
+    async def test_search_rules_gateway_absent(self) -> None:
+        api = MockEnapterAPI(devices=[])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.search_rules(
+                auth,
+                query=core.RuleSearchQuery(site_id="site-1"),
+                offset=0,
+                limit=10,
+            )
+        except core.GatewayUnavailable as exc:
+            assert str(exc) == "The site has no gateway."
+        else:
+            raise AssertionError("Expected GatewayUnavailable")
+
+    async def test_search_rules_gateway_offline(self) -> None:
+        gateway = core.DeviceDTO(
+            id="gw-1",
+            name="Gateway",
+            site_id="site-1",
+            type=domain.DeviceType.GATEWAY,
+            connectivity=domain.ConnectivityStatus.OFFLINE,
+        )
+        api = MockEnapterAPI(devices=[gateway])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.search_rules(
+                auth,
+                query=core.RuleSearchQuery(site_id="site-1"),
+                offset=0,
+                limit=10,
+            )
+        except core.GatewayUnavailable as exc:
+            assert str(exc) == "The site's gateway is currently offline."
+        else:
+            raise AssertionError("Expected GatewayUnavailable")
 
     async def test_search_devices(self) -> None:
         manifest = make_device_manifest(

@@ -9,7 +9,7 @@ from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
-from .errors import SearchQueryTooBroad
+from .errors import GatewayUnavailable, SearchQueryTooBroad
 from .rule_search_query import RuleSearchQuery
 from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
@@ -96,6 +96,7 @@ class ApplicationServer:
         offset: int,
         limit: int,
     ) -> list[domain.Rule]:
+        await self._assert_gateway_online(auth, query.site_id)
         rules = await self._search_rules(auth, query)
         rules.sort(key=lambda r: r.id)
         return rules[offset : offset + limit]
@@ -133,9 +134,26 @@ class ApplicationServer:
         offset: int,
         limit: int,
     ) -> list[str]:
+        await self._assert_gateway_online(auth, site_id)
         rule_dto = await self._enapter_api.get_rule(auth, site_id, rule_id)
         lines = rule_dto.script_code.splitlines()
         return lines[offset : offset + limit]
+
+    async def _assert_gateway_online(self, auth: AuthConfig, site_id: str) -> None:
+        async with self._enapter_api.list_devices(
+            auth,
+            site_id=site_id,
+            expand_connectivity=True,
+        ) as devices_gen:
+            async for device_dto in devices_gen:
+                if device_dto.type == domain.DeviceType.GATEWAY:
+                    if device_dto.connectivity != domain.ConnectivityStatus.ONLINE:
+                        raise GatewayUnavailable(
+                            "The site's gateway is currently offline."
+                        )
+                    return
+
+        raise GatewayUnavailable("The site has no gateway.")
 
     async def search_devices(
         self,

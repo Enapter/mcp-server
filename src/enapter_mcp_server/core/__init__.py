@@ -6,6 +6,7 @@ from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
     LatestTelemetryUnavailable,
+    GatewayUnavailable,
     SearchQueryTooBroad,
 )
 from .rule_dto import RuleDTO
@@ -22,6 +23,7 @@ __all__ = [
     "DeviceSearchQuery",
     "EnapterAPI",
     "LatestTelemetryUnavailable",
+    "GatewayUnavailable",
     "SearchQueryTooBroad",
     "RuleDTO",
     "RuleSearchQuery",

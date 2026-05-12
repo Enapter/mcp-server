@@ -4,3 +4,7 @@ class LatestTelemetryUnavailable(Exception):
 
 class SearchQueryTooBroad(Exception):
     pass
+
+
+class GatewayUnavailable(Exception):
+    pass
