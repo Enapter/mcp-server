@@ -10,6 +10,7 @@
   "execution": null,
   "icons": null,
   "inputSchema": {
+    "additionalProperties": false,
     "properties": {
       "device_id": {
         "type": "string"
@@ -43,13 +44,12 @@
     "type": "object"
   },
   "meta": {
-    "_fastmcp": {
+    "fastmcp": {
       "tags": []
     }
   },
   "name": "read_blueprint",
   "outputSchema": {
-    "description": "Generic wrapper for non-object return types.",
     "properties": {
       "result": {
         "items": {

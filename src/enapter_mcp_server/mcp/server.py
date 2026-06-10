@@ -95,6 +95,8 @@ class Server(enapter.async_.Routine):
             case "memory":
                 return key_value.aio.stores.memory.MemoryStore()
             case "disk":
+                # FIXME: DiskStore is vulnerable to pickle deserialization
+                # exploits (CVE-2025-69872).
                 return key_value.aio.stores.disk.DiskStore(directory=jwt_store_url.path)
             case _:
                 raise NotImplementedError(f"{jwt_store_url.scheme}")

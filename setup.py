@@ -13,7 +13,7 @@ def main() -> None:
         author_email="rnovatorov@enapter.com",
         install_requires=[
             "enapter==0.22.0",
-            "fastmcp==2.14.*",
+            "fastmcp==3.*",
             "sentry-sdk==2.53.*",
             "httpx==0.*",
             "py-key-value-aio[memory,disk]==0.*",
