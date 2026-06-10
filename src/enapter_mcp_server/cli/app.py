@@ -26,8 +26,8 @@ ENAPTER_MCP_SERVER_SENTRY_TRACES_SAMPLE_RATE = os.getenv(
 
 class App:
 
-    def __init__(self, args: argparse.Namespace) -> None:
-        self.args = args
+    def __init__(self, parser: argparse.ArgumentParser) -> None:
+        self.parser = parser
 
     @classmethod
     def new(cls) -> "App":
@@ -65,33 +65,34 @@ class App:
             VersionCommand,
         ]:
             command.register(subparsers)
-        
-        args = parser.parse_args()
-        if args.sentry_dsn is not None and not args.sentry_environment:
-            parser.error("--sentry-environment is required when --sentry-dsn is set")
-            
-        return cls(args=args)
+
+        return cls(parser=parser)
 
     async def run(self) -> None:
-        if self.args.sentry_dsn is not None:
+        args = self.parser.parse_args()
+        if args.sentry_dsn is not None:
+            if not args.sentry_environment:
+                self.parser.error(
+                    "--sentry-environment is required when --sentry-dsn is set"
+                )
             sentry_sdk.init(
-                dsn=self.args.sentry_dsn,
+                dsn=args.sentry_dsn,
                 release=enapter_mcp_server.__version__,
-                environment=self.args.sentry_environment,
+                environment=args.sentry_environment,
                 send_default_pii=True,
-                traces_sample_rate=float(self.args.sentry_traces_sample_rate),
+                traces_sample_rate=float(args.sentry_traces_sample_rate),
                 integrations=[sentry_sdk.integrations.mcp.MCPIntegration()],
             )
-        match self.args.command:
+        match args.command:
             case "ping":
-                await PingCommand.run(self.args)
+                await PingCommand.run(args)
             case "serve":
-                await ServeCommand.run(self.args)
+                await ServeCommand.run(args)
             case "list_tools":
-                await ListToolsCommand.run(self.args)
+                await ListToolsCommand.run(args)
             case "call_tool":
-                await CallToolCommand.run(self.args)
+                await CallToolCommand.run(args)
             case "version":
-                await VersionCommand.run(self.args)
+                await VersionCommand.run(args)
             case _:
-                raise NotImplementedError(self.args.command)
+                raise NotImplementedError(args.command)
