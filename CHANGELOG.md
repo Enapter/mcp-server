@@ -1,3 +1,22 @@
+## [1.5.0] - 2026-06-10
+
+### 🚀 Features
+
+- *(cli)* Require Sentry environment when Sentry DSN is set
+
+### 💼 Other
+
+- Upgrade enapter SDK to 0.22.0
+- Upgrade fastmcp to v3
+- Tighten dependency pins in setup.py
+
+### 🚜 Refactor
+
+- *(cli)* Store parser in App and parse CLI args in run
+
+### 🧪 Testing
+
+- *(mcp)* Add JSON schema snapshot checks for server tools
 ## [1.4.0] - 2026-05-12
 
 ### 🚀 Features
@@ -27,6 +46,7 @@
 - *(Makefile)* Add `serve` target to start the server
 - Upgrade enapter SDK to v0.20.1
 - Upgrade enapter SDK to v0.21.1
+- *(release)* Bump version to 1.4.0
 ## [1.3.1] - 2026-04-30
 
 ### ⚡ Performance
