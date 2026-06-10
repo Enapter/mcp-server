@@ -14,9 +14,9 @@ def main() -> None:
         install_requires=[
             "enapter==0.22.0",
             "fastmcp==3.*",
-            "sentry-sdk==2.53.*",
-            "httpx==0.*",
-            "py-key-value-aio[memory,disk]==0.*",
+            "sentry-sdk==2.*",
+            "httpx==0.28.*",
+            "py-key-value-aio[memory,disk]==0.4.*",
         ],
         python_requires="==3.14.*",
     )
