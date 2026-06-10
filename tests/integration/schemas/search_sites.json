@@ -1,0 +1,122 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Search Sites"
+  },
+  "description": "Search among energy system sites accessible to the authenticated user.\n\nThis tool is typically the first step to discover a `site_id`, which is often required by other tools to scope queries to a specific location.\n\nTips:\n- Both `name_regexp` and `timezone_regexp` accept Python-style regular expressions.\n\nRelated tools:\n- `search_devices`: Pass the discovered `site_id` to find devices located at this site.\n- `search_rules`: Pass the discovered `site_id` to list the automation rules running on the site.\n- `search_command_executions`: Pass the discovered `site_id` to audit commands executed across the entire site.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "limit": {
+        "default": 20,
+        "type": "integer"
+      },
+      "name_regexp": {
+        "default": ".*",
+        "type": "string"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "site_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "timezone_regexp": {
+        "default": ".*",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "search_sites",
+  "outputSchema": {
+    "description": "Generic wrapper for non-object return types.",
+    "properties": {
+      "result": {
+        "items": {
+          "description": "Represents a site.\n\nA location or facility where devices are installed.",
+          "properties": {
+            "devices_online": {
+              "type": "integer"
+            },
+            "devices_total": {
+              "type": "integer"
+            },
+            "gateway_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gateway_online": {
+              "type": "boolean"
+            },
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "rule_engine_state": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "suspended"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "timezone": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "timezone",
+            "gateway_id",
+            "gateway_online",
+            "devices_total",
+            "devices_online"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Search Sites"
+}

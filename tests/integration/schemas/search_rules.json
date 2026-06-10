@@ -1,0 +1,133 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Search Rules"
+  },
+  "description": "Search for automation rules running on a specific site.\n\nThis tool allows you to list and filter the Rule Engine rules configured on a site.\n\nTips:\n- `slug_regexp` accepts a Python-style regular expression.\n\nRelated tools:\n- `read_rule`: Pass the discovered `rule_id` and `site_id` to read the actual Lua script code of the rule.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "limit": {
+        "default": 20,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "rule_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "site_id": {
+        "type": "string"
+      },
+      "slug_regexp": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    },
+    "required": [
+      "site_id"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "search_rules",
+  "outputSchema": {
+    "description": "Generic wrapper for non-object return types.",
+    "properties": {
+      "result": {
+        "items": {
+          "description": "Represents an automation rule on the Enapter Rule Engine.\n\nRules are Lua scripts executed on a site's Gateway to implement custom\nlogic, automation, and integrations between different devices.",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "id": {
+              "type": "string"
+            },
+            "script_summary": {
+              "description": "Metadata about a rule's underlying Lua script.\n\nContains execution details and the size of the script, but does not\ninclude the script source code itself.",
+              "properties": {
+                "exec_interval": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "lines_count": {
+                  "type": "integer"
+                },
+                "runtime_version": {
+                  "enum": [
+                    "v1",
+                    "v3"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "runtime_version",
+                "exec_interval",
+                "lines_count"
+              ],
+              "type": "object"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "started",
+                "stopped"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "slug",
+            "enabled",
+            "state",
+            "script_summary"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Search Rules"
+}

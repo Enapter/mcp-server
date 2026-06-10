@@ -1,0 +1,363 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Read Blueprint"
+  },
+  "description": "Read the blueprint for a specific device.\n\nThis tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', and 'properties'.\n\nTips:\n- Use `section=\"alerts\"` to get details about specific alerts.\n- Use `section=\"telemetry\"` to discover the exact names and metadata of telemetry attributes.\n- Use `section=\"commands\"` to see which actions can be executed on the device.\n- `name_regexp` accepts a Python-style regular expression.\n\nRelated tools:\n- `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.\n- `search_command_executions`: Use the commands discovered here to audit their past executions.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "device_id": {
+        "type": "string"
+      },
+      "limit": {
+        "default": 20,
+        "type": "integer"
+      },
+      "name_regexp": {
+        "default": ".*",
+        "type": "string"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "section": {
+        "enum": [
+          "telemetry",
+          "properties",
+          "alerts",
+          "commands"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "device_id",
+      "section"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "read_blueprint",
+  "outputSchema": {
+    "description": "Generic wrapper for non-object return types.",
+    "properties": {
+      "result": {
+        "items": {
+          "anyOf": [
+            {
+              "description": "Represents a property declaration.\n\nProperties are device metadata which do not change during normal device\noperation. Examples include \"firmware_version\", \"device_model\", and\n\"serial_number\".",
+              "properties": {
+                "data_type": {
+                  "enum": [
+                    "integer",
+                    "float",
+                    "string",
+                    "boolean",
+                    "json",
+                    "array_of_strings",
+                    "object",
+                    "alerts"
+                  ],
+                  "type": "string"
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "enum": {
+                  "anyOf": [
+                    {
+                      "items": {},
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "unit": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "display_name",
+                "data_type",
+                "description",
+                "enum",
+                "unit"
+              ],
+              "type": "object"
+            },
+            {
+              "description": "Represents a telemetry attribute declaration.\n\nTelemetry attributes are measurable device parameters which can change\nduring normal device operation. Examples include \"temperature\", \"voltage\",\nand \"current\".",
+              "properties": {
+                "data_type": {
+                  "enum": [
+                    "integer",
+                    "float",
+                    "string",
+                    "boolean",
+                    "json",
+                    "array_of_strings",
+                    "object",
+                    "alerts"
+                  ],
+                  "type": "string"
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "enum": {
+                  "anyOf": [
+                    {
+                      "items": {},
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "unit": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "display_name",
+                "data_type",
+                "description",
+                "enum",
+                "unit"
+              ],
+              "type": "object"
+            },
+            {
+              "description": "Represents an alert declaration.\n\nAn alert is a notification about a significant event or condition related to\nthe device. Alerts can indicate issues, warnings, or informational messages.",
+              "properties": {
+                "components": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "conditions": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": [
+                    "info",
+                    "warning",
+                    "error"
+                  ],
+                  "type": "string"
+                },
+                "troubleshooting": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "display_name",
+                "severity",
+                "description",
+                "troubleshooting",
+                "components",
+                "conditions"
+              ],
+              "type": "object"
+            },
+            {
+              "description": "A declaration of a device command.",
+              "properties": {
+                "arguments": {
+                  "items": {
+                    "description": "A declaration of an argument for a device command.",
+                    "properties": {
+                      "data_type": {
+                        "enum": [
+                          "integer",
+                          "float",
+                          "string",
+                          "boolean",
+                          "json",
+                          "array_of_strings",
+                          "object",
+                          "alerts"
+                        ],
+                        "type": "string"
+                      },
+                      "description": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "display_name": {
+                        "type": "string"
+                      },
+                      "enum": {
+                        "anyOf": [
+                          {
+                            "items": {},
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "required": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "display_name",
+                      "data_type",
+                      "required",
+                      "description"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "display_name",
+                "description",
+                "arguments"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Read Blueprint"
+}

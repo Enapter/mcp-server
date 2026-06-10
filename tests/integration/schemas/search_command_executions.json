@@ -1,0 +1,183 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Search Command Executions"
+  },
+  "description": "Search the history of commands executed on devices.\n\nThis tool helps audit recent actions taken on a device, whether to verify successful execution, check for failures (`state=\"error\"`), or see if a command was misused.\n\nTips:\n- The default `view=\"basic\"` returns execution status and timestamps.\n- Use `view=\"full\"` to see the actual `arguments` sent and the `response_payload` received.\n- `view=\"full\"` requires specifying a `device_id`.\n- `command_name_regexp` accepts a Python-style regular expression.\n- `created_at_gte` and `created_at_lt` can be used to filter by time.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "command_name_regexp": {
+        "default": ".*",
+        "type": "string"
+      },
+      "created_at_gte": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "created_at_lt": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "device_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "limit": {
+        "default": 20,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "site_id": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "state": {
+        "anyOf": [
+          {
+            "enum": [
+              "new",
+              "in_progress",
+              "success",
+              "error",
+              "timeout",
+              "unsync"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "view": {
+        "default": "basic",
+        "enum": [
+          "basic",
+          "full"
+        ],
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "search_command_executions",
+  "outputSchema": {
+    "description": "Generic wrapper for non-object return types.",
+    "properties": {
+      "result": {
+        "items": {
+          "description": "Represents a command execution history record.",
+          "properties": {
+            "arguments": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "command_name": {
+              "type": "string"
+            },
+            "created_at": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "device_id": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "response_payload": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "state": {
+              "enum": [
+                "new",
+                "in_progress",
+                "success",
+                "error",
+                "timeout",
+                "unsync"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "device_id",
+            "command_name",
+            "state",
+            "created_at"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Search Command Executions"
+}

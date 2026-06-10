@@ -1,0 +1,85 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Get Historical Telemetry"
+  },
+  "description": "Retrieve aggregated historical time-series telemetry for a specific device.\n\nThis tool is useful for performance analysis, yield calculation, and historical trending.\n\nThe data is divided into time buckets of `granularity` seconds. Each returned timestamp marks the start of a bucket, and its values are the result of applying the `aggregation` function to all data points within that bucket.\n\nTips:\n- Use `read_blueprint` to discover exact telemetry attribute names for the `attributes` parameter.\n- Choose an `aggregation` function suitable for the attribute's data type. For example, `last` works for booleans and strings, while `min`, `max`, and `avg` work for numerics.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "aggregation": {
+        "enum": [
+          "avg",
+          "min",
+          "max",
+          "last"
+        ],
+        "type": "string"
+      },
+      "attributes": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "device_id": {
+        "type": "string"
+      },
+      "granularity": {
+        "default": 3600,
+        "type": "integer"
+      },
+      "time_from": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "time_to": {
+        "format": "date-time",
+        "type": "string"
+      }
+    },
+    "required": [
+      "device_id",
+      "attributes",
+      "time_from",
+      "time_to",
+      "aggregation"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "get_historical_telemetry",
+  "outputSchema": {
+    "description": "Represents historical telemetry data.\n\nA timeseries of measurements collected from a device over some period.",
+    "properties": {
+      "timestamps": {
+        "items": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "values": {
+        "additionalProperties": {
+          "items": {},
+          "type": "array"
+        },
+        "type": "object"
+      }
+    },
+    "required": [
+      "timestamps",
+      "values"
+    ],
+    "type": "object"
+  },
+  "title": "Get Historical Telemetry"
+}

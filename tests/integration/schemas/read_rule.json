@@ -1,0 +1,58 @@
+{
+  "annotations": {
+    "destructiveHint": null,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Read Rule"
+  },
+  "description": "Read the Lua script code for a specific automation rule.\n\nThis tool returns the source code of a rule running on the Enapter Rule Engine, returned as a list of strings (lines of code).\n\nTips:\n- Use `offset` and `limit` to paginate through the code if the rule's `lines_count` is very large, preventing context window overflow.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "properties": {
+      "limit": {
+        "default": 2000,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      },
+      "rule_id": {
+        "type": "string"
+      },
+      "site_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "site_id",
+      "rule_id"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "_fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "read_rule",
+  "outputSchema": {
+    "description": "Generic wrapper for non-object return types.",
+    "properties": {
+      "result": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Read Rule"
+}
