@@ -17,7 +17,7 @@ ENAPTER_MCP_SERVER_ADDRESS = os.environ.get(
 )
 ENAPTER_MCP_SERVER_SENTRY_DSN = os.getenv("ENAPTER_MCP_SERVER_SENTRY_DSN")
 ENAPTER_MCP_SERVER_SENTRY_ENVIRONMENT = os.getenv(
-    "ENAPTER_MCP_SERVER_SENTRY_ENVIRONMENT", "production"
+    "ENAPTER_MCP_SERVER_SENTRY_ENVIRONMENT"
 )
 ENAPTER_MCP_SERVER_SENTRY_TRACES_SAMPLE_RATE = os.getenv(
     "ENAPTER_MCP_SERVER_SENTRY_TRACES_SAMPLE_RATE", "0.0"
@@ -65,7 +65,12 @@ class App:
             VersionCommand,
         ]:
             command.register(subparsers)
-        return cls(args=parser.parse_args())
+        
+        args = parser.parse_args()
+        if args.sentry_dsn is not None and not args.sentry_environment:
+            parser.error("--sentry-environment is required when --sentry-dsn is set")
+            
+        return cls(args=args)
 
     async def run(self) -> None:
         if self.args.sentry_dsn is not None:
