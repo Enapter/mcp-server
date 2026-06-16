@@ -543,6 +543,7 @@ class TestApplicationServer:
                     name="p1",
                     display_name="P1",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -553,6 +554,7 @@ class TestApplicationServer:
                     name="t1",
                     display_name="T1",
                     data_type=domain.DataType.FLOAT,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -573,6 +575,7 @@ class TestApplicationServer:
                 "c1": domain.CommandDeclaration(
                     name="c1",
                     display_name="C1",
+                    access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
                 )
@@ -670,6 +673,7 @@ class TestApplicationServer:
                     name="p1",
                     display_name="P1",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -678,6 +682,7 @@ class TestApplicationServer:
                     name="p2",
                     display_name="P2",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -688,6 +693,7 @@ class TestApplicationServer:
                     name="t1",
                     display_name="T1",
                     data_type=domain.DataType.FLOAT,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -708,6 +714,7 @@ class TestApplicationServer:
                 "c1": domain.CommandDeclaration(
                     name="c1",
                     display_name="C1",
+                    access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
                 )
@@ -754,6 +761,7 @@ class TestApplicationServer:
                     name="p1",
                     display_name="P1",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -764,6 +772,7 @@ class TestApplicationServer:
                     name="t1",
                     display_name="T1",
                     data_type=domain.DataType.FLOAT,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -841,6 +850,7 @@ class TestApplicationServer:
                     name="p1",
                     display_name="P1",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit=None,
@@ -895,6 +905,7 @@ class TestApplicationServer:
                     name="p1",
                     display_name="P1",
                     data_type=domain.DataType.STRING,
+                    access_level=domain.AccessRole.READONLY,
                     description="D1",
                     enum=None,
                     unit=None,
@@ -905,6 +916,7 @@ class TestApplicationServer:
                     name="t1",
                     display_name="T1",
                     data_type=domain.DataType.FLOAT,
+                    access_level=domain.AccessRole.READONLY,
                     description=None,
                     enum=None,
                     unit="V",
@@ -925,6 +937,7 @@ class TestApplicationServer:
                 "c1": domain.CommandDeclaration(
                     name="c1",
                     display_name="C1",
+                    access_level=domain.AccessRole.USER,
                     description="D1",
                     arguments=[
                         domain.CommandArgumentDeclaration(

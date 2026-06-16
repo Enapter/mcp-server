@@ -10,6 +10,7 @@ class TestTelemetryAttributeDeclaration:
             name="voltage",
             display_name="Voltage",
             data_type=domain.DataType.FLOAT,
+            access_level=domain.AccessRole.READONLY,
             description="Measured voltage",
             enum=None,
             unit="V",
@@ -20,6 +21,7 @@ class TestTelemetryAttributeDeclaration:
         assert attr.name == "voltage"
         assert attr.display_name == "Voltage"
         assert attr.data_type == "float"
+        assert attr.access_level == "readonly"
         assert attr.description == "Measured voltage"
         assert attr.unit == "V"
 
@@ -29,6 +31,7 @@ class TestTelemetryAttributeDeclaration:
             name="mode",
             display_name="Operation Mode",
             data_type=domain.DataType.STRING,
+            access_level=domain.AccessRole.USER,
             description="Current operation mode",
             enum=["auto", "manual", "off"],
             unit=None,
@@ -39,6 +42,7 @@ class TestTelemetryAttributeDeclaration:
         assert attr.name == "mode"
         assert attr.display_name == "Operation Mode"
         assert attr.data_type == "string"
+        assert attr.access_level == "user"
         assert attr.description == "Current operation mode"
         assert attr.enum == ["auto", "manual", "off"]
 
@@ -48,6 +52,7 @@ class TestTelemetryAttributeDeclaration:
             name="simple",
             display_name="Simple Attribute",
             data_type=domain.DataType.BOOLEAN,
+            access_level=domain.AccessRole.INSTALLER,
             description=None,
             enum=None,
             unit=None,
@@ -58,5 +63,6 @@ class TestTelemetryAttributeDeclaration:
         assert attr.name == "simple"
         assert attr.display_name == "Simple Attribute"
         assert attr.data_type == "boolean"
+        assert attr.access_level == "installer"
         assert attr.description is None
         assert attr.enum is None

@@ -71,6 +71,9 @@ class EnapterDataMapper:
             name=name,
             display_name=dto["display_name"],
             data_type=domain.DataType(dto["type"]),
+            access_level=domain.AccessRole(
+                (dto.get("access_level") or "readonly").lower()
+            ),
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
@@ -83,6 +86,9 @@ class EnapterDataMapper:
             name=name,
             display_name=dto["display_name"],
             data_type=domain.DataType(dto["type"]),
+            access_level=domain.AccessRole(
+                (dto.get("access_level") or "readonly").lower()
+            ),
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
@@ -107,6 +113,7 @@ class EnapterDataMapper:
         return domain.CommandDeclaration(
             name=name,
             display_name=dto.get("display_name", name),
+            access_level=domain.AccessRole((dto.get("access_level") or "user").lower()),
             description=dto.get("description"),
             arguments=[
                 self.to_command_argument_declaration(arg_name, arg_dto)

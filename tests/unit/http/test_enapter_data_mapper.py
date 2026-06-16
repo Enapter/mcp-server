@@ -51,9 +51,12 @@ class TestEnapterDataMapper:
         assert manifest.description == "Electrolyzer device"
         assert manifest.vendor == "Enapter"
         assert manifest.properties["p1"].data_type == domain.DataType.STRING
+        assert manifest.properties["p1"].access_level == domain.AccessRole.READONLY
         assert manifest.telemetry["t1"].unit == "V"
+        assert manifest.telemetry["t1"].access_level == domain.AccessRole.READONLY
         assert manifest.alerts["a1"].severity == domain.AlertSeverity.WARNING
         assert manifest.commands["c1"].arguments[0].data_type == domain.DataType.INTEGER
+        assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
     def test_parse_device_manifest_missing_sections(self) -> None:
         manifest = http.EnapterDataMapper().to_device_manifest({})
@@ -81,6 +84,72 @@ class TestEnapterDataMapper:
             assert exc.args == ("display_name",)
         else:
             raise AssertionError("Expected manifest parsing to fail")
+
+    def test_parse_device_manifest_explicit_access_level(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                        "access_level": "OWNER",
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                        "access_level": "INSTALLER",
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                        "access_level": "SYSTEM",
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.properties["p1"].access_level == domain.AccessRole.OWNER
+        assert manifest.telemetry["t1"].access_level == domain.AccessRole.INSTALLER
+        assert manifest.commands["c1"].access_level == domain.AccessRole.SYSTEM
+
+    def test_parse_device_manifest_access_level_null(self) -> None:
+        """Explicit null access_level should fall back to defaults."""
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                        "access_level": None,
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                        "access_level": None,
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                        "access_level": None,
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        # Properties default to READONLY
+        assert manifest.properties["p1"].access_level == domain.AccessRole.READONLY
+        # Telemetry defaults to READONLY
+        assert manifest.telemetry["t1"].access_level == domain.AccessRole.READONLY
+        # Commands default to USER
+        assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
     def test_to_latest_telemetry(self) -> None:
         timestamp = datetime.datetime.now()

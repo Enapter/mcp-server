@@ -4,6 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
+from .access_role import AccessRole
 from .data_type import DataType
 
 
@@ -18,6 +19,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     name: str
     display_name: str
     data_type: DataType
+    access_level: AccessRole
     description: str | None
     enum: list[Any] | None
     unit: str | None
@@ -28,6 +30,7 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
             name=declaration.name,
             display_name=declaration.display_name,
             data_type=declaration.data_type.value,
+            access_level=declaration.access_level.value,
             description=declaration.description,
             enum=declaration.enum,
             unit=declaration.unit,

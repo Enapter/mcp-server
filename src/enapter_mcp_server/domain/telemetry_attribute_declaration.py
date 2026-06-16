@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Any
 
+from .access_role import AccessRole
 from .data_type import DataType
 
 
@@ -9,6 +10,7 @@ class TelemetryAttributeDeclaration:
     name: str
     display_name: str
     data_type: DataType
+    access_level: AccessRole
     description: str | None
     enum: list[Any] | None
     unit: str | None

@@ -57,6 +57,17 @@
             {
               "description": "Represents a property declaration.\n\nProperties are device metadata which do not change during normal device\noperation. Examples include \"firmware_version\", \"device_model\", and\n\"serial_number\".",
               "properties": {
+                "access_level": {
+                  "enum": [
+                    "readonly",
+                    "user",
+                    "owner",
+                    "installer",
+                    "system",
+                    "vendor"
+                  ],
+                  "type": "string"
+                },
                 "data_type": {
                   "enum": [
                     "integer",
@@ -112,6 +123,7 @@
                 "name",
                 "display_name",
                 "data_type",
+                "access_level",
                 "description",
                 "enum",
                 "unit"
@@ -121,6 +133,17 @@
             {
               "description": "Represents a telemetry attribute declaration.\n\nTelemetry attributes are measurable device parameters which can change\nduring normal device operation. Examples include \"temperature\", \"voltage\",\nand \"current\".",
               "properties": {
+                "access_level": {
+                  "enum": [
+                    "readonly",
+                    "user",
+                    "owner",
+                    "installer",
+                    "system",
+                    "vendor"
+                  ],
+                  "type": "string"
+                },
                 "data_type": {
                   "enum": [
                     "integer",
@@ -176,6 +199,7 @@
                 "name",
                 "display_name",
                 "data_type",
+                "access_level",
                 "description",
                 "enum",
                 "unit"
@@ -263,6 +287,17 @@
             {
               "description": "A declaration of a device command.",
               "properties": {
+                "access_level": {
+                  "enum": [
+                    "readonly",
+                    "user",
+                    "owner",
+                    "installer",
+                    "system",
+                    "vendor"
+                  ],
+                  "type": "string"
+                },
                 "arguments": {
                   "items": {
                     "description": "A declaration of an argument for a device command.",
@@ -343,6 +378,7 @@
               "required": [
                 "name",
                 "display_name",
+                "access_level",
                 "description",
                 "arguments"
               ],

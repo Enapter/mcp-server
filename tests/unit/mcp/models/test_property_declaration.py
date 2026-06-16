@@ -10,6 +10,7 @@ class TestPropertyDeclaration:
             name="fw_version",
             display_name="Firmware Version",
             data_type=domain.DataType.STRING,
+            access_level=domain.AccessRole.READONLY,
             description="Version of the firmware",
             enum=None,
             unit=None,
@@ -20,6 +21,7 @@ class TestPropertyDeclaration:
         assert prop.name == "fw_version"
         assert prop.display_name == "Firmware Version"
         assert prop.data_type == "string"
+        assert prop.access_level == "readonly"
         assert prop.description == "Version of the firmware"
         assert prop.enum is None
         assert prop.unit is None
@@ -30,6 +32,7 @@ class TestPropertyDeclaration:
             name="mode",
             display_name="Mode",
             data_type=domain.DataType.STRING,
+            access_level=domain.AccessRole.OWNER,
             description="Operation mode",
             enum=["on", "off"],
             unit="state",
@@ -40,6 +43,7 @@ class TestPropertyDeclaration:
         assert prop.name == "mode"
         assert prop.display_name == "Mode"
         assert prop.data_type == "string"
+        assert prop.access_level == "owner"
         assert prop.description == "Operation mode"
         assert prop.enum == ["on", "off"]
         assert prop.unit == "state"
@@ -50,6 +54,7 @@ class TestPropertyDeclaration:
             name="p",
             display_name="P",
             data_type=domain.DataType.INTEGER,
+            access_level=domain.AccessRole.VENDOR,
             description=None,
             enum=None,
             unit=None,
@@ -60,6 +65,7 @@ class TestPropertyDeclaration:
         assert prop.name == "p"
         assert prop.display_name == "P"
         assert prop.data_type == "integer"
+        assert prop.access_level == "vendor"
         assert prop.description is None
         assert prop.enum is None
         assert prop.unit is None
