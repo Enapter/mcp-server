@@ -4,6 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
+from .access_role import AccessRole
 from .blueprint_summary import BlueprintSummary
 from .connectivity_status import ConnectivityStatus
 from .device_type import DeviceType
@@ -19,6 +20,7 @@ class Device(pydantic.BaseModel):
     name: str
     site_id: str
     type: DeviceType
+    authorized_role: AccessRole
     blueprint_summary: BlueprintSummary
     connectivity_status: ConnectivityStatus
     active_alerts_total: int
@@ -32,6 +34,7 @@ class Device(pydantic.BaseModel):
             name=device.name,
             site_id=device.site_id,
             type=device.type.value,
+            authorized_role=device.authorized_role.value,
             connectivity_status=device.connectivity_status.value,
             active_alerts_total=device.active_alerts_total,
             properties=device.properties,

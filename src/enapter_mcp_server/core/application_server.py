@@ -82,6 +82,7 @@ class ApplicationServer:
             id=site_dto.id,
             name=site_dto.name,
             timezone=site_dto.timezone,
+            authorized_role=site_dto.authorized_role,
             gateway_id=gateway_id,
             gateway_online=gateway_online,
             devices_total=len(device_ids),
@@ -196,6 +197,7 @@ class ApplicationServer:
                             name=device_dto.name,
                             site_id=device_dto.site_id,
                             type=device_dto.type,
+                            authorized_role=device_dto.authorized_role,
                             blueprint_summary=domain.BlueprintSummary.from_device_manifest(
                                 device_dto.manifest
                             ),
@@ -242,6 +244,7 @@ class ApplicationServer:
                     name=device_dto.name,
                     site_id=device_dto.site_id,
                     type=device_dto.type,
+                    authorized_role=device_dto.authorized_role,
                     blueprint_summary=domain.BlueprintSummary.from_device_manifest(
                         device_dto.manifest
                     ),

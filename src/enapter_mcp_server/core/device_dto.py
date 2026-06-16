@@ -10,6 +10,7 @@ class DeviceDTO:
     name: str
     site_id: str
     type: domain.DeviceType
+    authorized_role: domain.AccessRole
     connectivity: domain.ConnectivityStatus | None = None
     properties: dict[str, Any] | None = None
     active_alerts: list[str] | None = None

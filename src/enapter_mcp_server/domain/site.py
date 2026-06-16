@@ -1,5 +1,6 @@
 import dataclasses
 
+from .access_role import AccessRole
 from .rule_engine_state import RuleEngineState
 
 
@@ -8,6 +9,7 @@ class Site:
     id: str
     name: str
     timezone: str
+    authorized_role: AccessRole
     gateway_id: str | None
     gateway_online: bool
     devices_total: int

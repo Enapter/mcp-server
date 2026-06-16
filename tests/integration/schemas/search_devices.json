@@ -136,6 +136,17 @@
             "active_alerts_total": {
               "type": "integer"
             },
+            "authorized_role": {
+              "enum": [
+                "readonly",
+                "user",
+                "owner",
+                "installer",
+                "system",
+                "vendor"
+              ],
+              "type": "string"
+            },
             "blueprint_summary": {
               "description": "A summary of a blueprint's key attributes.\n\nA blueprint is a specification that defines the integration between Enapter\nand a device. It outlines the available telemetry attributes, commands,\nproperties, and alerts that the device supports. Every device has a\nblueprint assigned to it.",
               "properties": {
@@ -232,6 +243,7 @@
             "name",
             "site_id",
             "type",
+            "authorized_role",
             "blueprint_summary",
             "connectivity_status",
             "active_alerts_total"

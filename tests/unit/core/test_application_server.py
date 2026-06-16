@@ -181,6 +181,7 @@ class TestApplicationServer:
                 name="Gateway 1",
                 site_id="1",
                 type=domain.DeviceType.GATEWAY,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
             core.DeviceDTO(
@@ -188,6 +189,7 @@ class TestApplicationServer:
                 name="Device 2",
                 site_id="1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
             core.DeviceDTO(
@@ -195,6 +197,7 @@ class TestApplicationServer:
                 name="Gateway 2",
                 site_id="2",
                 type=domain.DeviceType.GATEWAY,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
             core.DeviceDTO(
@@ -202,13 +205,29 @@ class TestApplicationServer:
                 name="Device 4",
                 site_id="3",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
         ]
         sites = [
-            core.SiteDTO(id="1", name="Alpha", timezone="Europe/Berlin"),
-            core.SiteDTO(id="2", name="Beta", timezone="Europe/London"),
-            core.SiteDTO(id="3", name="Gamma", timezone="Europe/Berlin"),
+            core.SiteDTO(
+                id="1",
+                name="Alpha",
+                timezone="Europe/Berlin",
+                authorized_role=domain.AccessRole.OWNER,
+            ),
+            core.SiteDTO(
+                id="2",
+                name="Beta",
+                timezone="Europe/London",
+                authorized_role=domain.AccessRole.USER,
+            ),
+            core.SiteDTO(
+                id="3",
+                name="Gamma",
+                timezone="Europe/Berlin",
+                authorized_role=domain.AccessRole.OWNER,
+            ),
         ]
         api = MockEnapterAPI(
             sites=sites,
@@ -240,6 +259,7 @@ class TestApplicationServer:
         )
         assert len(result) == 1
         assert result[0].name == "Alpha"
+        assert result[0].authorized_role == domain.AccessRole.OWNER
         assert result[0].gateway_id == "dev-1"
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
@@ -257,6 +277,7 @@ class TestApplicationServer:
         )
         assert len(result) == 1
         assert result[0].id == "2"
+        assert result[0].authorized_role == domain.AccessRole.USER
         assert result[0].rule_engine_state is None
 
         # Test timezone filtering
@@ -284,13 +305,19 @@ class TestApplicationServer:
         assert result[0].devices_total == 2
 
     async def test_search_sites(self) -> None:
-        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
+        site = core.SiteDTO(
+            id="site-1",
+            name="Site 1",
+            timezone="UTC",
+            authorized_role=domain.AccessRole.OWNER,
+        )
         devices = [
             core.DeviceDTO(
                 id="dev-1",
                 name="Gateway",
                 site_id="site-1",
                 type=domain.DeviceType.GATEWAY,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
             core.DeviceDTO(
@@ -298,6 +325,7 @@ class TestApplicationServer:
                 name="Device 2",
                 site_id="site-1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
         ]
@@ -326,6 +354,7 @@ class TestApplicationServer:
 
         assert len(result) == 1
         assert result[0].id == "site-1"
+        assert result[0].authorized_role == domain.AccessRole.OWNER
         assert result[0].gateway_id == "dev-1"
         assert result[0].gateway_online is True
         assert result[0].devices_total == 2
@@ -334,13 +363,19 @@ class TestApplicationServer:
         assert api.get_rule_engine_calls == 1
 
     async def test_search_sites_no_gateway_skips_rule_engine(self) -> None:
-        site = core.SiteDTO(id="site-1", name="Site 1", timezone="UTC")
+        site = core.SiteDTO(
+            id="site-1",
+            name="Site 1",
+            timezone="UTC",
+            authorized_role=domain.AccessRole.OWNER,
+        )
         devices = [
             core.DeviceDTO(
                 id="dev-1",
                 name="Device 1",
                 site_id="site-1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
         ]
@@ -375,6 +410,7 @@ class TestApplicationServer:
             name="Gateway",
             site_id="site-1",
             type=domain.DeviceType.GATEWAY,
+            authorized_role=domain.AccessRole.OWNER,
             connectivity=domain.ConnectivityStatus.ONLINE,
         )
         rules = [
@@ -432,6 +468,7 @@ class TestApplicationServer:
             name="Gateway",
             site_id="site-1",
             type=domain.DeviceType.GATEWAY,
+            authorized_role=domain.AccessRole.OWNER,
             connectivity=domain.ConnectivityStatus.ONLINE,
         )
         rule = core.RuleDTO(
@@ -478,6 +515,7 @@ class TestApplicationServer:
             name="Gateway",
             site_id="site-1",
             type=domain.DeviceType.GATEWAY,
+            authorized_role=domain.AccessRole.OWNER,
             connectivity=domain.ConnectivityStatus.OFFLINE,
         )
         api = MockEnapterAPI(devices=[gateway])
@@ -546,6 +584,7 @@ class TestApplicationServer:
                 name="Alpha",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 active_alerts=["a1"],
                 manifest=manifest,
@@ -555,6 +594,7 @@ class TestApplicationServer:
                 name="Beta",
                 site_id="s1",
                 type=domain.DeviceType.GATEWAY,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 active_alerts=[],
                 manifest=manifest,
@@ -564,6 +604,7 @@ class TestApplicationServer:
                 name="Gamma",
                 site_id="s2",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
                 active_alerts=[],
                 manifest=manifest,
@@ -584,6 +625,7 @@ class TestApplicationServer:
             view=domain.DeviceView.BASIC,
         )
         assert len(result) == 2
+        assert result[0].authorized_role == domain.AccessRole.OWNER
         assert result[0].connectivity_status == domain.ConnectivityStatus.ONLINE
         assert result[0].blueprint_summary is not None
         assert result[0].active_alerts_total == 1
@@ -677,6 +719,7 @@ class TestApplicationServer:
                 name="Alpha",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1", "p2": "v2", "extra": "ignored"},
                 active_alerts=["a1"],
@@ -695,6 +738,7 @@ class TestApplicationServer:
         )
 
         assert len(result) == 1
+        assert result[0].authorized_role == domain.AccessRole.OWNER
         assert result[0].connectivity_status == domain.ConnectivityStatus.ONLINE
         assert result[0].blueprint_summary is not None
         assert result[0].properties == {"p1": "v1", "p2": "v2"}
@@ -743,6 +787,7 @@ class TestApplicationServer:
                 name="Alpha",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1"},
                 active_alerts=[],
@@ -811,6 +856,7 @@ class TestApplicationServer:
                 name="Alpha",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v1"},
                 active_alerts=[],
@@ -821,6 +867,7 @@ class TestApplicationServer:
                 name="Beta",
                 site_id="s2",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
                 properties={"p1": "v2"},
                 active_alerts=[],
@@ -897,6 +944,7 @@ class TestApplicationServer:
             name="Dev 1",
             site_id="s1",
             type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
             manifest=manifest,
         )
         api = MockEnapterAPI(devices=[device])
@@ -968,6 +1016,7 @@ class TestApplicationServer:
                 name="D1",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
             )
         ]
         executions = {
@@ -1027,18 +1076,21 @@ class TestApplicationServer:
                 name="D1",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
             ),
             core.DeviceDTO(
                 id="d2",
                 name="D2",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
             ),
             core.DeviceDTO(
                 id="d3",
                 name="D3",
                 site_id="s2",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
             ),
         ]
         executions = {
@@ -1120,6 +1172,7 @@ class TestApplicationServer:
                 name="D1",
                 site_id="s1",
                 type=domain.DeviceType.NATIVE,
+                authorized_role=domain.AccessRole.OWNER,
             )
         ]
         executions = {

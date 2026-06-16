@@ -6,6 +6,14 @@ from enapter_mcp_server import core, domain
 
 
 class EnapterDataMapper:
+    def to_site_dto(self, site: enapter.http.api.sites.Site) -> core.SiteDTO:
+        return core.SiteDTO(
+            id=site.id,
+            name=site.name,
+            timezone=site.timezone,
+            authorized_role=domain.AccessRole(site.authorized_role.value.lower()),
+        )
+
     def to_device_dto(self, device: enapter.http.api.devices.Device) -> core.DeviceDTO:
         connectivity = None
         if device.connectivity is not None:
@@ -22,6 +30,7 @@ class EnapterDataMapper:
             name=device.name,
             site_id=device.site_id,
             type=domain.DeviceType(device.type.value.lower()),
+            authorized_role=domain.AccessRole(device.authorized_role.value.lower()),
             connectivity=connectivity,
             properties=device.properties,
             active_alerts=active_alerts,

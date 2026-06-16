@@ -11,6 +11,7 @@ class TestDevice:
             name="Production Device",
             site_id="site-999",
             type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.USER,
             blueprint_summary=domain.BlueprintSummary(
                 description=None,
                 vendor=None,
@@ -29,6 +30,7 @@ class TestDevice:
         assert device.name == "Production Device"
         assert device.site_id == "site-999"
         assert device.type == "native"
+        assert device.authorized_role == "user"
         assert device.connectivity_status == "online"
         assert device.blueprint_summary.alerts_total == 0
 
@@ -38,6 +40,7 @@ class TestDevice:
             name="Detailed Device",
             site_id="site-456",
             type=domain.DeviceType.GATEWAY,
+            authorized_role=domain.AccessRole.OWNER,
             connectivity_status=domain.ConnectivityStatus.ONLINE,
             active_alerts_total=2,
             properties={"mode": "auto"},
@@ -55,6 +58,7 @@ class TestDevice:
         device = mcp.models.Device.from_domain(domain_device)
 
         assert device.id == "device-123"
+        assert device.authorized_role == "owner"
         assert device.connectivity_status == "online"
         assert device.active_alerts_total == 2
         assert device.properties == {"mode": "auto"}
@@ -69,6 +73,7 @@ class TestDevice:
             name="Child Device",
             site_id="site-999",
             type=domain.DeviceType.CHILD,
+            authorized_role=domain.AccessRole.READONLY,
             blueprint_summary=domain.BlueprintSummary(
                 description=None,
                 vendor=None,
@@ -84,3 +89,4 @@ class TestDevice:
         device = mcp.models.Device.from_domain(domain_device)
 
         assert device.type == "child"
+        assert device.authorized_role == "readonly"

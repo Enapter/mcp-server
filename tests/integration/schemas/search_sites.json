@@ -54,6 +54,17 @@
         "items": {
           "description": "Represents a site.\n\nA location or facility where devices are installed.",
           "properties": {
+            "authorized_role": {
+              "enum": [
+                "readonly",
+                "user",
+                "owner",
+                "installer",
+                "system",
+                "vendor"
+              ],
+              "type": "string"
+            },
             "devices_online": {
               "type": "integer"
             },
@@ -102,6 +113,7 @@
             "id",
             "name",
             "timezone",
+            "authorized_role",
             "gateway_id",
             "gateway_online",
             "devices_total",

@@ -10,6 +10,7 @@ class TestSite:
             id="site-456",
             name="Production Site",
             timezone="Asia/Tokyo",
+            authorized_role=domain.AccessRole.READONLY,
             gateway_id=None,
             gateway_online=False,
             devices_total=0,
@@ -21,12 +22,14 @@ class TestSite:
         assert site.id == "site-456"
         assert site.name == "Production Site"
         assert site.timezone == "Asia/Tokyo"
+        assert site.authorized_role == "readonly"
 
     def test_site_from_domain_full(self) -> None:
         domain_site = domain.Site(
             id="site-1",
             name="Site 1",
             timezone="UTC",
+            authorized_role=domain.AccessRole.OWNER,
             gateway_id="gateway-1",
             gateway_online=True,
             devices_total=4,
@@ -36,6 +39,7 @@ class TestSite:
 
         site = mcp.models.Site.from_domain(domain_site)
 
+        assert site.authorized_role == "owner"
         assert site.gateway_id == "gateway-1"
         assert site.gateway_online is True
         assert site.devices_total == 4

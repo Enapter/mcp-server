@@ -4,6 +4,7 @@ import pydantic
 
 from enapter_mcp_server import domain
 
+from .access_role import AccessRole
 from .rule_engine_state import RuleEngineState
 
 
@@ -16,6 +17,7 @@ class Site(pydantic.BaseModel):
     id: str
     name: str
     timezone: str
+    authorized_role: AccessRole
     gateway_id: str | None
     gateway_online: bool
     devices_total: int
@@ -32,6 +34,7 @@ class Site(pydantic.BaseModel):
             id=site.id,
             name=site.name,
             timezone=site.timezone,
+            authorized_role=site.authorized_role.value,
             gateway_id=site.gateway_id,
             gateway_online=site.gateway_online,
             devices_total=site.devices_total,

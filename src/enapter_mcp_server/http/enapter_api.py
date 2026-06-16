@@ -30,11 +30,7 @@ class EnapterAPI:
         async with self._new_client(auth) as client:
             async with client.sites.list() as s:
                 async for site in s:
-                    yield core.SiteDTO(
-                        id=site.id,
-                        name=site.name,
-                        timezone=site.timezone,
-                    )
+                    yield self._data_mapper.to_site_dto(site)
 
     async def get_rule_engine(
         self, auth: core.AuthConfig, site_id: str

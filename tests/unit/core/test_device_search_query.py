@@ -15,6 +15,7 @@ class TestDeviceSearchQuery:
                     name="Alpha",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is True
@@ -26,6 +27,7 @@ class TestDeviceSearchQuery:
                     name="Beta",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is False
@@ -40,6 +42,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.GATEWAY,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is True
@@ -51,6 +54,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is False
@@ -65,6 +69,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is True
@@ -76,6 +81,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s2",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is False
@@ -90,6 +96,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is True
@@ -101,6 +108,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is False
@@ -117,6 +125,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                     connectivity=domain.ConnectivityStatus.ONLINE,
                 )
             )
@@ -129,6 +138,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                     connectivity=domain.ConnectivityStatus.OFFLINE,
                 )
             )
@@ -146,6 +156,7 @@ class TestDeviceSearchQuery:
                     name="A",
                     site_id="s1",
                     type=domain.DeviceType.NATIVE,
+                    authorized_role=domain.AccessRole.OWNER,
                 )
             )
             is True
@@ -160,6 +171,7 @@ class TestDeviceSearchQuery:
             name="A",
             site_id="s1",
             type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
             active_alerts=["a1"],
         )
         device_without_alerts = core.DeviceDTO(
@@ -167,6 +179,7 @@ class TestDeviceSearchQuery:
             name="B",
             site_id="s1",
             type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
             active_alerts=[],
         )
 

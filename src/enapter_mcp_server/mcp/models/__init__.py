@@ -1,3 +1,4 @@
+from .access_role import AccessRole
 from .aggregation_function import AggregationFunction
 from .alert_declaration import AlertDeclaration
 from .alert_severity import AlertSeverity
@@ -27,6 +28,7 @@ __all__ = [
     "AggregationFunction",
     "AlertDeclaration",
     "AlertSeverity",
+    "AccessRole",
     "BlueprintSection",
     "BlueprintSummary",
     "CommandArgumentDeclaration",

@@ -128,6 +128,35 @@ class TestEnapterDataMapper:
             values={"temperature": [21.5]},
         )
 
+    def test_to_site_dto(self) -> None:
+        site = enapter.http.api.sites.Site(
+            id="site-1",
+            name="Site 1",
+            timezone="UTC",
+            version="V3",
+            authorized_role=enapter.http.api.AccessRole.OWNER,
+        )
+
+        dto = http.EnapterDataMapper().to_site_dto(site)
+
+        assert dto.id == "site-1"
+        assert dto.name == "Site 1"
+        assert dto.timezone == "UTC"
+        assert dto.authorized_role == domain.AccessRole.OWNER
+
+    def test_to_site_dto_authorized_role(self) -> None:
+        site = enapter.http.api.sites.Site(
+            id="site-2",
+            name="Site 2",
+            timezone="Europe/Berlin",
+            version="V3",
+            authorized_role=enapter.http.api.AccessRole.READONLY,
+        )
+
+        dto = http.EnapterDataMapper().to_site_dto(site)
+
+        assert dto.authorized_role == domain.AccessRole.READONLY
+
     def test_to_device_dto_null_alerts_mapped_to_empty_list(self) -> None:
         device = enapter.http.api.devices.Device(
             id="dev-1",
@@ -137,13 +166,30 @@ class TestEnapterDataMapper:
             updated_at=datetime.datetime.now(),
             slug="dev-1",
             type=enapter.http.api.devices.DeviceType.NATIVE,
-            authorized_role=enapter.http.api.AuthorizedRole.USER,
+            authorized_role=enapter.http.api.AccessRole.USER,
             raised_alert_names=None,
         )
 
         dto = http.EnapterDataMapper().to_device_dto(device)
 
         assert dto.active_alerts == []
+        assert dto.authorized_role == domain.AccessRole.USER
+
+    def test_to_device_dto_authorized_role(self) -> None:
+        device = enapter.http.api.devices.Device(
+            id="dev-2",
+            blueprint_id="bp-2",
+            name="Dev 2",
+            site_id="s2",
+            updated_at=datetime.datetime.now(),
+            slug="dev-2",
+            type=enapter.http.api.devices.DeviceType.GATEWAY,
+            authorized_role=enapter.http.api.AccessRole.OWNER,
+        )
+
+        dto = http.EnapterDataMapper().to_device_dto(device)
+
+        assert dto.authorized_role == domain.AccessRole.OWNER
 
     def test_to_command_execution(self) -> None:
         created_at = datetime.datetime.now()
