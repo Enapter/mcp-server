@@ -137,7 +137,7 @@ class TestEnapterDataMapper:
             updated_at=datetime.datetime.now(),
             slug="dev-1",
             type=enapter.http.api.devices.DeviceType.NATIVE,
-            authorized_role=enapter.http.api.devices.AuthorizedRole.USER,
+            authorized_role=enapter.http.api.AuthorizedRole.USER,
             raised_alert_names=None,
         )
 
