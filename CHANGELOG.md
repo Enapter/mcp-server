@@ -1,3 +1,15 @@
+## [1.6.0] - 2026-06-17
+
+### 🚀 Features
+
+- Expose Enapter authorization role for sites and devices
+- Expose access_level on blueprint declarations
+- Expose access control model in MCP schemas (SPEC-003)
+
+### 💼 Other
+
+- Fix update-deps to re-resolve setup.py changes
+- Upgrade enapter SDK to 0.23.*
 ## [1.5.0] - 2026-06-10
 
 ### 🚀 Features
@@ -17,6 +29,10 @@
 ### 🧪 Testing
 
 - *(mcp)* Add JSON schema snapshot checks for server tools
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 1.5.0
 ## [1.4.0] - 2026-05-12
 
 ### 🚀 Features
