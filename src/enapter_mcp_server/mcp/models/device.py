@@ -14,6 +14,11 @@ class Device(pydantic.BaseModel):
     """Represents a device.
 
     An individual unit that can be monitored and controlled.
+
+    The `authorized_role` field indicates the authenticated user's access
+    level for this device. For property values, telemetry data, and command
+    execution, a user can read the value (or execute the command) only if
+    their `authorized_role` is at or after the declaration's `access_level`.
     """
 
     id: str

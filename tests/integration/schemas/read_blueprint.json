@@ -55,16 +55,17 @@
         "items": {
           "anyOf": [
             {
-              "description": "Represents a property declaration.\n\nProperties are device metadata which do not change during normal device\noperation. Examples include \"firmware_version\", \"device_model\", and\n\"serial_number\".",
+              "description": "Represents a property declaration.\n\nProperties are device metadata which do not change during normal device\noperation. Examples include \"firmware_version\", \"device_model\", and\n\"serial_number\".\n\nThe `access_level` field defines the minimum role required to read the\nproperty value. A user can read the property value only if their\n`authorized_role` for the device is at or after this `access_level`.",
               "properties": {
                 "access_level": {
+                  "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
                   "enum": [
                     "readonly",
                     "user",
                     "owner",
                     "installer",
-                    "system",
-                    "vendor"
+                    "vendor",
+                    "system"
                   ],
                   "type": "string"
                 },
@@ -131,16 +132,17 @@
               "type": "object"
             },
             {
-              "description": "Represents a telemetry attribute declaration.\n\nTelemetry attributes are measurable device parameters which can change\nduring normal device operation. Examples include \"temperature\", \"voltage\",\nand \"current\".",
+              "description": "Represents a telemetry attribute declaration.\n\nTelemetry attributes are measurable device parameters which can change\nduring normal device operation. Examples include \"temperature\", \"voltage\",\nand \"current\".\n\nThe `access_level` field defines the minimum role required to read the\ntelemetry data. A user can read the telemetry data only if their\n`authorized_role` for the device is at or after this `access_level`.",
               "properties": {
                 "access_level": {
+                  "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
                   "enum": [
                     "readonly",
                     "user",
                     "owner",
                     "installer",
-                    "system",
-                    "vendor"
+                    "vendor",
+                    "system"
                   ],
                   "type": "string"
                 },
@@ -285,16 +287,17 @@
               "type": "object"
             },
             {
-              "description": "A declaration of a device command.",
+              "description": "A declaration of a device command.\n\nThe `access_level` field defines the minimum role required to execute\nthis command. A user can execute this command only if their\n`authorized_role` for the device is at or after this `access_level`.",
               "properties": {
                 "access_level": {
+                  "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
                   "enum": [
                     "readonly",
                     "user",
                     "owner",
                     "installer",
-                    "system",
-                    "vendor"
+                    "vendor",
+                    "system"
                   ],
                   "type": "string"
                 },

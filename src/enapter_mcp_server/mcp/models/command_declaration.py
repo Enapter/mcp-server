@@ -9,7 +9,12 @@ from .command_argument_declaration import CommandArgumentDeclaration
 
 
 class CommandDeclaration(pydantic.BaseModel):
-    """A declaration of a device command."""
+    """A declaration of a device command.
+
+    The `access_level` field defines the minimum role required to execute
+    this command. A user can execute this command only if their
+    `authorized_role` for the device is at or after this `access_level`.
+    """
 
     name: str
     display_name: str

@@ -52,16 +52,17 @@
     "properties": {
       "result": {
         "items": {
-          "description": "Represents a site.\n\nA location or facility where devices are installed.",
+          "description": "Represents a site.\n\nA location or facility where devices are installed.\n\nThe `authorized_role` field indicates the authenticated user's access\nlevel for this site. For property values, telemetry data, and command\nexecution on devices at this site, a user can read the value (or execute\nthe command) only if their `authorized_role` is at or after the\ndeclaration's `access_level`.",
           "properties": {
             "authorized_role": {
+              "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
               "enum": [
                 "readonly",
                 "user",
                 "owner",
                 "installer",
-                "system",
-                "vendor"
+                "vendor",
+                "system"
               ],
               "type": "string"
             },

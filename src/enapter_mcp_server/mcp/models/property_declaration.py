@@ -14,6 +14,10 @@ class PropertyDeclaration(pydantic.BaseModel):
     Properties are device metadata which do not change during normal device
     operation. Examples include "firmware_version", "device_model", and
     "serial_number".
+
+    The `access_level` field defines the minimum role required to read the
+    property value. A user can read the property value only if their
+    `authorized_role` for the device is at or after this `access_level`.
     """
 
     name: str

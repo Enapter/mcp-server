@@ -117,7 +117,7 @@
     "properties": {
       "result": {
         "items": {
-          "description": "Represents a device.\n\nAn individual unit that can be monitored and controlled.",
+          "description": "Represents a device.\n\nAn individual unit that can be monitored and controlled.\n\nThe `authorized_role` field indicates the authenticated user's access\nlevel for this device. For property values, telemetry data, and command\nexecution, a user can read the value (or execute the command) only if\ntheir `authorized_role` is at or after the declaration's `access_level`.",
           "properties": {
             "active_alerts": {
               "anyOf": [
@@ -137,13 +137,14 @@
               "type": "integer"
             },
             "authorized_role": {
+              "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
               "enum": [
                 "readonly",
                 "user",
                 "owner",
                 "installer",
-                "system",
-                "vendor"
+                "vendor",
+                "system"
               ],
               "type": "string"
             },

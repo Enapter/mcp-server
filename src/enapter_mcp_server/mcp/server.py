@@ -395,6 +395,8 @@ class Server(enapter.async_.Routine):
 
         The data is divided into time buckets of `granularity` seconds. Each returned timestamp marks the start of a bucket, and its values are the result of applying the `aggregation` function to all data points within that bucket.
 
+        Telemetry attributes the user cannot read (per their `authorized_role`) are absent from the result.
+
         Tips:
         - Use `read_blueprint` to discover exact telemetry attribute names for the `attributes` parameter.
         - Choose an `aggregation` function suitable for the attribute's data type. For example, `last` works for booleans and strings, while `min`, `max`, and `avg` work for numerics.

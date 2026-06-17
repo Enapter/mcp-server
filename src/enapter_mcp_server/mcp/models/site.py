@@ -12,6 +12,12 @@ class Site(pydantic.BaseModel):
     """Represents a site.
 
     A location or facility where devices are installed.
+
+    The `authorized_role` field indicates the authenticated user's access
+    level for this site. For property values, telemetry data, and command
+    execution on devices at this site, a user can read the value (or execute
+    the command) only if their `authorized_role` is at or after the
+    declaration's `access_level`.
     """
 
     id: str

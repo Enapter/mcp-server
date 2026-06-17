@@ -14,6 +14,10 @@ class TelemetryAttributeDeclaration(pydantic.BaseModel):
     Telemetry attributes are measurable device parameters which can change
     during normal device operation. Examples include "temperature", "voltage",
     and "current".
+
+    The `access_level` field defines the minimum role required to read the
+    telemetry data. A user can read the telemetry data only if their
+    `authorized_role` for the device is at or after this `access_level`.
     """
 
     name: str

@@ -6,7 +6,7 @@
     "readOnlyHint": true,
     "title": "Get Historical Telemetry"
   },
-  "description": "Retrieve aggregated historical time-series telemetry for a specific device.\n\nThis tool is useful for performance analysis, yield calculation, and historical trending.\n\nThe data is divided into time buckets of `granularity` seconds. Each returned timestamp marks the start of a bucket, and its values are the result of applying the `aggregation` function to all data points within that bucket.\n\nTips:\n- Use `read_blueprint` to discover exact telemetry attribute names for the `attributes` parameter.\n- Choose an `aggregation` function suitable for the attribute's data type. For example, `last` works for booleans and strings, while `min`, `max`, and `avg` work for numerics.",
+  "description": "Retrieve aggregated historical time-series telemetry for a specific device.\n\nThis tool is useful for performance analysis, yield calculation, and historical trending.\n\nThe data is divided into time buckets of `granularity` seconds. Each returned timestamp marks the start of a bucket, and its values are the result of applying the `aggregation` function to all data points within that bucket.\n\nTelemetry attributes the user cannot read (per their `authorized_role`) are absent from the result.\n\nTips:\n- Use `read_blueprint` to discover exact telemetry attribute names for the `attributes` parameter.\n- Choose an `aggregation` function suitable for the attribute's data type. For example, `last` works for booleans and strings, while `min`, `max`, and `avg` work for numerics.",
   "execution": null,
   "icons": null,
   "inputSchema": {
