@@ -10,6 +10,7 @@ def make_device_manifest(
     *,
     description: str | None = None,
     vendor: str | None = None,
+    implements: list[str] | None = None,
     properties: dict[str, domain.PropertyDeclaration] | None = None,
     telemetry: dict[str, domain.TelemetryAttributeDeclaration] | None = None,
     alerts: dict[str, domain.AlertDeclaration] | None = None,
@@ -18,6 +19,7 @@ def make_device_manifest(
     return domain.DeviceManifest(
         description=description,
         vendor=vendor,
+        implements=implements or [],
         properties=properties or {},
         telemetry=telemetry or {},
         alerts=alerts or {},
@@ -177,6 +179,7 @@ class TestApplicationServer:
     async def test_search_sites_filtering(self) -> None:
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-1",
                 name="Gateway 1",
                 site_id="1",
@@ -185,6 +188,7 @@ class TestApplicationServer:
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-2",
                 name="Device 2",
                 site_id="1",
@@ -193,6 +197,7 @@ class TestApplicationServer:
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-3",
                 name="Gateway 2",
                 site_id="2",
@@ -201,6 +206,7 @@ class TestApplicationServer:
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-4",
                 name="Device 4",
                 site_id="3",
@@ -313,6 +319,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-1",
                 name="Gateway",
                 site_id="site-1",
@@ -321,6 +328,7 @@ class TestApplicationServer:
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-2",
                 name="Device 2",
                 site_id="site-1",
@@ -371,6 +379,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="dev-1",
                 name="Device 1",
                 site_id="site-1",
@@ -406,6 +415,7 @@ class TestApplicationServer:
 
     async def test_search_rules(self) -> None:
         gateway = core.DeviceDTO(
+            blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
             site_id="site-1",
@@ -464,6 +474,7 @@ class TestApplicationServer:
 
     async def test_read_rule(self) -> None:
         gateway = core.DeviceDTO(
+            blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
             site_id="site-1",
@@ -511,6 +522,7 @@ class TestApplicationServer:
 
     async def test_search_rules_gateway_offline(self) -> None:
         gateway = core.DeviceDTO(
+            blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
             site_id="site-1",
@@ -583,6 +595,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
                 site_id="s1",
@@ -593,6 +606,7 @@ class TestApplicationServer:
                 manifest=manifest,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="2",
                 name="Beta",
                 site_id="s1",
@@ -603,6 +617,7 @@ class TestApplicationServer:
                 manifest=manifest,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="3",
                 name="Gamma",
                 site_id="s2",
@@ -722,6 +737,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
                 site_id="s1",
@@ -792,6 +808,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
                 site_id="s1",
@@ -862,6 +879,7 @@ class TestApplicationServer:
         )
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
                 site_id="s1",
@@ -873,6 +891,7 @@ class TestApplicationServer:
                 manifest=manifest,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="2",
                 name="Beta",
                 site_id="s2",
@@ -953,6 +972,7 @@ class TestApplicationServer:
             },
         )
         device = core.DeviceDTO(
+            blueprint_id="bp-1",
             id="dev-1",
             name="Dev 1",
             site_id="s1",
@@ -1001,6 +1021,40 @@ class TestApplicationServer:
         assert commands[0].arguments[0].name == "a1"
         assert commands[0].arguments[0].data_type == domain.DataType.INTEGER
 
+    async def test_read_blueprint_implements(self) -> None:
+        manifest = make_device_manifest(
+            implements=["energy.battery", "energy.inverter"]
+        )
+        device = core.DeviceDTO(
+            blueprint_id="bp-1",
+            id="dev-1",
+            name="Dev 1",
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
+            manifest=manifest,
+        )
+        api = MockEnapterAPI(devices=[device])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # Read implements
+        implements = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, ".*", 0, 10
+        )
+        assert implements == ["energy.battery", "energy.inverter"]
+
+        implements_filtered = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, "battery", 0, 10
+        )
+        assert implements_filtered == ["energy.battery"]
+
+        # Read implements with pagination
+        implements_paginated = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, ".*", 1, 1
+        )
+        assert implements_paginated == ["energy.inverter"]
+
     async def test_get_historical_telemetry(self) -> None:
         historical = domain.HistoricalTelemetry(
             timestamps=[datetime.datetime.now()],
@@ -1025,6 +1079,7 @@ class TestApplicationServer:
     async def test_search_command_executions_by_state(self) -> None:
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="d1",
                 name="D1",
                 site_id="s1",
@@ -1085,6 +1140,7 @@ class TestApplicationServer:
     async def test_search_command_executions_basic(self) -> None:
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="d1",
                 name="D1",
                 site_id="s1",
@@ -1092,6 +1148,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="d2",
                 name="D2",
                 site_id="s1",
@@ -1099,6 +1156,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
             ),
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="d3",
                 name="D3",
                 site_id="s2",
@@ -1181,6 +1239,7 @@ class TestApplicationServer:
     async def test_search_command_executions_full(self) -> None:
         devices = [
             core.DeviceDTO(
+                blueprint_id="bp-1",
                 id="d1",
                 name="D1",
                 site_id="s1",

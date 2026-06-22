@@ -8,6 +8,7 @@ class TestDevice:
         """Test creating Device from domain object."""
         domain_device = domain.Device(
             id="device-789",
+            blueprint_id="bp-789",
             name="Production Device",
             site_id="site-999",
             type=domain.DeviceType.NATIVE,
@@ -27,6 +28,7 @@ class TestDevice:
         device = mcp.models.Device.from_domain(domain_device)
 
         assert device.id == "device-789"
+        assert device.blueprint_id == "bp-789"
         assert device.name == "Production Device"
         assert device.site_id == "site-999"
         assert device.type == "native"
@@ -37,6 +39,7 @@ class TestDevice:
     def test_device_from_domain_with_details(self) -> None:
         domain_device = domain.Device(
             id="device-123",
+            blueprint_id="bp-123",
             name="Detailed Device",
             site_id="site-456",
             type=domain.DeviceType.GATEWAY,
@@ -70,6 +73,7 @@ class TestDevice:
         """Test creating Device from domain object with CHILD type."""
         domain_device = domain.Device(
             id="device-child",
+            blueprint_id="bp-child",
             name="Child Device",
             site_id="site-999",
             type=domain.DeviceType.CHILD,

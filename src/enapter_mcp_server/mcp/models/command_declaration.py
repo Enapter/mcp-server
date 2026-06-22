@@ -21,6 +21,7 @@ class CommandDeclaration(pydantic.BaseModel):
     access_level: AccessRole
     description: str | None
     arguments: list[CommandArgumentDeclaration]
+    implements: list[str] | None = None
 
     @classmethod
     def from_domain(cls, declaration: domain.CommandDeclaration) -> Self:
@@ -32,4 +33,5 @@ class CommandDeclaration(pydantic.BaseModel):
             arguments=[
                 CommandArgumentDeclaration.from_domain(a) for a in declaration.arguments
             ],
+            implements=declaration.implements,
         )

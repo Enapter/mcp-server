@@ -58,16 +58,34 @@ class TestEnapterDataMapper:
         assert manifest.commands["c1"].arguments[0].data_type == domain.DataType.INTEGER
         assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
+    def test_parse_device_manifest_implements_list(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "description": "Electrolyzer device",
+                "vendor": "Enapter",
+                "implements": ["energy.battery", "energy.inverter"],
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.implements == ["energy.battery", "energy.inverter"]
+
     def test_parse_device_manifest_missing_sections(self) -> None:
         manifest = http.EnapterDataMapper().to_device_manifest({})
 
         assert manifest is not None
         assert manifest.description is None
         assert manifest.vendor is None
+        assert manifest.implements == []
         assert manifest.properties == {}
         assert manifest.telemetry == {}
         assert manifest.alerts == {}
         assert manifest.commands == {}
+
+    def test_parse_device_manifest_implements_null(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest({"implements": None})
+        assert manifest is not None
+        assert manifest.implements == []
 
     def test_parse_device_manifest_raises_on_invalid_payload(self) -> None:
         try:
@@ -150,6 +168,69 @@ class TestEnapterDataMapper:
         assert manifest.telemetry["t1"].access_level == domain.AccessRole.READONLY
         # Commands default to USER
         assert manifest.commands["c1"].access_level == domain.AccessRole.USER
+
+    def test_parse_device_manifest_maps_implements(self) -> None:
+        """Per-declaration `implements` is mapped for telemetry, properties, commands."""
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                        "implements": ["energy.battery.soc"],
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                        "implements": ["sensor.solar_irradiance.solar_irradiance"],
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                        "implements": ["lib.energy.battery.reboot"],
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.properties["p1"].implements == ["energy.battery.soc"]
+        assert manifest.telemetry["t1"].implements == [
+            "sensor.solar_irradiance.solar_irradiance"
+        ]
+        assert manifest.commands["c1"].implements == ["lib.energy.battery.reboot"]
+
+    def test_parse_device_manifest_implements_absent_is_none(self) -> None:
+        """When `implements` key is absent, the field is None."""
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.properties["p1"].implements is None
+        assert manifest.telemetry["t1"].implements is None
+        assert manifest.commands["c1"].implements is None
 
     def test_to_latest_telemetry(self) -> None:
         timestamp = datetime.datetime.now()
@@ -259,6 +340,22 @@ class TestEnapterDataMapper:
         dto = http.EnapterDataMapper().to_device_dto(device)
 
         assert dto.authorized_role == domain.AccessRole.OWNER
+
+    def test_to_device_dto_blueprint_id(self) -> None:
+        device = enapter.http.api.devices.Device(
+            id="dev-3",
+            blueprint_id="bp-3",
+            name="Dev 3",
+            site_id="s3",
+            updated_at=datetime.datetime.now(),
+            slug="dev-3",
+            type=enapter.http.api.devices.DeviceType.NATIVE,
+            authorized_role=enapter.http.api.AccessRole.USER,
+        )
+
+        dto = http.EnapterDataMapper().to_device_dto(device)
+
+        assert dto.blueprint_id == "bp-3"
 
     def test_to_command_execution(self) -> None:
         created_at = datetime.datetime.now()

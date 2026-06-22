@@ -194,6 +194,7 @@ class ApplicationServer:
                     devices.append(
                         domain.Device(
                             id=device_dto.id,
+                            blueprint_id=device_dto.blueprint_id,
                             name=device_dto.name,
                             site_id=device_dto.site_id,
                             type=device_dto.type,
@@ -241,6 +242,7 @@ class ApplicationServer:
             devices.append(
                 domain.Device(
                     id=device_dto.id,
+                    blueprint_id=device_dto.blueprint_id,
                     name=device_dto.name,
                     site_id=device_dto.site_id,
                     type=device_dto.type,
@@ -269,7 +271,8 @@ class ApplicationServer:
         offset: int,
         limit: int,
     ) -> list[
-        domain.PropertyDeclaration
+        str
+        | domain.PropertyDeclaration
         | domain.TelemetryAttributeDeclaration
         | domain.AlertDeclaration
         | domain.CommandDeclaration
@@ -281,13 +284,16 @@ class ApplicationServer:
         assert device_dto.manifest is not None
 
         entities: list[
-            domain.PropertyDeclaration
+            str
+            | domain.PropertyDeclaration
             | domain.TelemetryAttributeDeclaration
             | domain.AlertDeclaration
             | domain.CommandDeclaration
-        ]
+        ] = []
 
         match section:
+            case domain.BlueprintSection.IMPLEMENTS:
+                entities = list(device_dto.manifest.implements)
             case domain.BlueprintSection.PROPERTIES:
                 entities = list(device_dto.manifest.properties.values())
             case domain.BlueprintSection.TELEMETRY:
@@ -299,8 +305,9 @@ class ApplicationServer:
             case _:
                 raise NotImplementedError(section)
 
-        entities = [e for e in entities if name_pattern.search(e.name)]
-        entities.sort(key=lambda e: e.name)
+        key = lambda e: e if isinstance(e, str) else e.name
+        entities = [e for e in entities if name_pattern.search(key(e))]
+        entities.sort(key=key)
         return entities[offset : offset + limit]
 
     async def get_historical_telemetry(

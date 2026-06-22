@@ -66,3 +66,36 @@ class TestTelemetryAttributeDeclaration:
         assert attr.access_level == "installer"
         assert attr.description is None
         assert attr.enum is None
+
+    def test_telemetry_attribute_declaration_from_domain_implements(self) -> None:
+        """`implements` is propagated from the domain object."""
+        declaration = domain.TelemetryAttributeDeclaration(
+            name="irradiance",
+            display_name="Solar Irradiance",
+            data_type=domain.DataType.FLOAT,
+            access_level=domain.AccessRole.READONLY,
+            description=None,
+            enum=None,
+            unit="W/m2",
+            implements=["sensor.solar_irradiance.solar_irradiance"],
+        )
+
+        attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
+
+        assert attr.implements == ["sensor.solar_irradiance.solar_irradiance"]
+
+    def test_telemetry_attribute_declaration_from_domain_implements_none(self) -> None:
+        """`implements` defaults to None when not set on the domain object."""
+        declaration = domain.TelemetryAttributeDeclaration(
+            name="irradiance",
+            display_name="Solar Irradiance",
+            data_type=domain.DataType.FLOAT,
+            access_level=domain.AccessRole.READONLY,
+            description=None,
+            enum=None,
+            unit=None,
+        )
+
+        attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
+
+        assert attr.implements is None

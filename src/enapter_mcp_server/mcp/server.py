@@ -248,6 +248,7 @@ class Server(enapter.async_.Routine):
         - Use `has_active_alerts=True` to quickly find devices that require attention.
         - The default `view="basic"` returns summary information. To retrieve the `active_alerts` list and device `properties`, use `view="full"` (requires specifying either `site_id` or `device_id`).
         - `name_regexp` accepts a Python-style regular expression.
+        - Devices sharing the same `blueprint_id` have identical manifests, so `read_blueprint` need only be called once per unique `blueprint_id`. Reuse the result for every device with a matching `blueprint_id` to avoid redundant calls.
 
         Related tools:
         - `read_blueprint`: Pass the device `id` to read its blueprint and discover its telemetry attributes, commands, alerts, and properties.
@@ -285,24 +286,29 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[
-        models.PropertyDeclaration
+        str
+        | models.PropertyDeclaration
         | models.TelemetryAttributeDeclaration
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
         """Read the blueprint for a specific device.
 
-        This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', and 'properties'.
+        This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', 'properties', and 'implements'.
 
         Tips:
         - Use `section="alerts"` to get details about specific alerts.
         - Use `section="telemetry"` to discover the exact names and metadata of telemetry attributes.
         - Use `section="commands"` to see which actions can be executed on the device.
+        - Use `section="implements"` to list the standardized profiles that the device implements.
         - `name_regexp` accepts a Python-style regular expression.
 
         Related tools:
         - `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.
         - `search_command_executions`: Use the commands discovered here to audit their past executions.
+
+        See also:
+        - https://github.com/Enapter/profiles — documentation on the standardized profiles that blueprints implement.
         """
         auth = await self._get_auth_config()
         declarations = await self._app.read_blueprint(
@@ -315,14 +321,17 @@ class Server(enapter.async_.Routine):
         )
 
         models_list: list[
-            models.PropertyDeclaration
+            str
+            | models.PropertyDeclaration
             | models.TelemetryAttributeDeclaration
             | models.AlertDeclaration
             | models.CommandDeclaration
         ] = []
 
         for d in declarations:
-            if isinstance(d, domain.PropertyDeclaration):
+            if isinstance(d, str):
+                models_list.append(d)
+            elif isinstance(d, domain.PropertyDeclaration):
                 models_list.append(models.PropertyDeclaration.from_domain(d))
             elif isinstance(d, domain.TelemetryAttributeDeclaration):
                 models_list.append(models.TelemetryAttributeDeclaration.from_domain(d))

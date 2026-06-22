@@ -7,6 +7,7 @@ from enapter_mcp_server import domain
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class DeviceDTO:
     id: str
+    blueprint_id: str
     name: str
     site_id: str
     type: domain.DeviceType

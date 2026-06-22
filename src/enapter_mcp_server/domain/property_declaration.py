@@ -14,3 +14,4 @@ class PropertyDeclaration:
     description: str | None
     enum: list[Any] | None
     unit: str | None
+    implements: list[str] | None = None

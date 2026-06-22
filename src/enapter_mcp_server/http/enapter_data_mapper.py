@@ -27,6 +27,7 @@ class EnapterDataMapper:
 
         return core.DeviceDTO(
             id=device.id,
+            blueprint_id=device.blueprint_id,
             name=device.name,
             site_id=device.site_id,
             type=domain.DeviceType(device.type.value.lower()),
@@ -46,6 +47,7 @@ class EnapterDataMapper:
         return domain.DeviceManifest(
             description=manifest.get("description"),
             vendor=manifest.get("vendor"),
+            implements=list(manifest.get("implements") or []),
             properties={
                 name: self.to_property_declaration(name, dto)
                 for name, dto in (manifest.get("properties") or {}).items()
@@ -77,6 +79,7 @@ class EnapterDataMapper:
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
+            implements=dto.get("implements"),
         )
 
     def to_telemetry_attribute_declaration(
@@ -92,6 +95,7 @@ class EnapterDataMapper:
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
+            implements=dto.get("implements"),
         )
 
     def to_alert_declaration(
@@ -119,6 +123,7 @@ class EnapterDataMapper:
                 self.to_command_argument_declaration(arg_name, arg_dto)
                 for arg_name, arg_dto in (dto.get("arguments") or {}).items()
             ],
+            implements=dto.get("implements"),
         )
 
     def to_command_argument_declaration(

@@ -69,3 +69,32 @@ class TestCommandDeclaration:
         assert cmd.access_level == "system"
         assert cmd.description is None
         assert cmd.arguments == []
+
+    def test_command_declaration_from_domain_implements(self) -> None:
+        """`implements` is propagated from the domain object."""
+        declaration = domain.CommandDeclaration(
+            name="reboot",
+            display_name="Reboot",
+            access_level=domain.AccessRole.SYSTEM,
+            description=None,
+            arguments=[],
+            implements=["lib.energy.battery.reboot"],
+        )
+
+        cmd = mcp.models.CommandDeclaration.from_domain(declaration)
+
+        assert cmd.implements == ["lib.energy.battery.reboot"]
+
+    def test_command_declaration_from_domain_implements_none(self) -> None:
+        """`implements` defaults to None when not set on the domain object."""
+        declaration = domain.CommandDeclaration(
+            name="reboot",
+            display_name="Reboot",
+            access_level=domain.AccessRole.SYSTEM,
+            description=None,
+            arguments=[],
+        )
+
+        cmd = mcp.models.CommandDeclaration.from_domain(declaration)
+
+        assert cmd.implements is None
