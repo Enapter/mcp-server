@@ -151,6 +151,69 @@ class TestEnapterDataMapper:
         # Commands default to USER
         assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
+    def test_parse_device_manifest_maps_implements(self) -> None:
+        """Per-declaration `implements` is mapped for telemetry, properties, commands."""
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                        "implements": ["energy.battery.soc"],
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                        "implements": ["sensor.solar_irradiance.solar_irradiance"],
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                        "implements": ["lib.energy.battery.reboot"],
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.properties["p1"].implements == ["energy.battery.soc"]
+        assert manifest.telemetry["t1"].implements == [
+            "sensor.solar_irradiance.solar_irradiance"
+        ]
+        assert manifest.commands["c1"].implements == ["lib.energy.battery.reboot"]
+
+    def test_parse_device_manifest_implements_absent_is_none(self) -> None:
+        """When `implements` key is absent, the field is None."""
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "properties": {
+                    "p1": {
+                        "display_name": "P1",
+                        "type": "string",
+                    }
+                },
+                "telemetry": {
+                    "t1": {
+                        "display_name": "T1",
+                        "type": "float",
+                    }
+                },
+                "commands": {
+                    "c1": {
+                        "display_name": "C1",
+                    }
+                },
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.properties["p1"].implements is None
+        assert manifest.telemetry["t1"].implements is None
+        assert manifest.commands["c1"].implements is None
+
     def test_to_latest_telemetry(self) -> None:
         timestamp = datetime.datetime.now()
         telemetry = http.EnapterDataMapper().to_latest_telemetry(

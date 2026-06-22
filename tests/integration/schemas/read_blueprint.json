@@ -106,6 +106,20 @@
                     }
                   ]
                 },
+                "implements": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
                 "name": {
                   "type": "string"
                 },
@@ -182,6 +196,20 @@
                       "type": "null"
                     }
                   ]
+                },
+                "implements": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
                 },
                 "name": {
                   "type": "string"
@@ -373,6 +401,20 @@
                 },
                 "display_name": {
                   "type": "string"
+                },
+                "implements": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
                 },
                 "name": {
                   "type": "string"

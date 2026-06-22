@@ -69,3 +69,36 @@ class TestPropertyDeclaration:
         assert prop.description is None
         assert prop.enum is None
         assert prop.unit is None
+
+    def test_property_declaration_from_domain_implements(self) -> None:
+        """`implements` is propagated from the domain object."""
+        declaration = domain.PropertyDeclaration(
+            name="soc",
+            display_name="State of Charge",
+            data_type=domain.DataType.FLOAT,
+            access_level=domain.AccessRole.READONLY,
+            description=None,
+            enum=None,
+            unit="%",
+            implements=["energy.battery.soc"],
+        )
+
+        prop = mcp.models.PropertyDeclaration.from_domain(declaration)
+
+        assert prop.implements == ["energy.battery.soc"]
+
+    def test_property_declaration_from_domain_implements_none(self) -> None:
+        """`implements` defaults to None when not set on the domain object."""
+        declaration = domain.PropertyDeclaration(
+            name="soc",
+            display_name="State of Charge",
+            data_type=domain.DataType.FLOAT,
+            access_level=domain.AccessRole.READONLY,
+            description=None,
+            enum=None,
+            unit=None,
+        )
+
+        prop = mcp.models.PropertyDeclaration.from_domain(declaration)
+
+        assert prop.implements is None
