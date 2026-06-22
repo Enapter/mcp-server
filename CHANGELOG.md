@@ -1,3 +1,14 @@
+## [1.7.0] - 2026-06-22
+
+### 🚀 Features
+
+- Expose blueprint_id on devices (SPEC-004)
+- Expose profile mappings on declarations (SPEC-005)
+- Expose device profile membership (SPEC-006)
+
+### 🚜 Refactor
+
+- Use list[str] consistently for per-declaration implements
 ## [1.6.0] - 2026-06-17
 
 ### 🚀 Features
@@ -10,6 +21,10 @@
 
 - Fix update-deps to re-resolve setup.py changes
 - Upgrade enapter SDK to 0.23.*
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 1.6.0
 ## [1.5.0] - 2026-06-10
 
 ### 🚀 Features
