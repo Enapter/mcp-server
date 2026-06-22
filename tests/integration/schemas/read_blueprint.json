@@ -111,18 +111,10 @@
                   ]
                 },
                 "implements": {
-                  "anyOf": [
-                    {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "name": {
                   "type": "string"
@@ -145,7 +137,8 @@
                 "access_level",
                 "description",
                 "enum",
-                "unit"
+                "unit",
+                "implements"
               ],
               "type": "object"
             },
@@ -202,18 +195,10 @@
                   ]
                 },
                 "implements": {
-                  "anyOf": [
-                    {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "name": {
                   "type": "string"
@@ -236,7 +221,8 @@
                 "access_level",
                 "description",
                 "enum",
-                "unit"
+                "unit",
+                "implements"
               ],
               "type": "object"
             },
@@ -407,18 +393,10 @@
                   "type": "string"
                 },
                 "implements": {
-                  "anyOf": [
-                    {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "name": {
                   "type": "string"
@@ -429,7 +407,8 @@
                 "display_name",
                 "access_level",
                 "description",
-                "arguments"
+                "arguments",
+                "implements"
               ],
               "type": "object"
             }

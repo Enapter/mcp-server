@@ -21,6 +21,7 @@ class TestCommandDeclaration:
                     enum=None,
                 )
             ],
+            implements=[],
         )
 
         cmd = mcp.models.CommandDeclaration.from_domain(declaration)
@@ -42,6 +43,7 @@ class TestCommandDeclaration:
             access_level=domain.AccessRole.OWNER,
             description="Restart the device",
             arguments=[],
+            implements=[],
         )
 
         cmd = mcp.models.CommandDeclaration.from_domain(declaration)
@@ -60,6 +62,7 @@ class TestCommandDeclaration:
             access_level=domain.AccessRole.SYSTEM,
             description=None,
             arguments=[],
+            implements=[],
         )
 
         cmd = mcp.models.CommandDeclaration.from_domain(declaration)
@@ -85,16 +88,17 @@ class TestCommandDeclaration:
 
         assert cmd.implements == ["lib.energy.battery.reboot"]
 
-    def test_command_declaration_from_domain_implements_none(self) -> None:
-        """`implements` defaults to None when not set on the domain object."""
+    def test_command_declaration_from_domain_implements_empty(self) -> None:
+        """`implements` is an empty list when no profiles are mapped."""
         declaration = domain.CommandDeclaration(
             name="reboot",
             display_name="Reboot",
             access_level=domain.AccessRole.SYSTEM,
             description=None,
             arguments=[],
+            implements=[],
         )
 
         cmd = mcp.models.CommandDeclaration.from_domain(declaration)
 
-        assert cmd.implements is None
+        assert cmd.implements == []

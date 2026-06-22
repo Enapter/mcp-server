@@ -559,6 +559,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             telemetry={
@@ -570,6 +571,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             alerts={
@@ -590,6 +592,7 @@ class TestApplicationServer:
                     access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
+                    implements=[],
                 )
             },
         )
@@ -692,6 +695,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 ),
                 "p2": domain.PropertyDeclaration(
                     name="p2",
@@ -701,6 +705,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 ),
             },
             telemetry={
@@ -712,6 +717,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             alerts={
@@ -732,6 +738,7 @@ class TestApplicationServer:
                     access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
+                    implements=[],
                 )
             },
         )
@@ -781,6 +788,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             telemetry={
@@ -792,6 +800,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             alerts={
@@ -871,6 +880,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             telemetry={},
@@ -928,6 +938,7 @@ class TestApplicationServer:
                     description="D1",
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             telemetry={
@@ -939,6 +950,7 @@ class TestApplicationServer:
                     description=None,
                     enum=None,
                     unit="V",
+                    implements=[],
                 )
             },
             alerts={
@@ -968,6 +980,7 @@ class TestApplicationServer:
                             enum=None,
                         )
                     ],
+                    implements=[],
                 )
             },
         )

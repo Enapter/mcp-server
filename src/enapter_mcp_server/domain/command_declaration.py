@@ -11,4 +11,4 @@ class CommandDeclaration:
     access_level: AccessRole
     description: str | None
     arguments: list[CommandArgumentDeclaration]
-    implements: list[str] | None = None
+    implements: list[str]

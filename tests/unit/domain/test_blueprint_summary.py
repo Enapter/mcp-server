@@ -14,6 +14,7 @@ class TestBlueprintSummary:
                     access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
+                    implements=[],
                 ),
                 "c2": domain.CommandDeclaration(
                     name="c2",
@@ -21,6 +22,7 @@ class TestBlueprintSummary:
                     access_level=domain.AccessRole.USER,
                     description=None,
                     arguments=[],
+                    implements=[],
                 ),
             },
             properties={
@@ -32,6 +34,7 @@ class TestBlueprintSummary:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 )
             },
             telemetry={
@@ -43,6 +46,7 @@ class TestBlueprintSummary:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 ),
                 "t2": domain.TelemetryAttributeDeclaration(
                     name="t2",
@@ -52,6 +56,7 @@ class TestBlueprintSummary:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 ),
                 "t3": domain.TelemetryAttributeDeclaration(
                     name="t3",
@@ -61,6 +66,7 @@ class TestBlueprintSummary:
                     description=None,
                     enum=None,
                     unit=None,
+                    implements=[],
                 ),
             },
             alerts={

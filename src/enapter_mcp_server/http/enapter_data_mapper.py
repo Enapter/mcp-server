@@ -79,7 +79,7 @@ class EnapterDataMapper:
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
-            implements=dto.get("implements"),
+            implements=dto.get("implements") or [],
         )
 
     def to_telemetry_attribute_declaration(
@@ -95,7 +95,7 @@ class EnapterDataMapper:
             description=dto.get("description"),
             enum=dto.get("enum"),
             unit=dto.get("unit"),
-            implements=dto.get("implements"),
+            implements=dto.get("implements") or [],
         )
 
     def to_alert_declaration(
@@ -123,7 +123,7 @@ class EnapterDataMapper:
                 self.to_command_argument_declaration(arg_name, arg_dto)
                 for arg_name, arg_dto in (dto.get("arguments") or {}).items()
             ],
-            implements=dto.get("implements"),
+            implements=dto.get("implements") or [],
         )
 
     def to_command_argument_declaration(

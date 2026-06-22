@@ -27,7 +27,7 @@ class PropertyDeclaration(pydantic.BaseModel):
     description: str | None
     enum: list[Any] | None
     unit: str | None
-    implements: list[str] | None = None
+    implements: list[str]
 
     @classmethod
     def from_domain(cls, declaration: domain.PropertyDeclaration) -> Self:
