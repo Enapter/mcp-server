@@ -6,6 +6,7 @@ class TestBlueprintSummary:
         manifest = domain.DeviceManifest(
             description="Electrolyzer device",
             vendor="Enapter",
+            implements=[],
             commands={
                 "c1": domain.CommandDeclaration(
                     name="c1",
@@ -98,6 +99,7 @@ class TestBlueprintSummary:
             domain.DeviceManifest(
                 description=None,
                 vendor=None,
+                implements=[],
                 commands={},
                 properties={},
                 telemetry={},

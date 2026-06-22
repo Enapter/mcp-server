@@ -10,6 +10,7 @@ from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 class DeviceManifest:
     description: str | None
     vendor: str | None
+    implements: list[str]
     properties: dict[str, PropertyDeclaration]
     telemetry: dict[str, TelemetryAttributeDeclaration]
     alerts: dict[str, AlertDeclaration]

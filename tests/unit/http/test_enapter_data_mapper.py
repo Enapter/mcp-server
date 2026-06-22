@@ -58,16 +58,34 @@ class TestEnapterDataMapper:
         assert manifest.commands["c1"].arguments[0].data_type == domain.DataType.INTEGER
         assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
+    def test_parse_device_manifest_implements_list(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "description": "Electrolyzer device",
+                "vendor": "Enapter",
+                "implements": ["energy.battery", "energy.inverter"],
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.implements == ["energy.battery", "energy.inverter"]
+
     def test_parse_device_manifest_missing_sections(self) -> None:
         manifest = http.EnapterDataMapper().to_device_manifest({})
 
         assert manifest is not None
         assert manifest.description is None
         assert manifest.vendor is None
+        assert manifest.implements == []
         assert manifest.properties == {}
         assert manifest.telemetry == {}
         assert manifest.alerts == {}
         assert manifest.commands == {}
+
+    def test_parse_device_manifest_implements_null(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest({"implements": None})
+        assert manifest is not None
+        assert manifest.implements == []
 
     def test_parse_device_manifest_raises_on_invalid_payload(self) -> None:
         try:

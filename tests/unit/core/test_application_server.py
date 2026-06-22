@@ -10,6 +10,7 @@ def make_device_manifest(
     *,
     description: str | None = None,
     vendor: str | None = None,
+    implements: list[str] | None = None,
     properties: dict[str, domain.PropertyDeclaration] | None = None,
     telemetry: dict[str, domain.TelemetryAttributeDeclaration] | None = None,
     alerts: dict[str, domain.AlertDeclaration] | None = None,
@@ -18,6 +19,7 @@ def make_device_manifest(
     return domain.DeviceManifest(
         description=description,
         vendor=vendor,
+        implements=implements or [],
         properties=properties or {},
         telemetry=telemetry or {},
         alerts=alerts or {},
@@ -1018,6 +1020,40 @@ class TestApplicationServer:
         assert len(commands[0].arguments) == 1
         assert commands[0].arguments[0].name == "a1"
         assert commands[0].arguments[0].data_type == domain.DataType.INTEGER
+
+    async def test_read_blueprint_implements(self) -> None:
+        manifest = make_device_manifest(
+            implements=["energy.battery", "energy.inverter"]
+        )
+        device = core.DeviceDTO(
+            blueprint_id="bp-1",
+            id="dev-1",
+            name="Dev 1",
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
+            manifest=manifest,
+        )
+        api = MockEnapterAPI(devices=[device])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        # Read implements
+        implements = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, ".*", 0, 10
+        )
+        assert implements == ["energy.battery", "energy.inverter"]
+
+        implements_filtered = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, "battery", 0, 10
+        )
+        assert implements_filtered == ["energy.battery"]
+
+        # Read implements with pagination
+        implements_paginated = await app.read_blueprint(
+            auth, "dev-1", domain.BlueprintSection.IMPLEMENTS, ".*", 1, 1
+        )
+        assert implements_paginated == ["energy.inverter"]
 
     async def test_get_historical_telemetry(self) -> None:
         historical = domain.HistoricalTelemetry(

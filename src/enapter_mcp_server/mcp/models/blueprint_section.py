@@ -1,3 +1,5 @@
 from typing import Literal
 
-BlueprintSection = Literal["telemetry", "properties", "alerts", "commands"]
+BlueprintSection = Literal[
+    "telemetry", "properties", "alerts", "commands", "implements"
+]

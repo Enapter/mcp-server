@@ -47,6 +47,7 @@ class EnapterDataMapper:
         return domain.DeviceManifest(
             description=manifest.get("description"),
             vendor=manifest.get("vendor"),
+            implements=list(manifest.get("implements") or []),
             properties={
                 name: self.to_property_declaration(name, dto)
                 for name, dto in (manifest.get("properties") or {}).items()

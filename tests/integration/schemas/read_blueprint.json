@@ -6,7 +6,7 @@
     "readOnlyHint": true,
     "title": "Read Blueprint"
   },
-  "description": "Read the blueprint for a specific device.\n\nThis tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', and 'properties'.\n\nTips:\n- Use `section=\"alerts\"` to get details about specific alerts.\n- Use `section=\"telemetry\"` to discover the exact names and metadata of telemetry attributes.\n- Use `section=\"commands\"` to see which actions can be executed on the device.\n- `name_regexp` accepts a Python-style regular expression.\n\nRelated tools:\n- `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.\n- `search_command_executions`: Use the commands discovered here to audit their past executions.",
+  "description": "Read the blueprint for a specific device.\n\nThis tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', 'properties', and 'implements'.\n\nTips:\n- Use `section=\"alerts\"` to get details about specific alerts.\n- Use `section=\"telemetry\"` to discover the exact names and metadata of telemetry attributes.\n- Use `section=\"commands\"` to see which actions can be executed on the device.\n- Use `section=\"implements\"` to list the standardized profiles that the device implements.\n- `name_regexp` accepts a Python-style regular expression.\n\nRelated tools:\n- `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.\n- `search_command_executions`: Use the commands discovered here to audit their past executions.\n\nSee also:\n- https://github.com/Enapter/profiles \u2014 documentation on the standardized profiles that blueprints implement.",
   "execution": null,
   "icons": null,
   "inputSchema": {
@@ -32,7 +32,8 @@
           "telemetry",
           "properties",
           "alerts",
-          "commands"
+          "commands",
+          "implements"
         ],
         "type": "string"
       }
@@ -54,6 +55,9 @@
       "result": {
         "items": {
           "anyOf": [
+            {
+              "type": "string"
+            },
             {
               "description": "Represents a property declaration.\n\nProperties are device metadata which do not change during normal device\noperation. Examples include \"firmware_version\", \"device_model\", and\n\"serial_number\".\n\nThe `access_level` field defines the minimum role required to read the\nproperty value. A user can read the property value only if their\n`authorized_role` for the device is at or after this `access_level`.",
               "properties": {

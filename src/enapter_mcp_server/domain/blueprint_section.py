@@ -6,3 +6,4 @@ class BlueprintSection(enum.Enum):
     PROPERTIES = "properties"
     ALERTS = "alerts"
     COMMANDS = "commands"
+    IMPLEMENTS = "implements"

@@ -286,24 +286,29 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[
-        models.PropertyDeclaration
+        str
+        | models.PropertyDeclaration
         | models.TelemetryAttributeDeclaration
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
         """Read the blueprint for a specific device.
 
-        This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', and 'properties'.
+        This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', 'properties', and 'implements'.
 
         Tips:
         - Use `section="alerts"` to get details about specific alerts.
         - Use `section="telemetry"` to discover the exact names and metadata of telemetry attributes.
         - Use `section="commands"` to see which actions can be executed on the device.
+        - Use `section="implements"` to list the standardized profiles that the device implements.
         - `name_regexp` accepts a Python-style regular expression.
 
         Related tools:
         - `get_historical_telemetry`: Pass the telemetry attributes discovered here to retrieve historical time-series data.
         - `search_command_executions`: Use the commands discovered here to audit their past executions.
+
+        See also:
+        - https://github.com/Enapter/profiles — documentation on the standardized profiles that blueprints implement.
         """
         auth = await self._get_auth_config()
         declarations = await self._app.read_blueprint(
@@ -316,14 +321,17 @@ class Server(enapter.async_.Routine):
         )
 
         models_list: list[
-            models.PropertyDeclaration
+            str
+            | models.PropertyDeclaration
             | models.TelemetryAttributeDeclaration
             | models.AlertDeclaration
             | models.CommandDeclaration
         ] = []
 
         for d in declarations:
-            if isinstance(d, domain.PropertyDeclaration):
+            if isinstance(d, str):
+                models_list.append(d)
+            elif isinstance(d, domain.PropertyDeclaration):
                 models_list.append(models.PropertyDeclaration.from_domain(d))
             elif isinstance(d, domain.TelemetryAttributeDeclaration):
                 models_list.append(models.TelemetryAttributeDeclaration.from_domain(d))
