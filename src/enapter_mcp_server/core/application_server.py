@@ -194,6 +194,7 @@ class ApplicationServer:
                     devices.append(
                         domain.Device(
                             id=device_dto.id,
+                            blueprint_id=device_dto.blueprint_id,
                             name=device_dto.name,
                             site_id=device_dto.site_id,
                             type=device_dto.type,
@@ -241,6 +242,7 @@ class ApplicationServer:
             devices.append(
                 domain.Device(
                     id=device_dto.id,
+                    blueprint_id=device_dto.blueprint_id,
                     name=device_dto.name,
                     site_id=device_dto.site_id,
                     type=device_dto.type,

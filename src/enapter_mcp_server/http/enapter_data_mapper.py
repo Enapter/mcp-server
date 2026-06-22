@@ -27,6 +27,7 @@ class EnapterDataMapper:
 
         return core.DeviceDTO(
             id=device.id,
+            blueprint_id=device.blueprint_id,
             name=device.name,
             site_id=device.site_id,
             type=domain.DeviceType(device.type.value.lower()),

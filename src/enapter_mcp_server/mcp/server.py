@@ -248,6 +248,7 @@ class Server(enapter.async_.Routine):
         - Use `has_active_alerts=True` to quickly find devices that require attention.
         - The default `view="basic"` returns summary information. To retrieve the `active_alerts` list and device `properties`, use `view="full"` (requires specifying either `site_id` or `device_id`).
         - `name_regexp` accepts a Python-style regular expression.
+        - Devices sharing the same `blueprint_id` have identical manifests, so `read_blueprint` need only be called once per unique `blueprint_id`. Reuse the result for every device with a matching `blueprint_id` to avoid redundant calls.
 
         Related tools:
         - `read_blueprint`: Pass the device `id` to read its blueprint and discover its telemetry attributes, commands, alerts, and properties.

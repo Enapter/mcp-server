@@ -260,6 +260,22 @@ class TestEnapterDataMapper:
 
         assert dto.authorized_role == domain.AccessRole.OWNER
 
+    def test_to_device_dto_blueprint_id(self) -> None:
+        device = enapter.http.api.devices.Device(
+            id="dev-3",
+            blueprint_id="bp-3",
+            name="Dev 3",
+            site_id="s3",
+            updated_at=datetime.datetime.now(),
+            slug="dev-3",
+            type=enapter.http.api.devices.DeviceType.NATIVE,
+            authorized_role=enapter.http.api.AccessRole.USER,
+        )
+
+        dto = http.EnapterDataMapper().to_device_dto(device)
+
+        assert dto.blueprint_id == "bp-3"
+
     def test_to_command_execution(self) -> None:
         created_at = datetime.datetime.now()
         execution = enapter.http.api.commands.Execution(
