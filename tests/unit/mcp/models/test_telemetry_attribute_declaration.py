@@ -14,6 +14,7 @@ class TestTelemetryAttributeDeclaration:
             description="Measured voltage",
             enum=None,
             unit="V",
+            implements=[],
         )
 
         attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
@@ -35,6 +36,7 @@ class TestTelemetryAttributeDeclaration:
             description="Current operation mode",
             enum=["auto", "manual", "off"],
             unit=None,
+            implements=[],
         )
 
         attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
@@ -56,6 +58,7 @@ class TestTelemetryAttributeDeclaration:
             description=None,
             enum=None,
             unit=None,
+            implements=[],
         )
 
         attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
@@ -84,8 +87,8 @@ class TestTelemetryAttributeDeclaration:
 
         assert attr.implements == ["sensor.solar_irradiance.solar_irradiance"]
 
-    def test_telemetry_attribute_declaration_from_domain_implements_none(self) -> None:
-        """`implements` defaults to None when not set on the domain object."""
+    def test_telemetry_attribute_declaration_from_domain_implements_empty(self) -> None:
+        """`implements` is an empty list when no profiles are mapped."""
         declaration = domain.TelemetryAttributeDeclaration(
             name="irradiance",
             display_name="Solar Irradiance",
@@ -94,8 +97,9 @@ class TestTelemetryAttributeDeclaration:
             description=None,
             enum=None,
             unit=None,
+            implements=[],
         )
 
         attr = mcp.models.TelemetryAttributeDeclaration.from_domain(declaration)
 
-        assert attr.implements is None
+        assert attr.implements == []

@@ -44,6 +44,7 @@ class TestServer:
                 description=None,
                 enum=None,
                 unit=None,
+                implements=[],
             )
         ]
 
@@ -74,6 +75,7 @@ class TestServer:
                 description=None,
                 enum=None,
                 unit="V",
+                implements=[],
             )
         ]
 
@@ -130,6 +132,7 @@ class TestServer:
                 access_level=domain.AccessRole.USER,
                 description="D1",
                 arguments=[],
+                implements=[],
             )
         ]
 

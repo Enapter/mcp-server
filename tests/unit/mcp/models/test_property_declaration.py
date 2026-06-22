@@ -14,6 +14,7 @@ class TestPropertyDeclaration:
             description="Version of the firmware",
             enum=None,
             unit=None,
+            implements=[],
         )
 
         prop = mcp.models.PropertyDeclaration.from_domain(declaration)
@@ -36,6 +37,7 @@ class TestPropertyDeclaration:
             description="Operation mode",
             enum=["on", "off"],
             unit="state",
+            implements=[],
         )
 
         prop = mcp.models.PropertyDeclaration.from_domain(declaration)
@@ -58,6 +60,7 @@ class TestPropertyDeclaration:
             description=None,
             enum=None,
             unit=None,
+            implements=[],
         )
 
         prop = mcp.models.PropertyDeclaration.from_domain(declaration)
@@ -87,8 +90,8 @@ class TestPropertyDeclaration:
 
         assert prop.implements == ["energy.battery.soc"]
 
-    def test_property_declaration_from_domain_implements_none(self) -> None:
-        """`implements` defaults to None when not set on the domain object."""
+    def test_property_declaration_from_domain_implements_empty(self) -> None:
+        """`implements` is an empty list when no profiles are mapped."""
         declaration = domain.PropertyDeclaration(
             name="soc",
             display_name="State of Charge",
@@ -97,8 +100,9 @@ class TestPropertyDeclaration:
             description=None,
             enum=None,
             unit=None,
+            implements=[],
         )
 
         prop = mcp.models.PropertyDeclaration.from_domain(declaration)
 
-        assert prop.implements is None
+        assert prop.implements == []

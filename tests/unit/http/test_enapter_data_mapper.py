@@ -203,8 +203,8 @@ class TestEnapterDataMapper:
         ]
         assert manifest.commands["c1"].implements == ["lib.energy.battery.reboot"]
 
-    def test_parse_device_manifest_implements_absent_is_none(self) -> None:
-        """When `implements` key is absent, the field is None."""
+    def test_parse_device_manifest_implements_absent_is_empty(self) -> None:
+        """When `implements` key is absent, the field is an empty list."""
         manifest = http.EnapterDataMapper().to_device_manifest(
             {
                 "properties": {
@@ -228,9 +228,9 @@ class TestEnapterDataMapper:
         )
 
         assert manifest is not None
-        assert manifest.properties["p1"].implements is None
-        assert manifest.telemetry["t1"].implements is None
-        assert manifest.commands["c1"].implements is None
+        assert manifest.properties["p1"].implements == []
+        assert manifest.telemetry["t1"].implements == []
+        assert manifest.commands["c1"].implements == []
 
     def test_to_latest_telemetry(self) -> None:
         timestamp = datetime.datetime.now()

@@ -26,7 +26,7 @@ optional metadata on existing declaration models.
 
 ## Architectural Decisions
 
-1. **Add `implements: list[str] | None = None`** to
+1. **Add `implements: list[str]`** to
    `TelemetryAttributeDeclaration`, `PropertyDeclaration`, and
    `CommandDeclaration` — both domain dataclasses and MCP pydantic models. The
    field is a list of dot-notation profile identifier strings (e.g.,
@@ -42,9 +42,10 @@ optional metadata on existing declaration models.
    `implements` on alerts or command arguments.
 
 3. **Map the field from the manifest dict's per-declaration `implements` key.**
-   The API delivers the value as a list. When the key is absent, the field is
-   `None`. The field is purely additive metadata on existing declarations — no
-   new tool, no new section, no return-type change.
+   The API delivers the value as a list. When the key is absent, the field
+   defaults to an empty list (`[]`), consistent with `DeviceManifest.implements`
+   in SPEC-006. The field is purely additive metadata on existing declarations
+   — no new tool, no new section, no return-type change.
 
 ## Constraints
 
@@ -56,12 +57,11 @@ optional metadata on existing declaration models.
 
 ## Acceptance Criteria
 
-1. `domain.TelemetryAttributeDeclaration` has `implements: list[str] | None =
-   None`.
+1. `domain.TelemetryAttributeDeclaration` has `implements: list[str]`.
 
-2. `domain.PropertyDeclaration` has `implements: list[str] | None = None`.
+2. `domain.PropertyDeclaration` has `implements: list[str]`.
 
-3. `domain.CommandDeclaration` has `implements: list[str] | None = None`.
+3. `domain.CommandDeclaration` has `implements: list[str]`.
 
 4. `domain.AlertDeclaration` does NOT have an `implements` field.
 
@@ -69,22 +69,22 @@ optional metadata on existing declaration models.
 
 6. `EnapterDataMapper` maps per-declaration `implements` from the declaration
    dict's `implements` key for telemetry attributes, properties, and commands.
-   The API delivers the value as a list. When the key is absent, the field is
-   `None`.
+   The API delivers the value as a list. When the key is absent, the field
+   defaults to `[]`.
 
 7. `mcp.models.TelemetryAttributeDeclaration`, `mcp.models.PropertyDeclaration`,
-   and `mcp.models.CommandDeclaration` each have `implements: list[str] | None
-   = None`, populated by `from_domain`.
+   and `mcp.models.CommandDeclaration` each have `implements: list[str]`,
+   populated by `from_domain`.
 
 8. The `tests/integration/schemas/read_blueprint.json` snapshot is regenerated
-   and shows `implements` as an optional array-of-strings property on the
+   and shows `implements` as an array-of-strings property on the
    `TelemetryAttributeDeclaration`, `PropertyDeclaration`, and
    `CommandDeclaration` schemas.
 
 9. Unit tests cover:
    - `to_telemetry_attribute_declaration` / `to_property_declaration` /
      `to_command_declaration` map `implements` (present → list of strings;
-     absent → `None`).
+     absent → `[]`).
    - MCP declaration models' `from_domain` propagates `implements`.
 
 10. `make check` passes.
