@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import re
+from typing import Any
 
 from enapter_mcp_server import domain
 
@@ -9,7 +10,12 @@ from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
-from .errors import GatewayUnavailable, SearchQueryTooBroad
+from .errors import (
+    CommandNotFound,
+    ConfirmationRequired,
+    GatewayUnavailable,
+    SearchQueryTooBroad,
+)
 from .rule_search_query import RuleSearchQuery
 from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
@@ -309,6 +315,44 @@ class ApplicationServer:
         entities = [e for e in entities if name_pattern.search(key(e))]
         entities.sort(key=key)
         return entities[offset : offset + limit]
+
+    async def execute_command(
+        self,
+        auth: AuthConfig,
+        device_id: str,
+        command_name: str,
+        arguments: dict[str, Any] | None = None,
+        human_confirmed_this_action: bool = False,
+    ) -> domain.CommandExecution:
+        commands = await self._resolve_manifest_commands(auth, device_id)
+        declaration = commands.get(command_name)
+        if declaration is None:
+            available = ", ".join(sorted(commands)) or "(none)"
+            raise CommandNotFound(
+                f"Command {command_name!r} is not declared in the manifest of"
+                f" device {device_id!r}. Available commands: {available}."
+            )
+        if declaration.confirmation is not None and not human_confirmed_this_action:
+            confirmation = declaration.confirmation
+            title = confirmation.title or declaration.display_name
+            description = confirmation.description
+            raise ConfirmationRequired(
+                f"Command {command_name!r} on device {device_id!r} requires human"
+                f" confirmation before execution. Title: {title}."
+                f" Description: {description}."
+            )
+        return await self._enapter_api.execute_command(
+            auth, device_id, command_name, arguments
+        )
+
+    async def _resolve_manifest_commands(
+        self, auth: AuthConfig, device_id: str
+    ) -> dict[str, domain.CommandDeclaration]:
+        device_dto = await self._enapter_api.get_device(
+            auth, device_id, expand_manifest=True
+        )
+        assert device_dto.manifest is not None
+        return device_dto.manifest.commands
 
     async def get_historical_telemetry(
         self,

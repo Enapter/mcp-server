@@ -385,3 +385,74 @@ class TestEnapterDataMapper:
         assert mapped.created_at == created_at
         assert mapped.arguments == {"on": True}
         assert mapped.response_payload == {"status": "ok"}
+
+    def test_command_declaration_maps_confirmation_when_present(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "commands": {
+                    "reboot": {
+                        "display_name": "Reboot",
+                        "confirmation": {
+                            "severity": "warning",
+                            "title": "Reboot the device",
+                            "description": "Restarts the device.",
+                        },
+                    }
+                }
+            }
+        )
+
+        assert manifest is not None
+        confirmation = manifest.commands["reboot"].confirmation
+        assert confirmation is not None
+        assert confirmation.severity == "warning"
+        assert confirmation.title == "Reboot the device"
+        assert confirmation.description == "Restarts the device."
+
+    def test_command_declaration_confirmation_absent_is_none(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "commands": {
+                    "status": {
+                        "display_name": "Status",
+                    }
+                }
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.commands["status"].confirmation is None
+
+    def test_command_declaration_confirmation_null_value_is_none(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "commands": {
+                    "reboot": {
+                        "display_name": "Reboot",
+                        "confirmation": None,
+                    }
+                }
+            }
+        )
+
+        assert manifest is not None
+        assert manifest.commands["reboot"].confirmation is None
+
+    def test_command_declaration_confirmation_partial_block_is_defensive(self) -> None:
+        manifest = http.EnapterDataMapper().to_device_manifest(
+            {
+                "commands": {
+                    "reboot": {
+                        "display_name": "Reboot",
+                        "confirmation": {"title": "Reboot the device"},
+                    }
+                }
+            }
+        )
+
+        assert manifest is not None
+        confirmation = manifest.commands["reboot"].confirmation
+        assert confirmation is not None
+        assert confirmation.title == "Reboot the device"
+        assert confirmation.severity is None
+        assert confirmation.description is None

@@ -124,6 +124,18 @@ class EnapterDataMapper:
                 for arg_name, arg_dto in (dto.get("arguments") or {}).items()
             ],
             implements=dto.get("implements") or [],
+            confirmation=self.to_command_confirmation(dto.get("confirmation")),
+        )
+
+    def to_command_confirmation(
+        self, dto: dict[str, Any] | None
+    ) -> domain.CommandConfirmation | None:
+        if dto is None:
+            return None
+        return domain.CommandConfirmation(
+            severity=dto.get("severity"),
+            title=dto.get("title"),
+            description=dto.get("description"),
         )
 
     def to_command_argument_declaration(
