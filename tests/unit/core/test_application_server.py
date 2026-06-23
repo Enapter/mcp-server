@@ -2,6 +2,7 @@ import datetime
 from typing import Any, AsyncGenerator
 
 import enapter
+import pytest
 
 from enapter_mcp_server import core, domain
 
@@ -38,6 +39,8 @@ class MockEnapterAPI:
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
         rule_engine_states: dict[str, core.RuleEngineDTO] | None = None,
         rules: dict[str, list[core.RuleDTO]] | None = None,
+        execute_command_result: domain.CommandExecution | None = None,
+        execute_command_raises: BaseException | None = None,
     ):
         self._sites = sites or []
         self._devices = devices or []
@@ -47,8 +50,11 @@ class MockEnapterAPI:
         self._command_executions = command_executions or {}
         self._rule_engine_states = rule_engine_states or {}
         self._rules = rules or {}
+        self._execute_command_result = execute_command_result
+        self._execute_command_raises = execute_command_raises
         self.latest_telemetry_batch_calls = 0
         self.get_rule_engine_calls = 0
+        self.execute_command_calls: list[dict[str, Any]] = []
 
     async def get_rule_engine(
         self, auth: core.AuthConfig, site_id: str
@@ -147,6 +153,26 @@ class MockEnapterAPI:
             if device.id == device_id:
                 return device
         raise ValueError(f"Device {device_id} not found")
+
+    async def execute_command(
+        self,
+        auth: core.AuthConfig,
+        device_id: str,
+        command_name: str,
+        arguments: dict[str, Any] | None,
+    ) -> domain.CommandExecution:
+        self.execute_command_calls.append(
+            {
+                "device_id": device_id,
+                "command_name": command_name,
+                "arguments": arguments,
+            }
+        )
+        if self._execute_command_raises is not None:
+            raise self._execute_command_raises
+        if self._execute_command_result is None:
+            raise NotImplementedError()
+        return self._execute_command_result
 
     async def get_latest_telemetry(
         self, auth: core.AuthConfig, attributes_by_device: dict[str, list[str]]
@@ -1332,3 +1358,313 @@ class TestApplicationServer:
             assert str(exc) == "Please provide `device_id` to narrow down the search."
         else:
             raise AssertionError("Expected SearchQueryTooBroad")
+
+    @staticmethod
+    def _device_with_commands(
+        device_id: str, commands: dict[str, domain.CommandDeclaration]
+    ) -> core.DeviceDTO:
+        return core.DeviceDTO(
+            blueprint_id="bp-1",
+            id=device_id,
+            name=device_id,
+            site_id="s1",
+            type=domain.DeviceType.NATIVE,
+            authorized_role=domain.AccessRole.OWNER,
+            manifest=make_device_manifest(commands=commands),
+        )
+
+    async def test_execute_command_unknown_name_raises_and_not_called(self) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "reboot": domain.CommandDeclaration(
+                    name="reboot",
+                    display_name="Reboot",
+                    access_level=domain.AccessRole.OWNER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                ),
+                "status": domain.CommandDeclaration(
+                    name="status",
+                    display_name="Status",
+                    access_level=domain.AccessRole.USER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                ),
+            },
+        )
+        api = MockEnapterAPI(devices=[device])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.execute_command(
+                auth,
+                device_id="dev-1",
+                command_name="does_not_exist",
+                arguments={},
+            )
+        except core.CommandNotFound as exc:
+            message = str(exc)
+            assert "does_not_exist" in message
+            # The message must name an available command so the agent can
+            # recover (correct a typo or hallucination).
+            assert "reboot" in message
+            assert "status" in message
+        else:
+            raise AssertionError("Expected CommandNotFound")
+
+        # `execute` must NOT have been called when the name is unknown.
+        assert api.execute_command_calls == []
+
+    async def test_execute_command_confirmation_declared_flag_false_raises_and_not_called(
+        self,
+    ) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "reboot": domain.CommandDeclaration(
+                    name="reboot",
+                    display_name="Reboot",
+                    access_level=domain.AccessRole.OWNER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                    confirmation=domain.CommandConfirmation(
+                        severity="warning",
+                        title="Reboot the device",
+                        description="This will restart the device.",
+                    ),
+                )
+            },
+        )
+        api = MockEnapterAPI(devices=[device])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.execute_command(
+                auth,
+                device_id="dev-1",
+                command_name="reboot",
+                arguments={},
+                human_confirmed_this_action=False,
+            )
+        except core.ConfirmationRequired as exc:
+            message = str(exc)
+            assert "Reboot the device" in message
+            assert "This will restart the device." in message
+        else:
+            raise AssertionError("Expected ConfirmationRequired")
+
+        # `execute` must NOT have been called on refusal.
+        assert api.execute_command_calls == []
+
+    async def test_execute_command_confirmation_declared_flag_true_proceeds(
+        self,
+    ) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "reboot": domain.CommandDeclaration(
+                    name="reboot",
+                    display_name="Reboot",
+                    access_level=domain.AccessRole.OWNER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                    confirmation=domain.CommandConfirmation(
+                        severity="warning",
+                        title="Reboot the device",
+                        description="This will restart the device.",
+                    ),
+                )
+            },
+        )
+        result = domain.CommandExecution(
+            id="exec-1",
+            device_id="dev-1",
+            command_name="reboot",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2024, 1, 1),
+            arguments={"x": 1},
+            response_payload={"ok": True},
+        )
+        api = MockEnapterAPI(devices=[device], execute_command_result=result)
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        out = await app.execute_command(
+            auth,
+            device_id="dev-1",
+            command_name="reboot",
+            arguments={"x": 1},
+            human_confirmed_this_action=True,
+        )
+
+        assert out == result
+        assert api.execute_command_calls == [
+            {"device_id": "dev-1", "command_name": "reboot", "arguments": {"x": 1}}
+        ]
+
+    async def test_execute_command_no_confirmation_flag_false_proceeds(self) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "status": domain.CommandDeclaration(
+                    name="status",
+                    display_name="Status",
+                    access_level=domain.AccessRole.USER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                )
+            },
+        )
+        result = domain.CommandExecution(
+            id="exec-1",
+            device_id="dev-1",
+            command_name="status",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2024, 1, 1),
+        )
+        api = MockEnapterAPI(devices=[device], execute_command_result=result)
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        out = await app.execute_command(
+            auth,
+            device_id="dev-1",
+            command_name="status",
+            arguments={},
+            human_confirmed_this_action=False,
+        )
+
+        assert out == result
+        assert len(api.execute_command_calls) == 1
+
+    async def test_execute_command_returns_command_execution_with_response_payload(
+        self,
+    ) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "status": domain.CommandDeclaration(
+                    name="status",
+                    display_name="Status",
+                    access_level=domain.AccessRole.USER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                )
+            },
+        )
+        result = domain.CommandExecution(
+            id="exec-1",
+            device_id="dev-1",
+            command_name="status",
+            state=domain.CommandExecutionState.SUCCESS,
+            created_at=datetime.datetime(2024, 1, 1),
+            arguments={"a": 1},
+            response_payload={"state": "running"},
+        )
+        api = MockEnapterAPI(devices=[device], execute_command_result=result)
+        app = core.ApplicationServer(api)
+
+        out = await app.execute_command(
+            core.AuthConfig(token="test"),
+            device_id="dev-1",
+            command_name="status",
+            arguments={"a": 1},
+        )
+
+        assert out.id == "exec-1"
+        assert out.state == domain.CommandExecutionState.SUCCESS
+        assert out.response_payload == {"state": "running"}
+
+    @pytest.mark.parametrize(
+        "state",
+        [
+            domain.CommandExecutionState.ERROR,
+            domain.CommandExecutionState.TIMEOUT,
+            domain.CommandExecutionState.UNSYNC,
+        ],
+    )
+    async def test_execute_command_returns_terminal_states_without_raising(
+        self, state: domain.CommandExecutionState
+    ) -> None:
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "status": domain.CommandDeclaration(
+                    name="status",
+                    display_name="Status",
+                    access_level=domain.AccessRole.USER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                )
+            },
+        )
+        result = domain.CommandExecution(
+            id="exec-1",
+            device_id="dev-1",
+            command_name="status",
+            state=state,
+            created_at=datetime.datetime(2024, 1, 1),
+        )
+        api = MockEnapterAPI(devices=[device], execute_command_result=result)
+        app = core.ApplicationServer(api)
+
+        out = await app.execute_command(
+            core.AuthConfig(token="test"),
+            device_id="dev-1",
+            command_name="status",
+            arguments={},
+        )
+
+        assert out.state == state
+
+    async def test_execute_command_sdk_raise_propagates(self) -> None:
+        import httpx
+
+        device = self._device_with_commands(
+            "dev-1",
+            {
+                "status": domain.CommandDeclaration(
+                    name="status",
+                    display_name="Status",
+                    access_level=domain.AccessRole.USER,
+                    description=None,
+                    arguments=[],
+                    implements=[],
+                )
+            },
+        )
+        api_error = httpx.HTTPStatusError(
+            "Forbidden",
+            request=httpx.Request(
+                "POST", "https://api.enapter.com/v3/devices/dev-1/execute_command"
+            ),
+            response=httpx.Response(403, request=httpx.Request("POST", "")),
+        )
+        api = MockEnapterAPI(
+            devices=[device],
+            execute_command_result=None,
+            execute_command_raises=api_error,
+        )
+        app = core.ApplicationServer(api)
+
+        try:
+            await app.execute_command(
+                core.AuthConfig(token="test"),
+                device_id="dev-1",
+                command_name="status",
+                arguments={},
+            )
+        except httpx.HTTPStatusError as exc:
+            assert exc is api_error
+        else:
+            raise AssertionError("Expected the SDK exception to propagate")

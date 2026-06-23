@@ -119,6 +119,19 @@ class EnapterAPI:
             )
             return self._data_mapper.to_device_dto(device)
 
+    async def execute_command(
+        self,
+        auth: core.AuthConfig,
+        device_id: str,
+        command_name: str,
+        arguments: dict[str, Any] | None,
+    ) -> domain.CommandExecution:
+        async with self._new_client(auth) as client:
+            execution = await client.commands.execute(
+                device_id, command_name, arguments
+            )
+            return self._data_mapper.to_command_execution(execution)
+
     @enapter.async_.generator
     async def list_command_executions(
         self,

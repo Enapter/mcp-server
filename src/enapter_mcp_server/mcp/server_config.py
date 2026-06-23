@@ -12,6 +12,7 @@ class ServerConfig:
     oauth_proxy_config: OAuthProxyConfig | None = None
     logo_url: str | None = None
     cors_allow_origins: list[str] | None = None
+    command_execution_enabled: bool = False
 
     @property
     def address(self) -> str:

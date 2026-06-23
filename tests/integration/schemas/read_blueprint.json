@@ -305,7 +305,7 @@
               "type": "object"
             },
             {
-              "description": "A declaration of a device command.\n\nThe `access_level` field defines the minimum role required to execute\nthis command. A user can execute this command only if their\n`authorized_role` for the device is at or after this `access_level`.",
+              "description": "A declaration of a device command.\n\nThe `access_level` field defines the minimum role required to execute this command. A user can execute this command only if their `authorized_role` for the device is at or after this `access_level`.\n\nThe `confirmation` field, when present, marks the command as consequential per the vendor's declaration.",
               "properties": {
                 "access_level": {
                   "description": "Roles in priority order: readonly < user < owner < installer < vendor < system.",
@@ -378,6 +378,53 @@
                     "type": "object"
                   },
                   "type": "array"
+                },
+                "confirmation": {
+                  "anyOf": [
+                    {
+                      "description": "Vendor-declared confirmation block for a consequential command.",
+                      "properties": {
+                        "description": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        },
+                        "severity": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        },
+                        "title": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        }
+                      },
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
                 },
                 "description": {
                   "anyOf": [

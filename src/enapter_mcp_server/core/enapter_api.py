@@ -53,6 +53,14 @@ class EnapterAPI(Protocol):
         expand_active_alerts: bool = False,
     ) -> DeviceDTO: ...
 
+    async def execute_command(
+        self,
+        auth: AuthConfig,
+        device_id: str,
+        command_name: str,
+        arguments: dict[str, Any] | None,
+    ) -> domain.CommandExecution: ...
+
     @enapter.async_.generator
     async def list_command_executions(
         self,

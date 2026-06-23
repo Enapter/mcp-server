@@ -5,6 +5,7 @@ from .alert_severity import AlertSeverity
 from .blueprint_section import BlueprintSection
 from .blueprint_summary import BlueprintSummary
 from .command_argument_declaration import CommandArgumentDeclaration
+from .command_confirmation import CommandConfirmation
 from .command_declaration import CommandDeclaration
 from .command_execution import CommandExecution
 from .command_execution_state import CommandExecutionState
@@ -32,6 +33,7 @@ __all__ = [
     "BlueprintSection",
     "BlueprintSummary",
     "CommandArgumentDeclaration",
+    "CommandConfirmation",
     "CommandDeclaration",
     "CommandExecution",
     "CommandExecutionState",

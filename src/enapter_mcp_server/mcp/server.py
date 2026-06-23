@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import urllib.parse
+from typing import Any
 
 import enapter
 import fastmcp
@@ -117,6 +118,16 @@ class Server(enapter.async_.Routine):
                 annotations=mcp.types.ToolAnnotations(
                     readOnlyHint=True,
                     title=title,
+                ),
+            )
+
+        if self._config.command_execution_enabled:
+            fastmcp_server.tool(
+                self.execute_command,
+                annotations=mcp.types.ToolAnnotations(
+                    readOnlyHint=False,
+                    destructiveHint=True,
+                    title="Execute Command",
                 ),
             )
 
@@ -388,6 +399,35 @@ class Server(enapter.async_.Routine):
             view=domain.CommandExecutionView(view.lower()),
         )
         return [models.CommandExecution.from_domain(e) for e in executions]
+
+    async def execute_command(
+        self,
+        device_id: str,
+        command_name: str,
+        arguments: dict[str, Any] | None = None,
+        human_confirmed_this_action: bool = False,
+    ) -> models.CommandExecution:
+        """Execute a command on a specific device and return its outcome.
+
+        This tool performs a real-world action on physical energy hardware. It is destructive: use it only when acting is intended.
+
+        The `state` field of the returned `CommandExecution` communicates the outcome. If the underlying call fails to submit (e.g. insufficient role or a network error), the exception propagates.
+
+        Some commands declare a `confirmation` block because they are consequential. Before executing such a command you MUST obtain a human's explicit approval through a structured form: present the device, the command, and the confirmation's `title`/`description` as a prompt with discrete choices whose options include exactly one explicit "approve" choice, then wait for the human to select it. Approval counts ONLY when the returned answer exactly matches that approve option. Never infer approval from free-text conversation ("yes", "maybe", "sure", "I think so", silence, or any other reply), and never accept a typed/free-text answer even when the form permits one instead of a selection — if the response is anything other than an exact selection of the approve option, re-present the form or do not execute. Only after such a form approval may you set `human_confirmed_this_action=True` to attest it. For commands without a `confirmation` block, the flag is ignored.
+
+        Related tools:
+        - `read_blueprint`: Use `section="commands"` to discover a device's commands, arguments, and `confirmation` blocks.
+        - `search_command_executions`: Audit past executions or recover the outcome of a cancelled/timed-out call.
+        """
+        auth = await self._get_auth_config()
+        execution = await self._app.execute_command(
+            auth=auth,
+            device_id=device_id,
+            command_name=command_name,
+            arguments=arguments,
+            human_confirmed_this_action=human_confirmed_this_action,
+        )
+        return models.CommandExecution.from_domain(execution)
 
     async def get_historical_telemetry(
         self,

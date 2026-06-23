@@ -38,6 +38,7 @@ ENAPTER_OAUTH_PROXY_JWT_STORE_URL = os.getenv(
 )
 ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY")
 ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
+ENAPTER_COMMAND_EXECUTION_ENABLED = os.getenv("ENAPTER_COMMAND_EXECUTION_ENABLED", "0")
 
 
 class ServeCommand(Command):
@@ -125,6 +126,13 @@ class ServeCommand(Command):
             default=ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY,
             help="Signing key for JWTs issued by OAuth proxy. Required if OAuth proxy is enabled",
         )
+        parser.add_argument(
+            "--command-execution-enabled",
+            choices=["0", "1"],
+            default=ENAPTER_COMMAND_EXECUTION_ENABLED,
+            help="Enable the destructive `execute_command` tool (kill switch). "
+            "When disabled (the default), the tool is not registered at all",
+        )
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
@@ -165,6 +173,7 @@ class ServeCommand(Command):
             oauth_proxy_config=oauth_proxy_config,
             logo_url=args.logo_url,
             cors_allow_origins=cors_allow_origins,
+            command_execution_enabled=args.command_execution_enabled == "1",
         )
         async with asyncio.TaskGroup() as task_group:
             async with http.EnapterAPI(
