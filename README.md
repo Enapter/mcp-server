@@ -42,15 +42,16 @@ arguments.
 
 The server exposes the following tools for interacting with the Enapter EMS:
 
-| Tool                        | Description                                                      |
-| --------------------------- | ---------------------------------------------------------------- |
-| `search_sites`              | Search among all sites with name and timezone regex filtering    |
-| `search_devices`            | Search devices by site, type, and name regex filtering           |
-| `search_command_executions` | Search the history of command executions                         |
-| `read_blueprint`            | Access device blueprint sections (properties, telemetry, alerts) |
-| `get_historical_telemetry`  | Retrieve time-series telemetry with configurable granularity     |
-| `search_rules`              | Search for automation rules within a specific site               |
-| `read_rule`                 | Read the paginated lines of a rule's Lua script                  |
+| Tool                        | Description                                                      | Access     | Default  |
+| --------------------------- | ---------------------------------------------------------------- | ---------- | -------- |
+| `search_sites`              | Search among all sites with name and timezone regex filtering    | Read-only  | Enabled  |
+| `search_devices`            | Search devices by site, type, and name regex filtering           | Read-only  | Enabled  |
+| `search_command_executions` | Search the history of command executions                         | Read-only  | Enabled  |
+| `read_blueprint`            | Access device blueprint sections (properties, telemetry, alerts) | Read-only  | Enabled  |
+| `get_historical_telemetry`  | Retrieve time-series telemetry with configurable granularity     | Read-only  | Enabled  |
+| `search_rules`              | Search for automation rules within a specific site               | Read-only  | Enabled  |
+| `read_rule`                 | Read the paginated lines of a rule's Lua script                  | Read-only  | Enabled  |
+| `execute_command`           | Execute a command on a device                                    | Read-write | Disabled |
 
 ## Usage Examples
 
@@ -113,6 +114,36 @@ Here are realistic examples of how you can interact with your Enapter devices us
 - Identifies the relevant rule based on its name/slug
 - Retrieves the rule's Lua script using `read_rule`
 - Analyzes the logic and confirms the exact threshold and conditions that trigger the electrolyser
+
+### Example 5: Executing a Command (Human Confirmation Required)
+
+> ⚠️ `execute_command` is **destructive** — it acts on real physical hardware
+> (pumps, electrolysers, valves, inverters). It is **disabled by default**. Enable
+> it with `--command-execution-enabled` on the command line or by setting
+> `ENAPTER_COMMAND_EXECUTION_ENABLED=1`.
+
+**User prompt:**
+
+> The electrolyser at the Alpha site has been running for a long time. Please
+> reboot it for me.
+
+**What happens:**
+
+- Server locates the electrolyser device using `search_devices`
+- Reads the device blueprint with `read_blueprint(section="commands")` to
+  discover the `reboot` command and checks whether it declares a `confirmation`
+  block
+- The `reboot` command declares a `confirmation` with a `title` and
+  `description` (e.g. _"Reboot the electrolyser"_ / _"This will restart the
+  device and interrupt production."_), so the assistant **presents these to the
+  human and waits for explicit approval** — it does not act on its own initiative
+- Only after the human confirms does the assistant call `execute_command` with
+  `human_confirmed_this_action=True`
+- The device runs the command and the tool returns the resulting
+  `CommandExecution`, whose `state` field reports the outcome
+  (`success`/`error`/`timeout`/`unsync`)
+- The returned execution `id` can later be referenced or audited via
+  `search_command_executions`
 
 ## Support
 

@@ -8,3 +8,11 @@ class SearchQueryTooBroad(Exception):
 
 class GatewayUnavailable(Exception):
     pass
+
+
+class ConfirmationRequired(Exception):
+    pass
+
+
+class CommandNotFound(Exception):
+    pass

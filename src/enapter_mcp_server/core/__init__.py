@@ -5,6 +5,8 @@ from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
+    CommandNotFound,
+    ConfirmationRequired,
     GatewayUnavailable,
     LatestTelemetryUnavailable,
     SearchQueryTooBroad,
@@ -19,6 +21,8 @@ __all__ = [
     "ApplicationServer",
     "AuthConfig",
     "CommandExecutionSearchQuery",
+    "CommandNotFound",
+    "ConfirmationRequired",
     "DeviceDTO",
     "DeviceSearchQuery",
     "EnapterAPI",
