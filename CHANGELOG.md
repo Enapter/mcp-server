@@ -1,3 +1,8 @@
+## [1.8.0] - 2026-06-25
+
+### 🚀 Features
+
+- Add opt-in execute_command tool (SPEC-007)
 ## [1.7.0] - 2026-06-22
 
 ### 🚀 Features
@@ -9,6 +14,10 @@
 ### 🚜 Refactor
 
 - Use list[str] consistently for per-declaration implements
+
+### ⚙️ Miscellaneous Tasks
+
+- *(release)* Bump version to 1.7.0
 ## [1.6.0] - 2026-06-17
 
 ### 🚀 Features
