@@ -5,7 +5,8 @@ from typing import Any, AsyncGenerator, Callable, Coroutine, cast
 import enapter
 import pytest
 
-from enapter_mcp_server import core, domain, http
+from enapter_mcp_server import core, domain
+from enapter_mcp_server.http.enapter_api import EnapterAPI
 
 
 class FailingTelemetryClient:
@@ -24,7 +25,7 @@ class FakeClient:
         self.telemetry = FailingTelemetryClient()
 
 
-class StubEnapterAPI(http.EnapterAPI):
+class StubEnapterAPI(EnapterAPI):
     @contextlib.asynccontextmanager
     async def _new_client(
         self, auth: core.AuthConfig
@@ -100,7 +101,7 @@ class _CommandFakeClient:
         self.commands = commands
 
 
-class _CommandStubEnapterAPI(http.EnapterAPI):
+class _CommandStubEnapterAPI(EnapterAPI):
     """Stub that injects a fake `commands` client for execute_command tests."""
 
     def __init__(self, base_url: str, commands: _SpyCommandsClient) -> None:
@@ -164,7 +165,7 @@ def _make_execution(
 
 
 class TestExecuteCommand:
-    """Unit tests for http.EnapterAPI.execute_command."""
+    """Unit tests for EnapterAPI.execute_command."""
 
     # -- helpers -----------------------------------------------------------
 

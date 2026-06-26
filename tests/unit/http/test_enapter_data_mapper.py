@@ -2,12 +2,13 @@ import datetime
 
 import enapter
 
-from enapter_mcp_server import domain, http
+from enapter_mcp_server import domain
+from enapter_mcp_server.http.enapter_data_mapper import EnapterDataMapper
 
 
 class TestEnapterDataMapper:
     def test_parse_device_manifest(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "description": "Electrolyzer device",
                 "vendor": "Enapter",
@@ -59,7 +60,7 @@ class TestEnapterDataMapper:
         assert manifest.commands["c1"].access_level == domain.AccessRole.USER
 
     def test_parse_device_manifest_implements_list(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "description": "Electrolyzer device",
                 "vendor": "Enapter",
@@ -71,7 +72,7 @@ class TestEnapterDataMapper:
         assert manifest.implements == ["energy.battery", "energy.inverter"]
 
     def test_parse_device_manifest_missing_sections(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest({})
+        manifest = EnapterDataMapper().to_device_manifest({})
 
         assert manifest is not None
         assert manifest.description is None
@@ -83,13 +84,13 @@ class TestEnapterDataMapper:
         assert manifest.commands == {}
 
     def test_parse_device_manifest_implements_null(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest({"implements": None})
+        manifest = EnapterDataMapper().to_device_manifest({"implements": None})
         assert manifest is not None
         assert manifest.implements == []
 
     def test_parse_device_manifest_raises_on_invalid_payload(self) -> None:
         try:
-            http.EnapterDataMapper().to_device_manifest(
+            EnapterDataMapper().to_device_manifest(
                 {
                     "properties": {
                         "p1": {
@@ -104,7 +105,7 @@ class TestEnapterDataMapper:
             raise AssertionError("Expected manifest parsing to fail")
 
     def test_parse_device_manifest_explicit_access_level(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "properties": {
                     "p1": {
@@ -136,7 +137,7 @@ class TestEnapterDataMapper:
 
     def test_parse_device_manifest_access_level_null(self) -> None:
         """Explicit null access_level should fall back to defaults."""
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "properties": {
                     "p1": {
@@ -171,7 +172,7 @@ class TestEnapterDataMapper:
 
     def test_parse_device_manifest_maps_implements(self) -> None:
         """Per-declaration `implements` is mapped for telemetry, properties, commands."""
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "properties": {
                     "p1": {
@@ -205,7 +206,7 @@ class TestEnapterDataMapper:
 
     def test_parse_device_manifest_implements_absent_is_empty(self) -> None:
         """When `implements` key is absent, the field is an empty list."""
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "properties": {
                     "p1": {
@@ -234,7 +235,7 @@ class TestEnapterDataMapper:
 
     def test_to_latest_telemetry(self) -> None:
         timestamp = datetime.datetime.now()
-        telemetry = http.EnapterDataMapper().to_latest_telemetry(
+        telemetry = EnapterDataMapper().to_latest_telemetry(
             {
                 "dev-1": {
                     "alerts": enapter.http.api.telemetry.LatestDatapoint(
@@ -258,7 +259,7 @@ class TestEnapterDataMapper:
 
     def test_to_historical_telemetry(self) -> None:
         timestamp = datetime.datetime.now()
-        telemetry = http.EnapterDataMapper().to_historical_telemetry(
+        telemetry = EnapterDataMapper().to_historical_telemetry(
             enapter.http.api.telemetry.WideTimeseries(
                 timestamps=[timestamp],
                 columns=[
@@ -287,7 +288,7 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.OWNER,
         )
 
-        dto = http.EnapterDataMapper().to_site_dto(site)
+        dto = EnapterDataMapper().to_site_dto(site)
 
         assert dto.id == "site-1"
         assert dto.name == "Site 1"
@@ -303,7 +304,7 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.READONLY,
         )
 
-        dto = http.EnapterDataMapper().to_site_dto(site)
+        dto = EnapterDataMapper().to_site_dto(site)
 
         assert dto.authorized_role == domain.AccessRole.READONLY
 
@@ -320,7 +321,7 @@ class TestEnapterDataMapper:
             raised_alert_names=None,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = EnapterDataMapper().to_device_dto(device)
 
         assert dto.active_alerts == []
         assert dto.authorized_role == domain.AccessRole.USER
@@ -337,7 +338,7 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.OWNER,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = EnapterDataMapper().to_device_dto(device)
 
         assert dto.authorized_role == domain.AccessRole.OWNER
 
@@ -353,7 +354,7 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.USER,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = EnapterDataMapper().to_device_dto(device)
 
         assert dto.blueprint_id == "bp-3"
 
@@ -376,7 +377,7 @@ class TestEnapterDataMapper:
             log=None,
         )
 
-        mapped = http.EnapterDataMapper().to_command_execution(execution)
+        mapped = EnapterDataMapper().to_command_execution(execution)
 
         assert mapped.id == "exec-1"
         assert mapped.device_id == "dev-1"
@@ -387,7 +388,7 @@ class TestEnapterDataMapper:
         assert mapped.response_payload == {"status": "ok"}
 
     def test_command_declaration_maps_confirmation_when_present(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "commands": {
                     "reboot": {
@@ -410,7 +411,7 @@ class TestEnapterDataMapper:
         assert confirmation.description == "Restarts the device."
 
     def test_command_declaration_confirmation_absent_is_none(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "commands": {
                     "status": {
@@ -424,7 +425,7 @@ class TestEnapterDataMapper:
         assert manifest.commands["status"].confirmation is None
 
     def test_command_declaration_confirmation_null_value_is_none(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "commands": {
                     "reboot": {
@@ -439,7 +440,7 @@ class TestEnapterDataMapper:
         assert manifest.commands["reboot"].confirmation is None
 
     def test_command_declaration_confirmation_partial_block_is_defensive(self) -> None:
-        manifest = http.EnapterDataMapper().to_device_manifest(
+        manifest = EnapterDataMapper().to_device_manifest(
             {
                 "commands": {
                     "reboot": {
