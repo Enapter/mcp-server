@@ -1,8 +1,5 @@
 # Contributing to Enapter MCP Server
 
-First off, thank you for considering contributing to the Enapter MCP Server! We
-appreciate your time and effort.
-
 The following is a set of guidelines for contributing to this project.
 
 ## Getting Started
@@ -83,5 +80,3 @@ can use the provided Makefile target:
 ```bash
 make docker-image
 ```
-
-Thank you for contributing!
