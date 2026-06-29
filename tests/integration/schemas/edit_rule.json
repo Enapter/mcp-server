@@ -1,0 +1,103 @@
+{
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": false,
+    "title": "Edit Rule"
+  },
+  "description": "Apply a content-match edit to a disabled MCP-managed rule's script.\n\nThis tool replaces exactly one occurrence of `old_string` with `new_string`\nin the rule's current Lua script. The rule must be disabled, its slug must\nstart with `mcp-`, and it must use runtime version v3.\n\n`old_string` must be non-empty, must appear exactly once in the current\nscript, and must differ from `new_string`.\n\nThe updated `Rule` object is returned. Use `read_rule` if you need to\ninspect the resulting source code.\n\nRelated tools:\n- `read_rule`: Inspect the current script before crafting an edit.\n- `create_rule`: Create a new MCP-managed rule.\n- `delete_rule`: Remove the rule.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "new_string": {
+        "type": "string"
+      },
+      "old_string": {
+        "type": "string"
+      },
+      "rule_id": {
+        "type": "string"
+      },
+      "site_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "site_id",
+      "rule_id",
+      "old_string",
+      "new_string"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "edit_rule",
+  "outputSchema": {
+    "description": "Represents an automation rule on the Enapter Rule Engine.\n\nRules are Lua scripts executed on a site's Gateway to implement custom\nlogic, automation, and integrations between different devices.",
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "id": {
+        "type": "string"
+      },
+      "script_summary": {
+        "description": "Metadata about a rule's underlying Lua script.\n\nContains execution details and the size of the script, but does not\ninclude the script source code itself.",
+        "properties": {
+          "exec_interval": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines_count": {
+            "type": "integer"
+          },
+          "runtime_version": {
+            "enum": [
+              "v1",
+              "v3"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_version",
+          "exec_interval",
+          "lines_count"
+        ],
+        "type": "object"
+      },
+      "slug": {
+        "type": "string"
+      },
+      "state": {
+        "enum": [
+          "started",
+          "stopped"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "slug",
+      "enabled",
+      "state",
+      "script_summary"
+    ],
+    "type": "object"
+  },
+  "title": "Edit Rule"
+}

@@ -13,6 +13,7 @@ class ServerConfig:
     logo_url: str | None = None
     cors_allow_origins: list[str] | None = None
     command_execution_enabled: bool = False
+    rule_editing_enabled: bool = False
 
     @property
     def address(self) -> str:

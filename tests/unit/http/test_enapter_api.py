@@ -387,3 +387,262 @@ class TestExecuteCommand:
         assert spy.calls == [("dev-side", "cmd.test", {"k": "v"})]
         assert result.id == "exec-side"
         assert result.arguments == {"k": "v"}
+
+
+# ---------------------------------------------------------------------------
+#  Fakes for rule-editing tests
+# ---------------------------------------------------------------------------
+
+
+class _SpyRuleEngineClient:
+    """Records calls to create_rule/update_rule_script/delete_rule and returns
+    pre-configured results, capturing the upstream RuleScript passed in."""
+
+    def __init__(
+        self,
+        *,
+        create_result: enapter.http.api.rule_engine.Rule | None = None,
+        update_result: enapter.http.api.rule_engine.Rule | None = None,
+        raises: Exception | None = None,
+    ) -> None:
+        self.create_result = create_result
+        self.update_result = update_result
+        self.raises = raises
+        self.create_calls: list[dict[str, Any]] = []
+        self.update_calls: list[dict[str, Any]] = []
+        self.delete_calls: list[dict[str, Any]] = []
+
+    async def create_rule(
+        self,
+        script: enapter.http.api.rule_engine.RuleScript,
+        slug: str | None = None,
+        site_id: str | None = None,
+        disable: bool | None = None,
+    ) -> enapter.http.api.rule_engine.Rule:
+        self.create_calls.append(
+            {"script": script, "slug": slug, "site_id": site_id, "disable": disable}
+        )
+        if self.raises is not None:
+            raise self.raises
+        if self.create_result is not None:
+            return self.create_result
+        raise NotImplementedError("No create_result configured")
+
+    async def update_rule_script(
+        self,
+        rule_id: str,
+        script: enapter.http.api.rule_engine.RuleScript,
+        site_id: str | None = None,
+    ) -> enapter.http.api.rule_engine.Rule:
+        self.update_calls.append(
+            {"rule_id": rule_id, "script": script, "site_id": site_id}
+        )
+        if self.raises is not None:
+            raise self.raises
+        if self.update_result is not None:
+            return self.update_result
+        raise NotImplementedError("No update_result configured")
+
+    async def delete_rule(self, rule_id: str, site_id: str | None = None) -> None:
+        self.delete_calls.append({"rule_id": rule_id, "site_id": site_id})
+        if self.raises is not None:
+            raise self.raises
+        return None
+
+
+class _RuleFakeClient:
+    """Fake SDK Client exposing only `rule_engine`."""
+
+    def __init__(self, rule_engine: _SpyRuleEngineClient) -> None:
+        self.rule_engine = rule_engine
+
+
+class _RuleStubEnapterAPI(http.EnapterAPI):
+    """Stub that injects a spy `rule_engine` client for rule-editing tests."""
+
+    def __init__(self, base_url: str, rule_engine: _SpyRuleEngineClient) -> None:
+        super().__init__(base_url)
+        self._rule_engine = rule_engine
+
+    @contextlib.asynccontextmanager
+    async def _new_client(
+        self, auth: core.AuthConfig
+    ) -> AsyncGenerator[enapter.http.api.Client, None]:
+        yield cast(enapter.http.api.Client, _RuleFakeClient(self._rule_engine))
+
+
+def _make_sdk_rule(
+    *,
+    rule_id: str = "rule-1",
+    slug: str = "mcp-x",
+    disabled: bool = True,
+    state: enapter.http.api.rule_engine.RuleState = (
+        enapter.http.api.rule_engine.RuleState.STOPPED
+    ),
+    code: str = "-- code\n",
+    runtime_version: enapter.http.api.rule_engine.RuntimeVersion = (
+        enapter.http.api.rule_engine.RuntimeVersion.V3
+    ),
+    exec_interval: str | None = None,
+) -> enapter.http.api.rule_engine.Rule:
+    return enapter.http.api.rule_engine.Rule(
+        id=rule_id,
+        slug=slug,
+        disabled=disabled,
+        state=state,
+        script=enapter.http.api.rule_engine.RuleScript(
+            code=code, runtime_version=runtime_version, exec_interval=exec_interval
+        ),
+    )
+
+
+class TestRuleEditing:
+    """Unit tests for http.EnapterAPI rule-editing methods."""
+
+    @staticmethod
+    def _api(rule_engine: _SpyRuleEngineClient) -> _RuleStubEnapterAPI:
+        return _RuleStubEnapterAPI(
+            base_url="http://example.test", rule_engine=rule_engine
+        )
+
+    @staticmethod
+    def _auth() -> core.AuthConfig:
+        return core.AuthConfig(token="test-token")
+
+    async def test_update_rule_script_passes_exec_interval_through(self) -> None:
+        """The current rule's exec_interval reaches the upstream RuleScript
+        unchanged (regression guard: it was silently dropped)."""
+        spy = _SpyRuleEngineClient(
+            update_result=_make_sdk_rule(exec_interval="2m"),
+        )
+        api = self._api(spy)
+
+        await api.update_rule_script(
+            auth=self._auth(),
+            rule_id="rule-1",
+            site_id="site-1",
+            script_code="new code",
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script_exec_interval="2m",
+        )
+
+        assert len(spy.update_calls) == 1
+        script = spy.update_calls[0]["script"]
+        assert script.exec_interval == "2m"
+        assert script.code == "new code"
+        assert script.runtime_version == (
+            enapter.http.api.rule_engine.RuntimeVersion.V3
+        )
+        assert spy.update_calls[0]["rule_id"] == "rule-1"
+        assert spy.update_calls[0]["site_id"] == "site-1"
+
+    async def test_update_rule_script_passes_none_exec_interval(self) -> None:
+        """exec_interval=None (the v3 case) is forwarded as None."""
+        spy = _SpyRuleEngineClient(update_result=_make_sdk_rule())
+        api = self._api(spy)
+
+        await api.update_rule_script(
+            auth=self._auth(),
+            rule_id="rule-1",
+            site_id="site-1",
+            script_code="code",
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script_exec_interval=None,
+        )
+
+        assert spy.update_calls[0]["script"].exec_interval is None
+
+    async def test_update_rule_script_uppercases_runtime_version(self) -> None:
+        spy = _SpyRuleEngineClient(update_result=_make_sdk_rule())
+        api = self._api(spy)
+
+        await api.update_rule_script(
+            auth=self._auth(),
+            rule_id="rule-1",
+            site_id="site-1",
+            script_code="code",
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script_exec_interval=None,
+        )
+
+        assert spy.update_calls[0]["script"].runtime_version == (
+            enapter.http.api.rule_engine.RuntimeVersion.V3
+        )
+
+    async def test_update_rule_script_maps_result_to_rule_dto(self) -> None:
+        spy = _SpyRuleEngineClient(
+            update_result=_make_sdk_rule(
+                rule_id="r", slug="mcp-s", disabled=True, exec_interval=None
+            ),
+        )
+        api = self._api(spy)
+
+        result = await api.update_rule_script(
+            auth=self._auth(),
+            rule_id="r",
+            site_id="s",
+            script_code="c",
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script_exec_interval=None,
+        )
+
+        assert isinstance(result, core.RuleDTO)
+        assert result.id == "r"
+        assert result.slug == "mcp-s"
+        assert result.disabled is True
+        assert result.script_runtime_version == domain.RuleRuntimeVersion.V3
+        assert result.script_exec_interval is None
+
+    async def test_create_rule_builds_v3_script_and_disables(self) -> None:
+        spy = _SpyRuleEngineClient(create_result=_make_sdk_rule())
+        api = self._api(spy)
+
+        await api.create_rule(
+            auth=self._auth(),
+            site_id="site-1",
+            slug="mcp-x",
+            script_code="code",
+            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            disabled=True,
+        )
+
+        assert len(spy.create_calls) == 1
+        call = spy.create_calls[0]
+        assert call["slug"] == "mcp-x"
+        assert call["site_id"] == "site-1"
+        assert call["disable"] is True
+        script = call["script"]
+        assert script.code == "code"
+        assert script.runtime_version == (
+            enapter.http.api.rule_engine.RuntimeVersion.V3
+        )
+        assert script.exec_interval is None
+
+    async def test_delete_rule_calls_upstream_with_ids(self) -> None:
+        spy = _SpyRuleEngineClient()
+        api = self._api(spy)
+
+        await api.delete_rule(auth=self._auth(), rule_id="rule-1", site_id="site-1")
+
+        assert spy.delete_calls == [
+            {"rule_id": "rule-1", "site_id": "site-1"},
+        ]
+
+    async def test_rule_sdk_exception_propagates_unmodified(self) -> None:
+        exc = enapter.http.api.Error(
+            message="forbidden", code="missing_permission", details={}
+        )
+        spy = _SpyRuleEngineClient(update_result=_make_sdk_rule(), raises=exc)
+        api = self._api(spy)
+
+        with pytest.raises(enapter.http.api.Error) as exc_info:
+            await api.update_rule_script(
+                auth=self._auth(),
+                rule_id="rule-1",
+                site_id="site-1",
+                script_code="c",
+                script_runtime_version=domain.RuleRuntimeVersion.V3,
+                script_exec_interval=None,
+            )
+
+        assert exc_info.value is exc

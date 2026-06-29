@@ -52,6 +52,9 @@ The server exposes the following tools for interacting with the Enapter EMS:
 | `search_rules`              | Search for automation rules within a specific site               | Read-only  | Enabled  |
 | `read_rule`                 | Read the paginated lines of a rule's Lua script                  | Read-only  | Enabled  |
 | `execute_command`           | Execute a command on a device                                    | Read-write | Disabled |
+| `create_rule`               | Create a disabled MCP-managed automation rule                    | Read-write | Disabled |
+| `edit_rule`                 | Apply a content-match edit to a disabled MCP-managed rule        | Read-write | Disabled |
+| `delete_rule`               | Delete a disabled MCP-managed automation rule                    | Read-write | Disabled |
 
 ## Usage Examples
 
@@ -144,6 +147,57 @@ Here are realistic examples of how you can interact with your Enapter devices us
   (`success`/`error`/`timeout`/`unsync`)
 - The returned execution `id` can later be referenced or audited via
   `search_command_executions`
+
+### Example 6: Authoring and Editing MCP-Managed Automation Rules
+
+> ⚠️ `create_rule`, `edit_rule`, and `delete_rule` are **destructive** — they
+> modify automation that can execute commands on physical energy hardware. They
+> are **disabled by default**. Enable them with
+> `--rule-editing-enabled` on the command line or by setting
+> `ENAPTER_RULE_EDITING_ENABLED=1`.
+
+MCP-managed rules are automation rules whose lifecycle is managed through the
+MCP server. They follow a strict workflow:
+
+1. **Slug prefix.** MCP-managed rules must have a slug starting with the
+   reserved prefix `mcp-` (case-sensitive, byte-exact). The prefix is an
+   ownership boundary: the assistant may mutate only rules explicitly marked as
+   MCP-managed.
+2. **Created disabled.** `create_rule` always creates rules disabled, so the
+   assistant cannot publish new live automation. A human reviews the rule in the
+   Enapter UI and enables it when ready.
+3. **Mutate disabled only.** `edit_rule` and `delete_rule` refuse to operate on
+   enabled rules, even when the slug has the `mcp-` prefix. If a human enables
+   an MCP-managed rule and later wants the assistant to edit or delete it, the
+   human must disable it first, ask the assistant, review the result, and
+   re-enable in the Enapter UI. This keeps responsibility for live automation
+   changes with the human.
+4. **No enable tool.** The server does not expose an enable operation. Enabling
+   is a human decision made in the Enapter UI.
+
+**User prompt:**
+
+> Create a rule at the Alpha site that logs "battery low" when the battery SOC
+> drops below 20%.
+
+**What happens:**
+
+- The assistant creates the rule with `create_rule(site_id="...", slug="mcp-battery-low", script_code="...")`.
+  The rule is created disabled and uses runtime version v3.
+- The human reviews the rule in the Enapter UI and enables it.
+
+**User prompt (later):**
+
+> Change the threshold in the battery-low rule from 20% to 15%.
+
+**What happens:**
+
+- The assistant calls `read_rule` to get the current script.
+- It identifies the exact snippet to change and calls
+  `edit_rule(rule_id="...", old_string="battery_soc < 20", new_string="battery_soc < 15")`.
+  The edit succeeds only if the old string appears exactly once in the script
+  and the rule is currently disabled.
+- The human reviews the change and re-enables the rule in the Enapter UI.
 
 ## Support
 
