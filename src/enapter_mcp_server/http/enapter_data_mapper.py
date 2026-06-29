@@ -14,6 +14,19 @@ class EnapterDataMapper:
             authorized_role=domain.AccessRole(site.authorized_role.value.lower()),
         )
 
+    def to_rule_dto(self, rule: enapter.http.api.rule_engine.Rule) -> core.RuleDTO:
+        return core.RuleDTO(
+            id=rule.id,
+            slug=rule.slug,
+            disabled=rule.disabled,
+            state=domain.RuleState(rule.state.value.lower()),
+            script_runtime_version=domain.RuleRuntimeVersion(
+                rule.script.runtime_version.value.lower()
+            ),
+            script_exec_interval=rule.script.exec_interval,
+            script_code=rule.script.code,
+        )
+
     def to_device_dto(self, device: enapter.http.api.devices.Device) -> core.DeviceDTO:
         connectivity = None
         if device.connectivity is not None:

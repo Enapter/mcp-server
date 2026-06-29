@@ -1,0 +1,99 @@
+{
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": false,
+    "title": "Create Rule"
+  },
+  "description": "Create a disabled MCP-managed automation rule on a site.\n\nThis tool creates a new rule that is always disabled and uses runtime version v3.\nThe slug must start with the MCP-managed prefix `mcp-`. The creator does not\nenable the rule; a human must review and enable it in the Enapter UI.\n\nRelated tools:\n- `search_rules`: List rules on the site including the newly created one.\n- `read_rule`: Read the full script of the newly created rule.\n- `edit_rule`: Modify the rule's script via content-match editing.\n- `delete_rule`: Remove the rule.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "script_code": {
+        "type": "string"
+      },
+      "site_id": {
+        "type": "string"
+      },
+      "slug": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "site_id",
+      "slug",
+      "script_code"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "create_rule",
+  "outputSchema": {
+    "description": "Represents an automation rule on the Enapter Rule Engine.\n\nRules are Lua scripts executed on a site's Gateway to implement custom\nlogic, automation, and integrations between different devices.",
+    "properties": {
+      "enabled": {
+        "type": "boolean"
+      },
+      "id": {
+        "type": "string"
+      },
+      "script_summary": {
+        "description": "Metadata about a rule's underlying Lua script.\n\nContains execution details and the size of the script, but does not\ninclude the script source code itself.",
+        "properties": {
+          "exec_interval": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines_count": {
+            "type": "integer"
+          },
+          "runtime_version": {
+            "enum": [
+              "v1",
+              "v3"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "runtime_version",
+          "exec_interval",
+          "lines_count"
+        ],
+        "type": "object"
+      },
+      "slug": {
+        "type": "string"
+      },
+      "state": {
+        "enum": [
+          "started",
+          "stopped"
+        ],
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "slug",
+      "enabled",
+      "state",
+      "script_summary"
+    ],
+    "type": "object"
+  },
+  "title": "Create Rule"
+}

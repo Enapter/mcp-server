@@ -166,3 +166,148 @@ class TestServerWithCommandExecution:
         assert "human_confirmed_this_action=True" in actual["description"]
 
         _assert_schema("execute_command", actual)
+
+
+@pytest.mark.asyncio(loop_scope="class")
+class TestServerWithRuleEditing:
+    """A separate class that enables both command execution and rule editing."""
+
+    @pytest.fixture(scope="class")
+    async def mcp_client(self) -> AsyncGenerator[mcp.Client, None]:
+        config: mcp.ServerConfig = mcp.ServerConfig(
+            host="127.0.0.1",
+            port=12347,
+            enapter_http_api_url="",
+            command_execution_enabled=True,
+            rule_editing_enabled=True,
+        )
+        async with http.EnapterAPI(base_url=config.enapter_http_api_url) as enapter_api:
+            app: core.ApplicationServer = core.ApplicationServer(
+                enapter_api=enapter_api
+            )
+            async with mcp.Server(app=app, config=config):
+                async with mcp.Client(url=f"http://{config.address}/mcp") as client:
+                    yield client
+
+    async def test_registers_eleven_tools(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+
+        assert len(tools_result) == 11
+        assert any(t.name == "execute_command" for t in tools_result)
+        assert any(t.name == "create_rule" for t in tools_result)
+        assert any(t.name == "edit_rule" for t in tools_result)
+        assert any(t.name == "delete_rule" for t in tools_result)
+
+        for tool in tools_result:
+            if tool.name in (
+                "execute_command",
+                "create_rule",
+                "edit_rule",
+                "delete_rule",
+            ):
+                continue
+            assert tool.annotations.readOnlyHint is True
+
+    async def test_create_rule_annotations(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "create_rule"), None
+        )
+        assert tool is not None
+        assert tool.annotations.readOnlyHint is False
+        assert tool.annotations.destructiveHint is True
+        assert tool.title == "Create Rule"
+
+    async def test_edit_rule_annotations(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "edit_rule"), None
+        )
+        assert tool is not None
+        assert tool.annotations.readOnlyHint is False
+        assert tool.annotations.destructiveHint is True
+        assert tool.title == "Edit Rule"
+
+    async def test_delete_rule_annotations(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "delete_rule"), None
+        )
+        assert tool is not None
+        assert tool.annotations.readOnlyHint is False
+        assert tool.annotations.destructiveHint is True
+        assert tool.title == "Delete Rule"
+
+    async def test_create_rule_schema(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "create_rule"), None
+        )
+        assert tool is not None
+
+        actual: dict[str, Any] = json.loads(tool.model_dump_json())
+        assert actual["name"] == "create_rule"
+
+        properties: dict[str, Any] = actual["inputSchema"]["properties"]
+        assert set(properties.keys()) == {"site_id", "slug", "script_code"}
+        assert set(actual["inputSchema"]["required"]) == {
+            "site_id",
+            "slug",
+            "script_code",
+        }
+
+        assert actual["annotations"]["readOnlyHint"] is False
+        assert actual["annotations"]["destructiveHint"] is True
+        assert actual["annotations"]["title"] == "Create Rule"
+
+        _assert_schema("create_rule", actual)
+
+    async def test_edit_rule_schema(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "edit_rule"), None
+        )
+        assert tool is not None
+
+        actual: dict[str, Any] = json.loads(tool.model_dump_json())
+        assert actual["name"] == "edit_rule"
+
+        properties: dict[str, Any] = actual["inputSchema"]["properties"]
+        assert set(properties.keys()) == {
+            "site_id",
+            "rule_id",
+            "old_string",
+            "new_string",
+        }
+        assert set(actual["inputSchema"]["required"]) == {
+            "site_id",
+            "rule_id",
+            "old_string",
+            "new_string",
+        }
+
+        assert actual["annotations"]["readOnlyHint"] is False
+        assert actual["annotations"]["destructiveHint"] is True
+        assert actual["annotations"]["title"] == "Edit Rule"
+
+        _assert_schema("edit_rule", actual)
+
+    async def test_delete_rule_schema(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "delete_rule"), None
+        )
+        assert tool is not None
+
+        actual: dict[str, Any] = json.loads(tool.model_dump_json())
+        assert actual["name"] == "delete_rule"
+
+        properties: dict[str, Any] = actual["inputSchema"]["properties"]
+        assert set(properties.keys()) == {"site_id", "rule_id"}
+        assert set(actual["inputSchema"]["required"]) == {"site_id", "rule_id"}
+
+        assert actual["annotations"]["readOnlyHint"] is False
+        assert actual["annotations"]["destructiveHint"] is True
+        assert actual["annotations"]["title"] == "Delete Rule"
+
+        _assert_schema("delete_rule", actual)

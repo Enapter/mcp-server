@@ -5,11 +5,19 @@ from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
+    AmbiguousRuleOldString,
     CommandNotFound,
     ConfirmationRequired,
+    EmptyRuleOldString,
     GatewayUnavailable,
     LatestTelemetryUnavailable,
+    NoOpRuleEdit,
+    RuleNotDisabled,
+    RuleNotMcpManaged,
+    RuleNotV3,
+    RuleOldStringNotFound,
     SearchQueryTooBroad,
+    UnprefixedRuleSlug,
 )
 from .rule_dto import RuleDTO
 from .rule_engine_dto import RuleEngineDTO
@@ -18,6 +26,7 @@ from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
 
 __all__ = [
+    "AmbiguousRuleOldString",
     "ApplicationServer",
     "AuthConfig",
     "CommandExecutionSearchQuery",
@@ -25,13 +34,20 @@ __all__ = [
     "ConfirmationRequired",
     "DeviceDTO",
     "DeviceSearchQuery",
+    "EmptyRuleOldString",
     "EnapterAPI",
-    "LatestTelemetryUnavailable",
     "GatewayUnavailable",
-    "SearchQueryTooBroad",
+    "LatestTelemetryUnavailable",
+    "NoOpRuleEdit",
     "RuleDTO",
-    "RuleSearchQuery",
     "RuleEngineDTO",
+    "RuleNotDisabled",
+    "RuleNotMcpManaged",
+    "RuleNotV3",
+    "RuleOldStringNotFound",
+    "RuleSearchQuery",
+    "SearchQueryTooBroad",
     "SiteDTO",
     "SiteSearchQuery",
+    "UnprefixedRuleSlug",
 ]

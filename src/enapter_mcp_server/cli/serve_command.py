@@ -39,6 +39,7 @@ ENAPTER_OAUTH_PROXY_JWT_STORE_URL = os.getenv(
 ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY")
 ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
 ENAPTER_COMMAND_EXECUTION_ENABLED = os.getenv("ENAPTER_COMMAND_EXECUTION_ENABLED", "0")
+ENAPTER_RULE_EDITING_ENABLED = os.getenv("ENAPTER_RULE_EDITING_ENABLED", "0")
 
 
 class ServeCommand(Command):
@@ -133,6 +134,14 @@ class ServeCommand(Command):
             help="Enable the destructive `execute_command` tool (kill switch). "
             "When disabled (the default), the tool is not registered at all",
         )
+        parser.add_argument(
+            "--rule-editing-enabled",
+            choices=["0", "1"],
+            default=ENAPTER_RULE_EDITING_ENABLED,
+            help="Enable rule-editing tools (create_rule, edit_rule,"
+            " delete_rule). When disabled (the default), these tools are not"
+            " registered at all",
+        )
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
@@ -174,6 +183,7 @@ class ServeCommand(Command):
             logo_url=args.logo_url,
             cors_allow_origins=cors_allow_origins,
             command_execution_enabled=args.command_execution_enabled == "1",
+            rule_editing_enabled=args.rule_editing_enabled == "1",
         )
         async with asyncio.TaskGroup() as task_group:
             async with http.EnapterAPI(

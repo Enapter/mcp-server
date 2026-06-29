@@ -131,6 +131,32 @@ class Server(enapter.async_.Routine):
                 ),
             )
 
+        if self._config.rule_editing_enabled:
+            fastmcp_server.tool(
+                self.create_rule,
+                annotations=mcp.types.ToolAnnotations(
+                    readOnlyHint=False,
+                    destructiveHint=True,
+                    title="Create Rule",
+                ),
+            )
+            fastmcp_server.tool(
+                self.edit_rule,
+                annotations=mcp.types.ToolAnnotations(
+                    readOnlyHint=False,
+                    destructiveHint=True,
+                    title="Edit Rule",
+                ),
+            )
+            fastmcp_server.tool(
+                self.delete_rule,
+                annotations=mcp.types.ToolAnnotations(
+                    readOnlyHint=False,
+                    destructiveHint=True,
+                    title="Delete Rule",
+                ),
+            )
+
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
         if self._config.cors_allow_origins is not None:
@@ -428,6 +454,88 @@ class Server(enapter.async_.Routine):
             human_confirmed_this_action=human_confirmed_this_action,
         )
         return models.CommandExecution.from_domain(execution)
+
+    async def create_rule(
+        self,
+        site_id: str,
+        slug: str,
+        script_code: str,
+    ) -> models.Rule:
+        """Create a disabled MCP-managed automation rule on a site.
+
+        This tool creates a new rule that is always disabled and uses runtime version v3.
+        The slug must start with the MCP-managed prefix `mcp-`. The creator does not
+        enable the rule; a human must review and enable it in the Enapter UI.
+
+        Related tools:
+        - `search_rules`: List rules on the site including the newly created one.
+        - `read_rule`: Read the full script of the newly created rule.
+        - `edit_rule`: Modify the rule's script via content-match editing.
+        - `delete_rule`: Remove the rule.
+        """
+        auth = await self._get_auth_config()
+        rule = await self._app.create_rule(
+            auth=auth,
+            site_id=site_id,
+            slug=slug,
+            script_code=script_code,
+        )
+        return models.Rule.from_domain(rule)
+
+    async def edit_rule(
+        self,
+        site_id: str,
+        rule_id: str,
+        old_string: str,
+        new_string: str,
+    ) -> models.Rule:
+        """Apply a content-match edit to a disabled MCP-managed rule's script.
+
+        This tool replaces exactly one occurrence of `old_string` with `new_string`
+        in the rule's current Lua script. The rule must be disabled, its slug must
+        start with `mcp-`, and it must use runtime version v3.
+
+        `old_string` must be non-empty, must appear exactly once in the current
+        script, and must differ from `new_string`.
+
+        The updated `Rule` object is returned. Use `read_rule` if you need to
+        inspect the resulting source code.
+
+        Related tools:
+        - `read_rule`: Inspect the current script before crafting an edit.
+        - `create_rule`: Create a new MCP-managed rule.
+        - `delete_rule`: Remove the rule.
+        """
+        auth = await self._get_auth_config()
+        rule = await self._app.edit_rule(
+            auth=auth,
+            site_id=site_id,
+            rule_id=rule_id,
+            old_string=old_string,
+            new_string=new_string,
+        )
+        return models.Rule.from_domain(rule)
+
+    async def delete_rule(
+        self,
+        site_id: str,
+        rule_id: str,
+    ) -> None:
+        """Delete a disabled MCP-managed automation rule.
+
+        The rule must be disabled and its slug must start with `mcp-`. The tool
+        returns no result; confirm deletion via `search_rules`.
+
+        Related tools:
+        - `search_rules`: Verify the rule no longer exists after deletion.
+        - `create_rule`: Re-create the rule if needed.
+        """
+        auth = await self._get_auth_config()
+        await self._app.delete_rule(
+            auth=auth,
+            site_id=site_id,
+            rule_id=rule_id,
+        )
 
     async def get_historical_telemetry(
         self,

@@ -87,3 +87,27 @@ class EnapterAPI(Protocol):
         granularity: int,
         aggregation: domain.AggregationFunction,
     ) -> domain.HistoricalTelemetry: ...
+
+    async def create_rule(
+        self,
+        auth: AuthConfig,
+        site_id: str,
+        slug: str,
+        script_code: str,
+        script_runtime_version: domain.RuleRuntimeVersion,
+        disabled: bool,
+    ) -> RuleDTO: ...
+
+    async def update_rule_script(
+        self,
+        auth: AuthConfig,
+        rule_id: str,
+        site_id: str,
+        script_code: str,
+        script_runtime_version: domain.RuleRuntimeVersion,
+        script_exec_interval: str | None,
+    ) -> RuleDTO: ...
+
+    async def delete_rule(
+        self, auth: AuthConfig, rule_id: str, site_id: str
+    ) -> None: ...

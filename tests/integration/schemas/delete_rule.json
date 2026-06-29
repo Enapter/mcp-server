@@ -1,0 +1,36 @@
+{
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": false,
+    "title": "Delete Rule"
+  },
+  "description": "Delete a disabled MCP-managed automation rule.\n\nThe rule must be disabled and its slug must start with `mcp-`. The tool\nreturns no result; confirm deletion via `search_rules`.\n\nRelated tools:\n- `search_rules`: Verify the rule no longer exists after deletion.\n- `create_rule`: Re-create the rule if needed.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "rule_id": {
+        "type": "string"
+      },
+      "site_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "site_id",
+      "rule_id"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "delete_rule",
+  "outputSchema": null,
+  "title": "Delete Rule"
+}

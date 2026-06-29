@@ -50,34 +50,14 @@ class EnapterAPI:
         async with self._new_client(auth) as client:
             async with client.rule_engine.list_rules(site_id) as rules:
                 async for rule in rules:
-                    yield core.RuleDTO(
-                        id=rule.id,
-                        slug=rule.slug,
-                        disabled=rule.disabled,
-                        state=domain.RuleState(rule.state.value.lower()),
-                        script_runtime_version=domain.RuleRuntimeVersion(
-                            rule.script.runtime_version.value.lower()
-                        ),
-                        script_exec_interval=rule.script.exec_interval,
-                        script_code=rule.script.code,
-                    )
+                    yield self._data_mapper.to_rule_dto(rule)
 
     async def get_rule(
         self, auth: core.AuthConfig, site_id: str, rule_id: str
     ) -> core.RuleDTO:
         async with self._new_client(auth) as client:
             rule = await client.rule_engine.get_rule(rule_id, site_id)
-            return core.RuleDTO(
-                id=rule.id,
-                slug=rule.slug,
-                disabled=rule.disabled,
-                state=domain.RuleState(rule.state.value.lower()),
-                script_runtime_version=domain.RuleRuntimeVersion(
-                    rule.script.runtime_version.value.lower()
-                ),
-                script_exec_interval=rule.script.exec_interval,
-                script_code=rule.script.code,
-            )
+            return self._data_mapper.to_rule_dto(rule)
 
     @enapter.async_.generator
     async def list_devices(
@@ -195,6 +175,56 @@ class EnapterAPI:
                 ],
             )
             return self._data_mapper.to_historical_telemetry(telemetry)
+
+    async def create_rule(
+        self,
+        auth: core.AuthConfig,
+        site_id: str,
+        slug: str,
+        script_code: str,
+        script_runtime_version: domain.RuleRuntimeVersion,
+        disabled: bool,
+    ) -> core.RuleDTO:
+        async with self._new_client(auth) as client:
+            runtime_version = enapter.http.api.rule_engine.RuntimeVersion(
+                script_runtime_version.value.upper()
+            )
+            script = enapter.http.api.rule_engine.RuleScript(
+                code=script_code, runtime_version=runtime_version
+            )
+            rule = await client.rule_engine.create_rule(
+                script=script, slug=slug, site_id=site_id, disable=disabled
+            )
+            return self._data_mapper.to_rule_dto(rule)
+
+    async def update_rule_script(
+        self,
+        auth: core.AuthConfig,
+        rule_id: str,
+        site_id: str,
+        script_code: str,
+        script_runtime_version: domain.RuleRuntimeVersion,
+        script_exec_interval: str | None,
+    ) -> core.RuleDTO:
+        async with self._new_client(auth) as client:
+            runtime_version = enapter.http.api.rule_engine.RuntimeVersion(
+                script_runtime_version.value.upper()
+            )
+            script = enapter.http.api.rule_engine.RuleScript(
+                code=script_code,
+                runtime_version=runtime_version,
+                exec_interval=script_exec_interval,
+            )
+            rule = await client.rule_engine.update_rule_script(
+                rule_id=rule_id, script=script, site_id=site_id
+            )
+            return self._data_mapper.to_rule_dto(rule)
+
+    async def delete_rule(
+        self, auth: core.AuthConfig, rule_id: str, site_id: str
+    ) -> None:
+        async with self._new_client(auth) as client:
+            await client.rule_engine.delete_rule(rule_id, site_id)
 
     @contextlib.asynccontextmanager
     async def _new_client(
