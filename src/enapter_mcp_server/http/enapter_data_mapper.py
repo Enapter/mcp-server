@@ -27,7 +27,7 @@ class EnapterDataMapper:
             script_code=rule.script.code,
         )
 
-    def to_device_dto(self, device: enapter.http.api.devices.Device) -> core.DeviceDTO:
+    def to_device(self, device: enapter.http.api.devices.Device) -> domain.Device:
         connectivity = None
         if device.connectivity is not None:
             connectivity = domain.ConnectivityStatus(
@@ -38,7 +38,7 @@ class EnapterDataMapper:
         if device.raised_alert_names is not None:
             active_alerts = device.raised_alert_names
 
-        return core.DeviceDTO(
+        return domain.Device(
             id=device.id,
             blueprint_id=device.blueprint_id,
             name=device.name,

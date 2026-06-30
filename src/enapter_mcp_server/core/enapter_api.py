@@ -6,7 +6,6 @@ import enapter
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
-from .device_dto import DeviceDTO
 from .rule_dto import RuleDTO
 from .rule_engine_dto import RuleEngineDTO
 from .site_dto import SiteDTO
@@ -40,7 +39,7 @@ class EnapterAPI(Protocol):
         expand_properties: bool = False,
         expand_connectivity: bool = False,
         expand_active_alerts: bool = False,
-    ) -> AsyncGenerator[DeviceDTO, None]:
+    ) -> AsyncGenerator[domain.Device, None]:
         yield  # type: ignore
 
     async def get_device(
@@ -51,7 +50,7 @@ class EnapterAPI(Protocol):
         expand_connectivity: bool = False,
         expand_properties: bool = False,
         expand_active_alerts: bool = False,
-    ) -> DeviceDTO: ...
+    ) -> domain.Device: ...
 
     async def execute_command(
         self,

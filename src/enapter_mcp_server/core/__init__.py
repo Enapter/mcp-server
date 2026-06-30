@@ -1,7 +1,6 @@
 from .application_server import ApplicationServer
 from .auth_config import AuthConfig
 from .command_execution_search_query import CommandExecutionSearchQuery
-from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
@@ -32,7 +31,6 @@ __all__ = [
     "CommandExecutionSearchQuery",
     "CommandNotFound",
     "ConfirmationRequired",
-    "DeviceDTO",
     "DeviceSearchQuery",
     "EmptyRuleOldString",
     "EnapterAPI",

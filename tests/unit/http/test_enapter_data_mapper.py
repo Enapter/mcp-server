@@ -307,7 +307,7 @@ class TestEnapterDataMapper:
 
         assert dto.authorized_role == domain.AccessRole.READONLY
 
-    def test_to_device_dto_null_alerts_mapped_to_empty_list(self) -> None:
+    def test_to_device_null_alerts_mapped_to_empty_list(self) -> None:
         device = enapter.http.api.devices.Device(
             id="dev-1",
             blueprint_id="bp-1",
@@ -320,12 +320,12 @@ class TestEnapterDataMapper:
             raised_alert_names=None,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = http.EnapterDataMapper().to_device(device)
 
         assert dto.active_alerts == []
         assert dto.authorized_role == domain.AccessRole.USER
 
-    def test_to_device_dto_authorized_role(self) -> None:
+    def test_to_device_authorized_role(self) -> None:
         device = enapter.http.api.devices.Device(
             id="dev-2",
             blueprint_id="bp-2",
@@ -337,11 +337,11 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.OWNER,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = http.EnapterDataMapper().to_device(device)
 
         assert dto.authorized_role == domain.AccessRole.OWNER
 
-    def test_to_device_dto_blueprint_id(self) -> None:
+    def test_to_device_blueprint_id(self) -> None:
         device = enapter.http.api.devices.Device(
             id="dev-3",
             blueprint_id="bp-3",
@@ -353,7 +353,7 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.USER,
         )
 
-        dto = http.EnapterDataMapper().to_device_dto(device)
+        dto = http.EnapterDataMapper().to_device(device)
 
         assert dto.blueprint_id == "bp-3"
 
