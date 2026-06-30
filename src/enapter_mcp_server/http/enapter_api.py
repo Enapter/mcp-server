@@ -68,7 +68,7 @@ class EnapterAPI:
         expand_properties: bool = False,
         expand_connectivity: bool = False,
         expand_active_alerts: bool = False,
-    ) -> AsyncGenerator[core.DeviceDTO, None]:
+    ) -> AsyncGenerator[domain.Device, None]:
         async with self._new_client(auth) as client:
             async with client.devices.list(
                 site_id=site_id,
@@ -78,7 +78,7 @@ class EnapterAPI:
                 expand_raised_alert_names=expand_active_alerts,
             ) as s:
                 async for device in s:
-                    yield self._data_mapper.to_device_dto(device)
+                    yield self._data_mapper.to_device(device)
 
     async def get_device(
         self,
@@ -88,7 +88,7 @@ class EnapterAPI:
         expand_connectivity: bool = False,
         expand_properties: bool = False,
         expand_active_alerts: bool = False,
-    ) -> core.DeviceDTO:
+    ) -> domain.Device:
         async with self._new_client(auth) as client:
             device = await client.devices.get(
                 device_id,
@@ -97,7 +97,7 @@ class EnapterAPI:
                 expand_properties=expand_properties,
                 expand_raised_alert_names=expand_active_alerts,
             )
-            return self._data_mapper.to_device_dto(device)
+            return self._data_mapper.to_device(device)
 
     async def execute_command(
         self,

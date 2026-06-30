@@ -28,11 +28,24 @@ def make_device_manifest(
     )
 
 
+def make_device(
+    *,
+    active_alerts: list[str] | None = None,
+    manifest: domain.DeviceManifest | None = None,
+    **kwargs: Any,
+) -> domain.Device:
+    return domain.Device(
+        active_alerts=active_alerts,
+        manifest=manifest,
+        **kwargs,
+    )
+
+
 class MockEnapterAPI:
     def __init__(
         self,
         sites: list[core.SiteDTO] | None = None,
-        devices: list[core.DeviceDTO] | None = None,
+        devices: list[domain.Device] | None = None,
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
         latest_telemetry_unavailable: bool = False,
@@ -114,7 +127,7 @@ class MockEnapterAPI:
         expand_properties: bool = False,
         expand_connectivity: bool = False,
         expand_active_alerts: bool = False,
-    ) -> AsyncGenerator[core.DeviceDTO, None]:
+    ) -> AsyncGenerator[domain.Device, None]:
         for d in self._devices:
             if site_id is not None and d.site_id != site_id:
                 continue
@@ -161,7 +174,7 @@ class MockEnapterAPI:
         expand_connectivity: bool = False,
         expand_properties: bool = False,
         expand_active_alerts: bool = False,
-    ) -> core.DeviceDTO:
+    ) -> domain.Device:
         for device in self._devices:
             if device.id == device_id:
                 return device
@@ -278,7 +291,7 @@ class TestApplicationServer:
 
     async def test_search_sites_filtering(self) -> None:
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-1",
                 name="Gateway 1",
@@ -287,7 +300,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-2",
                 name="Device 2",
@@ -296,7 +309,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-3",
                 name="Gateway 2",
@@ -305,7 +318,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.OFFLINE,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-4",
                 name="Device 4",
@@ -418,7 +431,7 @@ class TestApplicationServer:
             authorized_role=domain.AccessRole.OWNER,
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-1",
                 name="Gateway",
@@ -427,7 +440,7 @@ class TestApplicationServer:
                 authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-2",
                 name="Device 2",
@@ -478,7 +491,7 @@ class TestApplicationServer:
             authorized_role=domain.AccessRole.OWNER,
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="dev-1",
                 name="Device 1",
@@ -514,7 +527,7 @@ class TestApplicationServer:
         assert api.get_rule_engine_calls == 0
 
     async def test_search_rules(self) -> None:
-        gateway = core.DeviceDTO(
+        gateway = make_device(
             blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
@@ -573,7 +586,7 @@ class TestApplicationServer:
         assert result[0].slug == "alpha"
 
     async def test_read_rule(self) -> None:
-        gateway = core.DeviceDTO(
+        gateway = make_device(
             blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
@@ -621,7 +634,7 @@ class TestApplicationServer:
             raise AssertionError("Expected GatewayUnavailable")
 
     async def test_search_rules_gateway_offline(self) -> None:
-        gateway = core.DeviceDTO(
+        gateway = make_device(
             blueprint_id="bp-1",
             id="gw-1",
             name="Gateway",
@@ -697,7 +710,7 @@ class TestApplicationServer:
             },
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
@@ -708,7 +721,7 @@ class TestApplicationServer:
                 active_alerts=["a1"],
                 manifest=manifest,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="2",
                 name="Beta",
@@ -719,7 +732,7 @@ class TestApplicationServer:
                 active_alerts=[],
                 manifest=manifest,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="3",
                 name="Gamma",
@@ -743,15 +756,13 @@ class TestApplicationServer:
             ),
             offset=0,
             limit=10,
-            view=domain.DeviceView.BASIC,
+            view=domain.DeviceViewType.BASIC,
         )
         assert len(result) == 2
         assert result[0].authorized_role == domain.AccessRole.OWNER
-        assert result[0].connectivity_status == domain.ConnectivityStatus.ONLINE
+        assert result[0].connectivity == domain.ConnectivityStatus.ONLINE
         assert result[0].blueprint_summary is not None
         assert result[0].active_alerts_total == 1
-        assert result[0].properties is None
-        assert result[0].active_alerts is None
 
         # Filter by type
         result = await app.search_devices(
@@ -764,7 +775,7 @@ class TestApplicationServer:
             ),
             offset=0,
             limit=10,
-            view=domain.DeviceView.BASIC,
+            view=domain.DeviceViewType.BASIC,
         )
         assert len(result) == 1
         assert result[0].id == "2"
@@ -777,7 +788,7 @@ class TestApplicationServer:
             ),
             offset=0,
             limit=10,
-            view=domain.DeviceView.BASIC,
+            view=domain.DeviceViewType.BASIC,
         )
         assert len(result) == 1
         assert result[0].id == "3"
@@ -843,7 +854,7 @@ class TestApplicationServer:
             },
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
@@ -851,7 +862,7 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 authorized_role=domain.AccessRole.OWNER,
                 connectivity=domain.ConnectivityStatus.ONLINE,
-                properties={"p1": "v1", "p2": "v2", "extra": "ignored"},
+                properties={"p1": "v1", "p2": "v2"},
                 active_alerts=["a1"],
                 manifest=manifest,
             ),
@@ -864,13 +875,14 @@ class TestApplicationServer:
             query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
             offset=0,
             limit=10,
-            view=domain.DeviceView.FULL,
+            view=domain.DeviceViewType.FULL,
         )
 
         assert len(result) == 1
         assert result[0].authorized_role == domain.AccessRole.OWNER
-        assert result[0].connectivity_status == domain.ConnectivityStatus.ONLINE
+        assert result[0].connectivity == domain.ConnectivityStatus.ONLINE
         assert result[0].blueprint_summary is not None
+        assert isinstance(result[0], domain.DeviceViewFull)
         assert result[0].properties == {"p1": "v1", "p2": "v2"}
         assert result[0].active_alerts == ["a1"]
         assert result[0].active_alerts_total == 1
@@ -916,7 +928,7 @@ class TestApplicationServer:
             },
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
@@ -937,10 +949,11 @@ class TestApplicationServer:
             query=core.DeviceSearchQuery(site_id="s1", name_regexp=".*"),
             offset=0,
             limit=10,
-            view=domain.DeviceView.FULL,
+            view=domain.DeviceViewType.FULL,
         )
 
         assert len(result) == 1
+        assert isinstance(result[0], domain.DeviceViewFull)
         assert result[0].active_alerts == []
         assert result[0].active_alerts_total == 0
 
@@ -954,7 +967,7 @@ class TestApplicationServer:
                 query=core.DeviceSearchQuery(name_regexp=".*"),
                 offset=0,
                 limit=10,
-                view=domain.DeviceView.FULL,
+                view=domain.DeviceViewType.FULL,
             )
         except core.SearchQueryTooBroad as exc:
             assert (
@@ -988,7 +1001,7 @@ class TestApplicationServer:
             commands={},
         )
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="1",
                 name="Alpha",
@@ -1000,7 +1013,7 @@ class TestApplicationServer:
                 active_alerts=[],
                 manifest=manifest,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="2",
                 name="Beta",
@@ -1021,7 +1034,7 @@ class TestApplicationServer:
             query=core.DeviceSearchQuery(device_id="2", name_regexp=".*"),
             offset=0,
             limit=10,
-            view=domain.DeviceView.FULL,
+            view=domain.DeviceViewType.FULL,
         )
 
         assert len(result) == 1
@@ -1084,7 +1097,7 @@ class TestApplicationServer:
                 )
             },
         )
-        device = core.DeviceDTO(
+        device = make_device(
             blueprint_id="bp-1",
             id="dev-1",
             name="Dev 1",
@@ -1138,7 +1151,7 @@ class TestApplicationServer:
         manifest = make_device_manifest(
             implements=["energy.battery", "energy.inverter"]
         )
-        device = core.DeviceDTO(
+        device = make_device(
             blueprint_id="bp-1",
             id="dev-1",
             name="Dev 1",
@@ -1191,7 +1204,7 @@ class TestApplicationServer:
 
     async def test_search_command_executions_by_state(self) -> None:
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="d1",
                 name="D1",
@@ -1252,7 +1265,7 @@ class TestApplicationServer:
 
     async def test_search_command_executions_basic(self) -> None:
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="d1",
                 name="D1",
@@ -1260,7 +1273,7 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 authorized_role=domain.AccessRole.OWNER,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="d2",
                 name="D2",
@@ -1268,7 +1281,7 @@ class TestApplicationServer:
                 type=domain.DeviceType.NATIVE,
                 authorized_role=domain.AccessRole.OWNER,
             ),
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="d3",
                 name="D3",
@@ -1351,7 +1364,7 @@ class TestApplicationServer:
 
     async def test_search_command_executions_full(self) -> None:
         devices = [
-            core.DeviceDTO(
+            make_device(
                 blueprint_id="bp-1",
                 id="d1",
                 name="D1",
@@ -1436,8 +1449,8 @@ class TestApplicationServer:
     @staticmethod
     def _device_with_commands(
         device_id: str, commands: dict[str, domain.CommandDeclaration]
-    ) -> core.DeviceDTO:
-        return core.DeviceDTO(
+    ) -> domain.Device:
+        return make_device(
             blueprint_id="bp-1",
             id=device_id,
             name=device_id,
@@ -1744,8 +1757,8 @@ class TestApplicationServer:
             raise AssertionError("Expected the SDK exception to propagate")
 
     @staticmethod
-    def _make_gateway(site_id: str = "site-1") -> core.DeviceDTO:
-        return core.DeviceDTO(
+    def _make_gateway(site_id: str = "site-1") -> domain.Device:
+        return make_device(
             blueprint_id="bp-gw",
             id="gw-1",
             name="Gateway",

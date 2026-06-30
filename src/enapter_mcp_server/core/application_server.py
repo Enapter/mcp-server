@@ -7,7 +7,6 @@ from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
 from .command_execution_search_query import CommandExecutionSearchQuery
-from .device_dto import DeviceDTO
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
@@ -79,15 +78,14 @@ class ApplicationServer:
         async with self._enapter_api.list_devices(
             auth, site_id=site_dto.id, expand_connectivity=True
         ) as devices_gen:
-            async for device_dto in devices_gen:
-                device_ids.append(device_dto.id)
-                is_online = device_dto.connectivity == domain.ConnectivityStatus.ONLINE
-                if is_online:
+            async for device in devices_gen:
+                device_ids.append(device.id)
+                if device.is_online:
                     devices_online += 1
 
-                if device_dto.type == domain.DeviceType.GATEWAY:
-                    gateway_id = device_dto.id
-                    gateway_online = is_online
+                if device.is_gateway:
+                    gateway_id = device.id
+                    gateway_online = device.is_online
 
         rule_engine_state: domain.RuleEngineState | None = None
         if gateway_online:
@@ -274,13 +272,12 @@ class ApplicationServer:
             site_id=site_id,
             expand_connectivity=True,
         ) as devices_gen:
-            async for device_dto in devices_gen:
-                if device_dto.type == domain.DeviceType.GATEWAY:
-                    if device_dto.connectivity != domain.ConnectivityStatus.ONLINE:
-                        raise GatewayUnavailable(
-                            "The site's gateway is currently offline."
-                        )
+            async for device in devices_gen:
+                if not device.is_gateway:
+                    continue
+                if device.is_online:
                     return
+                raise GatewayUnavailable("The site's gateway is currently offline.")
 
         raise GatewayUnavailable("The site has no gateway.")
 
@@ -290,23 +287,23 @@ class ApplicationServer:
         query: DeviceSearchQuery,
         offset: int,
         limit: int,
-        view: domain.DeviceView,
-    ) -> list[domain.Device]:
+        view: domain.DeviceViewType,
+    ) -> list[domain.DeviceView]:
         match view:
-            case domain.DeviceView.BASIC:
-                devices = await self._search_devices_basic(auth, query)
-            case domain.DeviceView.FULL:
-                devices = await self._search_devices_full(auth, query)
+            case domain.DeviceViewType.BASIC:
+                views = await self._search_devices_basic(auth, query)
+            case domain.DeviceViewType.FULL:
+                views = await self._search_devices_full(auth, query)
             case _:
                 raise NotImplementedError(view)
 
-        devices.sort(key=lambda d: d.id)
-        return devices[offset : offset + limit]
+        views.sort(key=lambda v: v.id)
+        return views[offset : offset + limit]
 
     async def _search_devices_basic(
         self, auth: AuthConfig, query: DeviceSearchQuery
-    ) -> list[domain.Device]:
-        devices: list[domain.Device] = []
+    ) -> list[domain.DeviceView]:
+        views: list[domain.DeviceView] = []
         async with self._enapter_api.list_devices(
             auth,
             site_id=query.site_id,
@@ -314,38 +311,21 @@ class ApplicationServer:
             expand_connectivity=True,
             expand_active_alerts=True,
         ) as devices_gen:
-            async for device_dto in devices_gen:
-                if query.matches(device_dto):
-                    assert device_dto.manifest is not None
-                    assert device_dto.connectivity is not None
-                    assert device_dto.active_alerts is not None
-                    devices.append(
-                        domain.Device(
-                            id=device_dto.id,
-                            blueprint_id=device_dto.blueprint_id,
-                            name=device_dto.name,
-                            site_id=device_dto.site_id,
-                            type=device_dto.type,
-                            authorized_role=device_dto.authorized_role,
-                            blueprint_summary=domain.BlueprintSummary.from_device_manifest(
-                                device_dto.manifest
-                            ),
-                            connectivity_status=device_dto.connectivity,
-                            active_alerts_total=len(device_dto.active_alerts),
-                        )
-                    )
+            async for device in devices_gen:
+                if query.matches(device):
+                    views.append(domain.DeviceViewBasic(device))
 
-        return devices
+        return views
 
     async def _search_devices_full(
         self, auth: AuthConfig, query: DeviceSearchQuery
-    ) -> list[domain.Device]:
+    ) -> list[domain.DeviceView]:
         if query.site_id is None and query.device_id is None:
             raise SearchQueryTooBroad(
                 "Please provide `site_id` or `device_id` to narrow down the search."
             )
 
-        matched_device_dtos: list[DeviceDTO] = []
+        views: list[domain.DeviceView] = []
         async with self._enapter_api.list_devices(
             auth,
             site_id=query.site_id,
@@ -354,41 +334,11 @@ class ApplicationServer:
             expand_connectivity=True,
             expand_active_alerts=True,
         ) as devices_gen:
-            async for device_dto in devices_gen:
-                if query.matches(device_dto):
-                    matched_device_dtos.append(device_dto)
+            async for device in devices_gen:
+                if query.matches(device):
+                    views.append(domain.DeviceViewFull(device))
 
-        if not matched_device_dtos:
-            return []
-
-        devices: list[domain.Device] = []
-        for device_dto in matched_device_dtos:
-            assert device_dto.manifest is not None
-            assert device_dto.connectivity is not None
-            assert device_dto.properties is not None
-            assert device_dto.active_alerts is not None
-            devices.append(
-                domain.Device(
-                    id=device_dto.id,
-                    blueprint_id=device_dto.blueprint_id,
-                    name=device_dto.name,
-                    site_id=device_dto.site_id,
-                    type=device_dto.type,
-                    authorized_role=device_dto.authorized_role,
-                    blueprint_summary=domain.BlueprintSummary.from_device_manifest(
-                        device_dto.manifest
-                    ),
-                    connectivity_status=device_dto.connectivity,
-                    active_alerts_total=len(device_dto.active_alerts),
-                    properties={
-                        k: device_dto.properties.get(k)
-                        for k in device_dto.manifest.properties
-                    },
-                    active_alerts=device_dto.active_alerts,
-                )
-            )
-
-        return devices
+        return views
 
     async def read_blueprint(
         self,
@@ -406,10 +356,10 @@ class ApplicationServer:
         | domain.CommandDeclaration
     ]:
         name_pattern = re.compile(name_regexp)
-        device_dto = await self._enapter_api.get_device(
+        device = await self._enapter_api.get_device(
             auth, device_id, expand_manifest=True
         )
-        assert device_dto.manifest is not None
+        assert device.manifest is not None
 
         entities: list[
             str
@@ -421,15 +371,15 @@ class ApplicationServer:
 
         match section:
             case domain.BlueprintSection.IMPLEMENTS:
-                entities = list(device_dto.manifest.implements)
+                entities = list(device.manifest.implements)
             case domain.BlueprintSection.PROPERTIES:
-                entities = list(device_dto.manifest.properties.values())
+                entities = list(device.manifest.properties.values())
             case domain.BlueprintSection.TELEMETRY:
-                entities = list(device_dto.manifest.telemetry.values())
+                entities = list(device.manifest.telemetry.values())
             case domain.BlueprintSection.ALERTS:
-                entities = list(device_dto.manifest.alerts.values())
+                entities = list(device.manifest.alerts.values())
             case domain.BlueprintSection.COMMANDS:
-                entities = list(device_dto.manifest.commands.values())
+                entities = list(device.manifest.commands.values())
             case _:
                 raise NotImplementedError(section)
 
@@ -470,11 +420,11 @@ class ApplicationServer:
     async def _resolve_manifest_commands(
         self, auth: AuthConfig, device_id: str
     ) -> dict[str, domain.CommandDeclaration]:
-        device_dto = await self._enapter_api.get_device(
+        device = await self._enapter_api.get_device(
             auth, device_id, expand_manifest=True
         )
-        assert device_dto.manifest is not None
-        return device_dto.manifest.commands
+        assert device.manifest is not None
+        return device.manifest.commands
 
     async def get_historical_telemetry(
         self,

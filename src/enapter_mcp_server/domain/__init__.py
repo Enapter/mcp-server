@@ -15,7 +15,7 @@ from .data_type import DataType
 from .device import Device
 from .device_manifest import DeviceManifest
 from .device_type import DeviceType
-from .device_view import DeviceView
+from .device_view import DeviceView, DeviceViewBasic, DeviceViewFull, DeviceViewType
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
 from .rule import Rule
@@ -45,6 +45,9 @@ __all__ = [
     "DeviceManifest",
     "DeviceType",
     "DeviceView",
+    "DeviceViewBasic",
+    "DeviceViewFull",
+    "DeviceViewType",
     "HistoricalTelemetry",
     "PropertyDeclaration",
     "Rule",

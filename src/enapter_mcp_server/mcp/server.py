@@ -306,14 +306,14 @@ class Server(enapter.async_.Routine):
             ),
             has_active_alerts=has_active_alerts,
         )
-        devices = await self._app.search_devices(
+        views = await self._app.search_devices(
             auth=auth,
             query=query,
             offset=offset,
             limit=limit,
-            view=domain.DeviceView(view.lower()),
+            view=domain.DeviceViewType(view.lower()),
         )
-        return [models.Device.from_domain(d) for d in devices]
+        return [models.Device.from_view(v) for v in views]
 
     async def read_blueprint(
         self,

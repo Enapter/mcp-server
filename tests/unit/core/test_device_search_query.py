@@ -10,7 +10,7 @@ class TestDeviceSearchQuery:
         query = core.DeviceSearchQuery(name_regexp="Alpha")
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="Alpha",
@@ -23,7 +23,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="2",
                     name="Beta",
@@ -39,7 +39,7 @@ class TestDeviceSearchQuery:
         query = core.DeviceSearchQuery(device_type=domain.DeviceType.GATEWAY)
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="A",
@@ -52,7 +52,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="2",
                     name="A",
@@ -68,7 +68,7 @@ class TestDeviceSearchQuery:
         query = core.DeviceSearchQuery(site_id="s1")
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="A",
@@ -81,7 +81,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="2",
                     name="A",
@@ -97,7 +97,7 @@ class TestDeviceSearchQuery:
         query = core.DeviceSearchQuery(device_id="1")
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="A",
@@ -110,7 +110,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="2",
                     name="A",
@@ -128,7 +128,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="A",
@@ -142,7 +142,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="2",
                     name="A",
@@ -161,7 +161,7 @@ class TestDeviceSearchQuery:
         )
         assert (
             query.matches(
-                core.DeviceDTO(
+                domain.Device(
                     blueprint_id="bp-1",
                     id="1",
                     name="A",
@@ -177,7 +177,7 @@ class TestDeviceSearchQuery:
         query_true = core.DeviceSearchQuery(has_active_alerts=True)
         query_false = core.DeviceSearchQuery(has_active_alerts=False)
 
-        device_with_alerts = core.DeviceDTO(
+        device_with_alerts = domain.Device(
             blueprint_id="bp-1",
             id="1",
             name="A",
@@ -186,7 +186,7 @@ class TestDeviceSearchQuery:
             authorized_role=domain.AccessRole.OWNER,
             active_alerts=["a1"],
         )
-        device_without_alerts = core.DeviceDTO(
+        device_without_alerts = domain.Device(
             blueprint_id="bp-1",
             id="2",
             name="B",

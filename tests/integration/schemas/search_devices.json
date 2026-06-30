@@ -249,8 +249,8 @@
             "site_id",
             "type",
             "authorized_role",
-            "blueprint_summary",
             "connectivity_status",
+            "blueprint_summary",
             "active_alerts_total"
           ],
           "type": "object"
