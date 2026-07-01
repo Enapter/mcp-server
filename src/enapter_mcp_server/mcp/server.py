@@ -103,7 +103,25 @@ class Server(enapter.async_.Routine):
                 raise NotImplementedError(f"{jwt_store_url.scheme}")
 
     def _register_tools(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        read_only_tools: list[tuple[mcp.types.AnyFunction, str]] = [
+        for tool, title in self._read_only_tools:
+            annotations = mcp.types.ToolAnnotations(
+                readOnlyHint=True,
+                destructiveHint=False,
+                title=title,
+            )
+            fastmcp_server.tool(tool, annotations=annotations)
+
+        for tool, title in self._read_write_tools:
+            annotations = mcp.types.ToolAnnotations(
+                readOnlyHint=False,
+                destructiveHint=True,
+                title=title,
+            )
+            fastmcp_server.tool(tool, annotations=annotations)
+
+    @property
+    def _read_only_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
+        return [
             (self.search_sites, "Search Sites"),
             (self.search_devices, "Search Devices"),
             (self.search_command_executions, "Search Command Executions"),
@@ -112,50 +130,20 @@ class Server(enapter.async_.Routine):
             (self.search_rules, "Search Rules"),
             (self.read_rule, "Read Rule"),
         ]
-        for tool, title in read_only_tools:
-            fastmcp_server.tool(
-                tool,
-                annotations=mcp.types.ToolAnnotations(
-                    readOnlyHint=True,
-                    title=title,
-                ),
-            )
+
+    @property
+    def _read_write_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
+        tools: list[tuple[mcp.types.AnyFunction, str]] = []
 
         if self._config.command_execution_enabled:
-            fastmcp_server.tool(
-                self.execute_command,
-                annotations=mcp.types.ToolAnnotations(
-                    readOnlyHint=False,
-                    destructiveHint=True,
-                    title="Execute Command",
-                ),
-            )
+            tools.append((self.execute_command, "Execute Command"))
 
         if self._config.rule_editing_enabled:
-            fastmcp_server.tool(
-                self.create_rule,
-                annotations=mcp.types.ToolAnnotations(
-                    readOnlyHint=False,
-                    destructiveHint=True,
-                    title="Create Rule",
-                ),
-            )
-            fastmcp_server.tool(
-                self.edit_rule,
-                annotations=mcp.types.ToolAnnotations(
-                    readOnlyHint=False,
-                    destructiveHint=True,
-                    title="Edit Rule",
-                ),
-            )
-            fastmcp_server.tool(
-                self.delete_rule,
-                annotations=mcp.types.ToolAnnotations(
-                    readOnlyHint=False,
-                    destructiveHint=True,
-                    title="Delete Rule",
-                ),
-            )
+            tools.append((self.create_rule, "Create Rule"))
+            tools.append((self.edit_rule, "Edit Rule"))
+            tools.append((self.delete_rule, "Delete Rule"))
+
+        return tools
 
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
