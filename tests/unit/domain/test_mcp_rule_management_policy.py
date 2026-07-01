@@ -24,9 +24,9 @@ def make_rule(
     )
 
 
-class TestMcpRuleManagementPolicy:
+class TestMCPRuleManagementPolicy:
     def test_assert_can_create_accepts_managed_disabled_v3_rule(self) -> None:
-        domain.McpRuleManagementPolicy().assert_can_create(
+        domain.MCPRuleManagementPolicy().assert_can_create(
             slug="mcp-test",
             script=domain.RuleScript(
                 runtime_version=domain.RuleRuntimeVersion.V3,
@@ -38,7 +38,7 @@ class TestMcpRuleManagementPolicy:
 
     def test_assert_can_create_rejects_unmanaged_slug(self) -> None:
         with pytest.raises(domain.UnprefixedRuleSlug):
-            domain.McpRuleManagementPolicy().assert_can_create(
+            domain.MCPRuleManagementPolicy().assert_can_create(
                 slug="test",
                 script=domain.RuleScript(
                     runtime_version=domain.RuleRuntimeVersion.V3,
@@ -50,7 +50,7 @@ class TestMcpRuleManagementPolicy:
 
     def test_assert_can_create_rejects_non_v3_script(self) -> None:
         with pytest.raises(domain.RuleNotV3):
-            domain.McpRuleManagementPolicy().assert_can_create(
+            domain.MCPRuleManagementPolicy().assert_can_create(
                 slug="mcp-test",
                 script=domain.RuleScript(
                     runtime_version=domain.RuleRuntimeVersion.V1,
@@ -62,7 +62,7 @@ class TestMcpRuleManagementPolicy:
 
     def test_assert_can_create_rejects_enabled_rule(self) -> None:
         with pytest.raises(domain.RuleMustBeCreatedDisabled):
-            domain.McpRuleManagementPolicy().assert_can_create(
+            domain.MCPRuleManagementPolicy().assert_can_create(
                 slug="mcp-test",
                 script=domain.RuleScript(
                     runtime_version=domain.RuleRuntimeVersion.V3,
@@ -73,31 +73,31 @@ class TestMcpRuleManagementPolicy:
             )
 
     def test_assert_can_edit_accepts_disabled_mcp_v3_rule(self) -> None:
-        domain.McpRuleManagementPolicy().assert_can_edit(make_rule())
+        domain.MCPRuleManagementPolicy().assert_can_edit(make_rule())
 
     def test_assert_can_edit_rejects_enabled_rule(self) -> None:
         with pytest.raises(domain.RuleNotDisabled):
-            domain.McpRuleManagementPolicy().assert_can_edit(make_rule(disabled=False))
+            domain.MCPRuleManagementPolicy().assert_can_edit(make_rule(disabled=False))
 
     def test_assert_can_edit_rejects_unmanaged_rule(self) -> None:
-        with pytest.raises(domain.RuleNotMcpManaged):
-            domain.McpRuleManagementPolicy().assert_can_edit(make_rule(slug="test"))
+        with pytest.raises(domain.RuleNotMCPManaged):
+            domain.MCPRuleManagementPolicy().assert_can_edit(make_rule(slug="test"))
 
     def test_assert_can_edit_rejects_non_v3_rule(self) -> None:
         with pytest.raises(domain.RuleNotV3):
-            domain.McpRuleManagementPolicy().assert_can_edit(
+            domain.MCPRuleManagementPolicy().assert_can_edit(
                 make_rule(runtime_version=domain.RuleRuntimeVersion.V1)
             )
 
     def test_assert_can_delete_accepts_disabled_mcp_rule(self) -> None:
-        domain.McpRuleManagementPolicy().assert_can_delete(make_rule())
+        domain.MCPRuleManagementPolicy().assert_can_delete(make_rule())
 
     def test_assert_can_delete_rejects_enabled_rule(self) -> None:
         with pytest.raises(domain.RuleNotDisabled):
-            domain.McpRuleManagementPolicy().assert_can_delete(
+            domain.MCPRuleManagementPolicy().assert_can_delete(
                 make_rule(disabled=False)
             )
 
     def test_assert_can_delete_rejects_unmanaged_rule(self) -> None:
-        with pytest.raises(domain.RuleNotMcpManaged):
-            domain.McpRuleManagementPolicy().assert_can_delete(make_rule(slug="test"))
+        with pytest.raises(domain.RuleNotMCPManaged):
+            domain.MCPRuleManagementPolicy().assert_can_delete(make_rule(slug="test"))

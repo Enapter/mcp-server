@@ -24,7 +24,7 @@ class ApplicationServer:
     def __init__(self, enapter_api: EnapterAPI) -> None:
         self._enapter_api = enapter_api
         self._rule_policy: domain.RuleManagementPolicy = (
-            domain.McpRuleManagementPolicy()
+            domain.MCPRuleManagementPolicy()
         )
 
     async def search_sites(

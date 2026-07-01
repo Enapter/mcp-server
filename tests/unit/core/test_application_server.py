@@ -1973,10 +1973,10 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "old", "new")
-        except domain.RuleNotMcpManaged:
+        except domain.RuleNotMCPManaged:
             pass
         else:
-            raise AssertionError("Expected RuleNotMcpManaged")
+            raise AssertionError("Expected RuleNotMCPManaged")
         assert api.update_rule_script_calls == []
 
     async def test_edit_rule_non_v3_rejected(self) -> None:
@@ -2117,10 +2117,10 @@ class TestApplicationServer:
 
         try:
             await app.delete_rule(auth, "site-1", "rule-1")
-        except domain.RuleNotMcpManaged:
+        except domain.RuleNotMCPManaged:
             pass
         else:
-            raise AssertionError("Expected RuleNotMcpManaged")
+            raise AssertionError("Expected RuleNotMCPManaged")
 
         assert api.delete_rule_calls == []
 
