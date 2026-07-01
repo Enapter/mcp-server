@@ -20,6 +20,7 @@ from .errors import (
     AmbiguousRuleOldString,
     EmptyRuleOldString,
     NoOpRuleEdit,
+    RuleMustBeCreatedDisabled,
     RuleNotDisabled,
     RuleNotMcpManaged,
     RuleNotV3,
@@ -27,10 +28,12 @@ from .errors import (
     UnprefixedRuleSlug,
 )
 from .historical_telemetry import HistoricalTelemetry
+from .mcp_rule_management_policy import MCP_PREFIX, McpRuleManagementPolicy
 from .property_declaration import PropertyDeclaration
-from .rule import MCP_PREFIX, Rule
+from .rule import Rule
 from .rule_engine import RuleEngine
 from .rule_engine_state import RuleEngineState
+from .rule_management_policy import RuleManagementPolicy
 from .rule_runtime_version import RuleRuntimeVersion
 from .rule_script import RuleScript
 from .rule_script_summary import RuleScriptSummary
@@ -65,11 +68,14 @@ __all__ = [
     "EmptyRuleOldString",
     "HistoricalTelemetry",
     "MCP_PREFIX",
+    "McpRuleManagementPolicy",
     "NoOpRuleEdit",
     "PropertyDeclaration",
     "Rule",
     "RuleEngine",
     "RuleEngineState",
+    "RuleManagementPolicy",
+    "RuleMustBeCreatedDisabled",
     "RuleNotDisabled",
     "RuleNotMcpManaged",
     "RuleNotV3",

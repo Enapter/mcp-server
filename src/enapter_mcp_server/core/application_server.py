@@ -23,6 +23,9 @@ class ApplicationServer:
 
     def __init__(self, enapter_api: EnapterAPI) -> None:
         self._enapter_api = enapter_api
+        self._rule_policy: domain.RuleManagementPolicy = (
+            domain.McpRuleManagementPolicy()
+        )
 
     async def search_sites(
         self,
@@ -132,24 +135,21 @@ class ApplicationServer:
         auth: AuthConfig,
         site_id: str,
         slug: str,
-        script_code: str,
+        script: domain.RuleScript,
+        disabled: bool,
     ) -> domain.Rule:
         await self._assert_gateway_online(auth, site_id)
-        if not slug.startswith(domain.MCP_PREFIX):
-            raise domain.UnprefixedRuleSlug(
-                f"The slug {slug!r} does not start with the MCP-managed"
-                f" prefix {domain.MCP_PREFIX!r}."
-            )
+        self._rule_policy.assert_can_create(
+            slug=slug,
+            script=script,
+            disabled=disabled,
+        )
         return await self._enapter_api.create_rule(
             auth,
             site_id,
             slug,
-            domain.RuleScript(
-                runtime_version=domain.RuleRuntimeVersion.V3,
-                exec_interval=None,
-                code=script_code,
-            ),
-            disabled=True,
+            script,
+            disabled=disabled,
         )
 
     async def edit_rule(
@@ -162,54 +162,13 @@ class ApplicationServer:
     ) -> domain.Rule:
         await self._assert_gateway_online(auth, site_id)
 
-        if old_string == "":
-            raise domain.EmptyRuleOldString(
-                "An empty old_string is not allowed. Provide the exact"
-                " snippet of the current script you wish to replace."
-            )
-        if old_string == new_string:
-            raise domain.NoOpRuleEdit(
-                "The old_string and new_string are identical. This"
-                " would not change the rule's script."
-            )
-
         rule = await self._enapter_api.get_rule(auth, site_id, rule_id)
-
-        if not rule.disabled:
-            raise domain.RuleNotDisabled(
-                f"Rule {rule_id!r} is enabled. Please disable it in"
-                f" the Enapter UI before editing it via MCP."
-            )
-        if not rule.is_mcp_managed:
-            raise domain.RuleNotMcpManaged(
-                f"Rule {rule_id!r} has slug {rule.slug!r}, which"
-                f" does not start with the MCP-managed prefix"
-                f" {domain.MCP_PREFIX!r}."
-            )
-        if rule.script.runtime_version != domain.RuleRuntimeVersion.V3:
-            raise domain.RuleNotV3(
-                f"Rule {rule_id!r} uses runtime version"
-                f" {rule.script.runtime_version.value!r}, but"
-                f" edit_rule only supports v3 rules."
-            )
-
-        code = rule.script.code
-        count = code.count(old_string)
-        if count == 0:
-            raise domain.RuleOldStringNotFound(
-                f"The old_string was not found anywhere in the"
-                f" current script of rule {rule_id!r}. The script may"
-                f" have been changed; use read_rule to get the latest"
-                f" content."
-            )
-        if count > 1:
-            raise domain.AmbiguousRuleOldString(
-                f"The old_string appears {count} times in the"
-                f" current script of rule {rule_id!r}. Include more"
-                f" surrounding context to make the match unique."
-            )
-
-        new_code = code.replace(old_string, new_string, 1)
+        self._rule_policy.assert_can_edit(rule)
+        script = rule.script.replace_once(
+            old_string=old_string,
+            new_string=new_string,
+            rule_id=rule.id,
+        )
 
         # The upstream API has no conditional-update primitive (no ETags).
         # Between the preceding get_rule fetch and this update_rule_script
@@ -220,11 +179,7 @@ class ApplicationServer:
             auth,
             rule_id,
             site_id,
-            domain.RuleScript(
-                runtime_version=rule.script.runtime_version,
-                exec_interval=rule.script.exec_interval,
-                code=new_code,
-            ),
+            script,
         )
 
     async def delete_rule(
@@ -235,18 +190,7 @@ class ApplicationServer:
     ) -> None:
         await self._assert_gateway_online(auth, site_id)
         rule = await self._enapter_api.get_rule(auth, site_id, rule_id)
-
-        if not rule.disabled:
-            raise domain.RuleNotDisabled(
-                f"Rule {rule_id!r} is enabled. Please disable it in"
-                f" the Enapter UI before deleting it via MCP."
-            )
-        if not rule.is_mcp_managed:
-            raise domain.RuleNotMcpManaged(
-                f"Rule {rule_id!r} has slug {rule.slug!r}, which"
-                f" does not start with the MCP-managed prefix"
-                f" {domain.MCP_PREFIX!r}."
-            )
+        self._rule_policy.assert_can_delete(rule)
 
         # The upstream API has no conditional-update primitive (no ETags).
         # Between the preceding get_rule fetch and this delete call a

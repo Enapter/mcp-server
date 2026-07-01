@@ -14,6 +14,10 @@ class RuleNotV3(Exception):
     pass
 
 
+class RuleMustBeCreatedDisabled(Exception):
+    pass
+
+
 class EmptyRuleOldString(Exception):
     pass
 
