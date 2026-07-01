@@ -1802,7 +1802,17 @@ class TestApplicationServer:
         auth = core.AuthConfig(token="test")
 
         try:
-            await app.create_rule(auth, "site-1", "my-rule", "code")
+            await app.create_rule(
+                auth,
+                "site-1",
+                "my-rule",
+                domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V3,
+                    exec_interval=None,
+                    code="code",
+                ),
+                disabled=True,
+            )
         except domain.UnprefixedRuleSlug as exc:
             assert "my-rule" in str(exc)
             assert "mcp-" in str(exc)
@@ -1817,7 +1827,17 @@ class TestApplicationServer:
         auth = core.AuthConfig(token="test")
 
         try:
-            await app.create_rule(auth, "site-1", "mcp-test", "code")
+            await app.create_rule(
+                auth,
+                "site-1",
+                "mcp-test",
+                domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V3,
+                    exec_interval=None,
+                    code="code",
+                ),
+                disabled=True,
+            )
         except core.GatewayUnavailable:
             pass
         else:
@@ -1832,7 +1852,17 @@ class TestApplicationServer:
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
-        result = await app.create_rule(auth, "site-1", "mcp-test", "local x = 1")
+        result = await app.create_rule(
+            auth,
+            "site-1",
+            "mcp-test",
+            domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="local x = 1",
+            ),
+            disabled=True,
+        )
 
         assert result.id == "rule-1"
         assert result.enabled is False
@@ -1844,6 +1874,30 @@ class TestApplicationServer:
         assert call["script"].code == "local x = 1"
         assert call["script"].runtime_version == domain.RuleRuntimeVersion.V3
         assert call["disabled"] is True
+
+    async def test_create_rule_rejects_enabled_rule(self) -> None:
+        api = MockEnapterAPI(devices=[self._make_gateway()])
+        app = core.ApplicationServer(api)
+        auth = core.AuthConfig(token="test")
+
+        try:
+            await app.create_rule(
+                auth,
+                "site-1",
+                "mcp-test",
+                domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V3,
+                    exec_interval=None,
+                    code="local x = 1",
+                ),
+                disabled=False,
+            )
+        except domain.RuleMustBeCreatedDisabled:
+            pass
+        else:
+            raise AssertionError("Expected RuleMustBeCreatedDisabled")
+
+        assert api.create_rule_calls == []
 
     async def test_edit_rule_gateway_offline(self) -> None:
         api = MockEnapterAPI(devices=[])
@@ -1858,7 +1912,11 @@ class TestApplicationServer:
             raise AssertionError("Expected GatewayUnavailable")
 
     async def test_edit_rule_empty_old_string(self) -> None:
-        api = MockEnapterAPI(devices=[self._make_gateway()])
+        rule = self._make_rule(script_code="local x = 1")
+        api = MockEnapterAPI(
+            devices=[self._make_gateway()],
+            rules={"site-1": [rule]},
+        )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -1871,7 +1929,11 @@ class TestApplicationServer:
         assert api.update_rule_script_calls == []
 
     async def test_edit_rule_no_op(self) -> None:
-        api = MockEnapterAPI(devices=[self._make_gateway()])
+        rule = self._make_rule(script_code="local x = 1")
+        api = MockEnapterAPI(
+            devices=[self._make_gateway()],
+            rules={"site-1": [rule]},
+        )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
 
@@ -1967,18 +2029,6 @@ class TestApplicationServer:
         else:
             raise AssertionError("Expected AmbiguousRuleOldString")
         assert api.update_rule_script_calls == []
-
-    async def test_edit_rule_guard_order_empty_before_fetch(self) -> None:
-        api = MockEnapterAPI(devices=[self._make_gateway()])
-        app = core.ApplicationServer(api)
-        auth = core.AuthConfig(token="test")
-
-        try:
-            await app.edit_rule(auth, "site-1", "rule-1", "", "new")
-        except domain.EmptyRuleOldString:
-            pass
-        else:
-            raise AssertionError("Expected EmptyRuleOldString before fetch")
 
     async def test_edit_rule_no_op_before_match_count(self) -> None:
         rule = self._make_rule(script_code="local x = 1")

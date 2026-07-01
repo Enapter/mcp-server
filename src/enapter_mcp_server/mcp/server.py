@@ -478,7 +478,12 @@ class Server(enapter.async_.Routine):
             auth=auth,
             site_id=site_id,
             slug=slug,
-            script_code=script_code,
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code=script_code,
+            ),
+            disabled=True,
         )
         return models.Rule.from_domain(rule)
 
