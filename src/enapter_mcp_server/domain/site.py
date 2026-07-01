@@ -1,7 +1,7 @@
 import dataclasses
 
 from .access_role import AccessRole
-from .rule_engine_state import RuleEngineState
+from .site_status import SiteStatus
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -10,8 +10,7 @@ class Site:
     name: str
     timezone: str
     authorized_role: AccessRole
-    gateway_id: str | None
-    gateway_online: bool
-    devices_total: int
-    devices_online: int
-    rule_engine_state: RuleEngineState | None = None
+    status: SiteStatus | None = None
+
+    def with_status(self, status: SiteStatus) -> "Site":
+        return dataclasses.replace(self, status=status)

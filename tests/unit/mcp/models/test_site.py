@@ -1,3 +1,5 @@
+import pytest
+
 from enapter_mcp_server import domain, mcp
 
 
@@ -11,10 +13,12 @@ class TestSite:
             name="Production Site",
             timezone="Asia/Tokyo",
             authorized_role=domain.AccessRole.READONLY,
-            gateway_id=None,
-            gateway_online=False,
-            devices_total=0,
-            devices_online=0,
+            status=domain.SiteStatus(
+                gateway_id=None,
+                gateway_online=False,
+                devices_total=0,
+                devices_online=0,
+            ),
         )
 
         site = mcp.models.Site.from_domain(domain_site)
@@ -30,11 +34,13 @@ class TestSite:
             name="Site 1",
             timezone="UTC",
             authorized_role=domain.AccessRole.OWNER,
-            gateway_id="gateway-1",
-            gateway_online=True,
-            devices_total=4,
-            devices_online=3,
-            rule_engine_state=domain.RuleEngineState.ACTIVE,
+            status=domain.SiteStatus(
+                gateway_id="gateway-1",
+                gateway_online=True,
+                devices_total=4,
+                devices_online=3,
+                rule_engine_state=domain.RuleEngineState.ACTIVE,
+            ),
         )
 
         site = mcp.models.Site.from_domain(domain_site)
@@ -45,3 +51,14 @@ class TestSite:
         assert site.devices_total == 4
         assert site.devices_online == 3
         assert site.rule_engine_state == "active"
+
+    def test_site_from_domain_no_status(self) -> None:
+        domain_site = domain.Site(
+            id="site-bare",
+            name="Bare Site",
+            timezone="UTC",
+            authorized_role=domain.AccessRole.USER,
+        )
+
+        with pytest.raises(AssertionError):
+            mcp.models.Site.from_domain(domain_site)

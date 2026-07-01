@@ -26,11 +26,11 @@ class EnapterAPI:
     @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
-    ) -> AsyncGenerator[core.SiteDTO, None]:
+    ) -> AsyncGenerator[domain.Site, None]:
         async with self._new_client(auth) as client:
             async with client.sites.list() as s:
                 async for site in s:
-                    yield self._data_mapper.to_site_dto(site)
+                    yield self._data_mapper.to_site(site)
 
     async def get_rule_engine(
         self, auth: core.AuthConfig, site_id: str

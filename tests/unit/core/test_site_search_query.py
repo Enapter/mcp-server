@@ -10,7 +10,7 @@ class TestSiteSearchQuery:
         query = core.SiteSearchQuery(site_id="1")
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="1",
                     name="A",
                     timezone="UTC",
@@ -21,7 +21,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="2",
                     name="A",
                     timezone="UTC",
@@ -35,7 +35,7 @@ class TestSiteSearchQuery:
         query = core.SiteSearchQuery(name_regexp="Alpha")
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="1",
                     name="Alpha",
                     timezone="UTC",
@@ -46,7 +46,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="2",
                     name="Beta",
                     timezone="UTC",
@@ -60,7 +60,7 @@ class TestSiteSearchQuery:
         query = core.SiteSearchQuery(timezone_regexp="Berlin")
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="1",
                     name="A",
                     timezone="Europe/Berlin",
@@ -71,7 +71,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="2",
                     name="A",
                     timezone="Europe/London",
@@ -85,7 +85,7 @@ class TestSiteSearchQuery:
         query = core.SiteSearchQuery(name_regexp="Alpha", timezone_regexp="Berlin")
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="1",
                     name="Alpha",
                     timezone="Europe/Berlin",
@@ -96,7 +96,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="2",
                     name="Beta",
                     timezone="Europe/Berlin",
@@ -107,7 +107,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="3",
                     name="Alpha",
                     timezone="Europe/London",
@@ -123,7 +123,7 @@ class TestSiteSearchQuery:
         )
         assert (
             query.matches(
-                core.SiteDTO(
+                domain.Site(
                     id="1",
                     name="A",
                     timezone="B",

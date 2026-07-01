@@ -1,7 +1,7 @@
 import dataclasses
 import re
 
-from .site_dto import SiteDTO
+from enapter_mcp_server import domain
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -20,15 +20,13 @@ class SiteSearchQuery:
             else None
         )
 
-    def matches(self, site_dto: SiteDTO) -> bool:
-        if self.site_id is not None and site_dto.id != self.site_id:
+    def matches(self, site: domain.Site) -> bool:
+        if self.site_id is not None and site.id != self.site_id:
             return False
-        if self._name_pattern is not None and not self._name_pattern.search(
-            site_dto.name
-        ):
+        if self._name_pattern is not None and not self._name_pattern.search(site.name):
             return False
         if self._timezone_pattern is not None and not self._timezone_pattern.search(
-            site_dto.timezone
+            site.timezone
         ):
             return False
         return True
