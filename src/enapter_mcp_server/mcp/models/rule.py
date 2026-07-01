@@ -28,5 +28,5 @@ class Rule(pydantic.BaseModel):
             slug=rule.slug,
             enabled=rule.enabled,
             state=rule.state.value,
-            script_summary=RuleScriptSummary.from_domain(rule.script_summary),
+            script_summary=RuleScriptSummary.from_domain(rule.script.summary),
         )

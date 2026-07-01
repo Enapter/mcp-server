@@ -521,9 +521,11 @@ class TestRuleEditing:
             auth=self._auth(),
             rule_id="rule-1",
             site_id="site-1",
-            script_code="new code",
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
-            script_exec_interval="2m",
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval="2m",
+                code="new code",
+            ),
         )
 
         assert len(spy.update_calls) == 1
@@ -545,9 +547,11 @@ class TestRuleEditing:
             auth=self._auth(),
             rule_id="rule-1",
             site_id="site-1",
-            script_code="code",
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
-            script_exec_interval=None,
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="code",
+            ),
         )
 
         assert spy.update_calls[0]["script"].exec_interval is None
@@ -560,16 +564,18 @@ class TestRuleEditing:
             auth=self._auth(),
             rule_id="rule-1",
             site_id="site-1",
-            script_code="code",
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
-            script_exec_interval=None,
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="code",
+            ),
         )
 
         assert spy.update_calls[0]["script"].runtime_version == (
             enapter.http.api.rule_engine.RuntimeVersion.V3
         )
 
-    async def test_update_rule_script_maps_result_to_rule_dto(self) -> None:
+    async def test_update_rule_script_maps_result_to_rule(self) -> None:
         spy = _SpyRuleEngineClient(
             update_result=_make_sdk_rule(
                 rule_id="r", slug="mcp-s", disabled=True, exec_interval=None
@@ -581,17 +587,19 @@ class TestRuleEditing:
             auth=self._auth(),
             rule_id="r",
             site_id="s",
-            script_code="c",
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
-            script_exec_interval=None,
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="c",
+            ),
         )
 
-        assert isinstance(result, core.RuleDTO)
+        assert isinstance(result, domain.Rule)
         assert result.id == "r"
         assert result.slug == "mcp-s"
         assert result.disabled is True
-        assert result.script_runtime_version == domain.RuleRuntimeVersion.V3
-        assert result.script_exec_interval is None
+        assert result.script.runtime_version == domain.RuleRuntimeVersion.V3
+        assert result.script.exec_interval is None
 
     async def test_create_rule_builds_v3_script_and_disables(self) -> None:
         spy = _SpyRuleEngineClient(create_result=_make_sdk_rule())
@@ -601,8 +609,11 @@ class TestRuleEditing:
             auth=self._auth(),
             site_id="site-1",
             slug="mcp-x",
-            script_code="code",
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="code",
+            ),
             disabled=True,
         )
 
@@ -640,9 +651,11 @@ class TestRuleEditing:
                 auth=self._auth(),
                 rule_id="rule-1",
                 site_id="site-1",
-                script_code="c",
-                script_runtime_version=domain.RuleRuntimeVersion.V3,
-                script_exec_interval=None,
+                script=domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V3,
+                    exec_interval=None,
+                    code="c",
+                ),
             )
 
         assert exc_info.value is exc
