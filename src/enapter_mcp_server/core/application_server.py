@@ -74,7 +74,7 @@ class ApplicationServer:
 
                 if device.is_gateway:
                     gateway_id = device.id
-                    gateway_online = device.is_online
+                    gateway_online = device.is_online is True
 
         rule_engine_state: domain.RuleEngineState | None = None
         if gateway_online:
