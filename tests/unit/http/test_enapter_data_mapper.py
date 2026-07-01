@@ -307,6 +307,19 @@ class TestEnapterDataMapper:
 
         assert result.authorized_role == domain.AccessRole.READONLY
 
+    def test_to_rule_engine(self) -> None:
+        engine = enapter.http.api.rule_engine.Engine(
+            id="eng-1",
+            state=enapter.http.api.rule_engine.EngineState.ACTIVE,
+            timezone="UTC",
+        )
+
+        result = http.EnapterDataMapper().to_rule_engine(engine)
+
+        assert result.id == "eng-1"
+        assert result.state == domain.RuleEngineState.ACTIVE
+        assert result.timezone == "UTC"
+
     def test_to_device_null_alerts_mapped_to_empty_list(self) -> None:
         device = enapter.http.api.devices.Device(
             id="dev-1",

@@ -14,6 +14,15 @@ class EnapterDataMapper:
             authorized_role=domain.AccessRole(site.authorized_role.value.lower()),
         )
 
+    def to_rule_engine(
+        self, engine: enapter.http.api.rule_engine.Engine
+    ) -> domain.RuleEngine:
+        return domain.RuleEngine(
+            id=engine.id,
+            state=domain.RuleEngineState(engine.state.value.lower()),
+            timezone=engine.timezone,
+        )
+
     def to_rule_dto(self, rule: enapter.http.api.rule_engine.Rule) -> core.RuleDTO:
         return core.RuleDTO(
             id=rule.id,

@@ -19,7 +19,6 @@ from .errors import (
     UnprefixedRuleSlug,
 )
 from .rule_dto import RuleDTO
-from .rule_engine_dto import RuleEngineDTO
 from .rule_search_query import RuleSearchQuery
 from .site_search_query import SiteSearchQuery
 
@@ -37,7 +36,6 @@ __all__ = [
     "LatestTelemetryUnavailable",
     "NoOpRuleEdit",
     "RuleDTO",
-    "RuleEngineDTO",
     "RuleNotDisabled",
     "RuleNotMcpManaged",
     "RuleNotV3",

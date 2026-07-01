@@ -19,6 +19,7 @@ from .device_view import DeviceView, DeviceViewBasic, DeviceViewFull, DeviceView
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
 from .rule import Rule
+from .rule_engine import RuleEngine
 from .rule_engine_state import RuleEngineState
 from .rule_runtime_version import RuleRuntimeVersion
 from .rule_script_summary import RuleScriptSummary
@@ -52,6 +53,7 @@ __all__ = [
     "HistoricalTelemetry",
     "PropertyDeclaration",
     "Rule",
+    "RuleEngine",
     "RuleEngineState",
     "RuleRuntimeVersion",
     "RuleScriptSummary",

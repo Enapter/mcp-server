@@ -50,7 +50,7 @@ class MockEnapterAPI:
         historical_telemetry: domain.HistoricalTelemetry | None = None,
         latest_telemetry_unavailable: bool = False,
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
-        rule_engine_states: dict[str, core.RuleEngineDTO] | None = None,
+        rule_engine_states: dict[str, domain.RuleEngine] | None = None,
         rules: dict[str, list[core.RuleDTO]] | None = None,
         execute_command_result: domain.CommandExecution | None = None,
         execute_command_raises: BaseException | None = None,
@@ -84,7 +84,7 @@ class MockEnapterAPI:
 
     async def get_rule_engine(
         self, auth: core.AuthConfig, site_id: str
-    ) -> core.RuleEngineDTO:
+    ) -> domain.RuleEngine:
         import httpx
 
         self.get_rule_engine_calls += 1
@@ -358,10 +358,10 @@ class TestApplicationServer:
                 "dev-4": {"alerts": None},
             },
             rule_engine_states={
-                "1": core.RuleEngineDTO(
+                "1": domain.RuleEngine(
                     id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
                 ),
-                "2": core.RuleEngineDTO(
+                "2": domain.RuleEngine(
                     id="eng-2", state=domain.RuleEngineState.SUSPENDED, timezone="UTC"
                 ),
             },
@@ -463,7 +463,7 @@ class TestApplicationServer:
                 "dev-2": {"alerts": ["a2", "a3"]},
             },
             rule_engine_states={
-                "site-1": core.RuleEngineDTO(
+                "site-1": domain.RuleEngine(
                     id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
                 )
             },
@@ -511,7 +511,7 @@ class TestApplicationServer:
             sites=[site],
             devices=devices,
             rule_engine_states={
-                "site-1": core.RuleEngineDTO(
+                "site-1": domain.RuleEngine(
                     id="eng-1", state=domain.RuleEngineState.ACTIVE, timezone="UTC"
                 )
             },

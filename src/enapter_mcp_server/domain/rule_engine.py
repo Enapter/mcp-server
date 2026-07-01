@@ -1,10 +1,10 @@
 import dataclasses
 
-from enapter_mcp_server import domain
+from .rule_engine_state import RuleEngineState
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class RuleEngineDTO:
+class RuleEngine:
     id: str
-    state: domain.RuleEngineState
+    state: RuleEngineState
     timezone: str
