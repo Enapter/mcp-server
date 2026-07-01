@@ -3,7 +3,7 @@ import dataclasses
 from .errors import (
     RuleMustBeCreatedDisabled,
     RuleNotDisabled,
-    RuleNotMcpManaged,
+    RuleNotMCPManaged,
     RuleNotV3,
     UnprefixedRuleSlug,
 )
@@ -15,7 +15,7 @@ MCP_PREFIX = "mcp-"
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class McpRuleManagementPolicy:
+class MCPRuleManagementPolicy:
     slug_prefix: str = MCP_PREFIX
     runtime_version: RuleRuntimeVersion = RuleRuntimeVersion.V3
 
@@ -59,7 +59,7 @@ class McpRuleManagementPolicy:
 
     def _assert_managed_rule(self, rule: Rule) -> None:
         if not rule.slug.startswith(self.slug_prefix):
-            raise RuleNotMcpManaged(
+            raise RuleNotMCPManaged(
                 f"Rule {rule.id!r} has slug {rule.slug!r}, which"
                 f" does not start with the MCP-managed prefix"
                 f" {self.slug_prefix!r}."

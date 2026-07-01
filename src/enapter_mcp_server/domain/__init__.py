@@ -22,13 +22,13 @@ from .errors import (
     NoOpRuleEdit,
     RuleMustBeCreatedDisabled,
     RuleNotDisabled,
-    RuleNotMcpManaged,
+    RuleNotMCPManaged,
     RuleNotV3,
     RuleOldStringNotFound,
     UnprefixedRuleSlug,
 )
 from .historical_telemetry import HistoricalTelemetry
-from .mcp_rule_management_policy import MCP_PREFIX, McpRuleManagementPolicy
+from .mcp_rule_management_policy import MCPRuleManagementPolicy
 from .property_declaration import PropertyDeclaration
 from .rule import Rule
 from .rule_engine import RuleEngine
@@ -67,8 +67,7 @@ __all__ = [
     "DeviceViewType",
     "EmptyRuleOldString",
     "HistoricalTelemetry",
-    "MCP_PREFIX",
-    "McpRuleManagementPolicy",
+    "MCPRuleManagementPolicy",
     "NoOpRuleEdit",
     "PropertyDeclaration",
     "Rule",
@@ -77,7 +76,7 @@ __all__ = [
     "RuleManagementPolicy",
     "RuleMustBeCreatedDisabled",
     "RuleNotDisabled",
-    "RuleNotMcpManaged",
+    "RuleNotMCPManaged",
     "RuleNotV3",
     "RuleOldStringNotFound",
     "RuleRuntimeVersion",

@@ -6,7 +6,7 @@ class RuleNotDisabled(Exception):
     pass
 
 
-class RuleNotMcpManaged(Exception):
+class RuleNotMCPManaged(Exception):
     pass
 
 
