@@ -2,7 +2,7 @@ from typing import Any
 
 import enapter
 
-from enapter_mcp_server import core, domain
+from enapter_mcp_server import domain
 
 
 class EnapterDataMapper:
@@ -23,17 +23,30 @@ class EnapterDataMapper:
             timezone=engine.timezone,
         )
 
-    def to_rule_dto(self, rule: enapter.http.api.rule_engine.Rule) -> core.RuleDTO:
-        return core.RuleDTO(
+    def to_rule(self, rule: enapter.http.api.rule_engine.Rule) -> domain.Rule:
+        return domain.Rule(
             id=rule.id,
             slug=rule.slug,
             disabled=rule.disabled,
             state=domain.RuleState(rule.state.value.lower()),
-            script_runtime_version=domain.RuleRuntimeVersion(
-                rule.script.runtime_version.value.lower()
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion(
+                    rule.script.runtime_version.value.lower()
+                ),
+                exec_interval=rule.script.exec_interval,
+                code=rule.script.code,
             ),
-            script_exec_interval=rule.script.exec_interval,
-            script_code=rule.script.code,
+        )
+
+    def from_rule_script(
+        self, script: domain.RuleScript
+    ) -> enapter.http.api.rule_engine.RuleScript:
+        return enapter.http.api.rule_engine.RuleScript(
+            code=script.code,
+            runtime_version=enapter.http.api.rule_engine.RuntimeVersion(
+                script.runtime_version.value.upper()
+            ),
+            exec_interval=script.exec_interval,
         )
 
     def to_device(self, device: enapter.http.api.devices.Device) -> domain.Device:

@@ -10,23 +10,13 @@ from .command_execution_search_query import CommandExecutionSearchQuery
 from .device_search_query import DeviceSearchQuery
 from .enapter_api import EnapterAPI
 from .errors import (
-    AmbiguousRuleOldString,
     CommandNotFound,
     ConfirmationRequired,
-    EmptyRuleOldString,
     GatewayUnavailable,
-    NoOpRuleEdit,
-    RuleNotDisabled,
-    RuleNotMcpManaged,
-    RuleNotV3,
-    RuleOldStringNotFound,
     SearchQueryTooBroad,
-    UnprefixedRuleSlug,
 )
 from .rule_search_query import RuleSearchQuery
 from .site_search_query import SiteSearchQuery
-
-MCP_PREFIX = "mcp-"
 
 
 class ApplicationServer:
@@ -116,11 +106,11 @@ class ApplicationServer:
     ) -> list[domain.Rule]:
         rules: list[domain.Rule] = []
         async with self._enapter_api.list_rules(auth, query.site_id) as rules_gen:
-            async for rule_dto in rules_gen:
-                if not query.matches(rule_dto):
+            async for rule in rules_gen:
+                if not query.matches(rule):
                     continue
 
-                rules.append(rule_dto.to_domain())
+                rules.append(rule)
 
         return rules
 
@@ -133,8 +123,8 @@ class ApplicationServer:
         limit: int,
     ) -> list[str]:
         await self._assert_gateway_online(auth, site_id)
-        rule_dto = await self._enapter_api.get_rule(auth, site_id, rule_id)
-        lines = rule_dto.script_code.splitlines()
+        rule = await self._enapter_api.get_rule(auth, site_id, rule_id)
+        lines = rule.script.code.splitlines()
         return lines[offset : offset + limit]
 
     async def create_rule(
@@ -145,20 +135,22 @@ class ApplicationServer:
         script_code: str,
     ) -> domain.Rule:
         await self._assert_gateway_online(auth, site_id)
-        if not slug.startswith(MCP_PREFIX):
-            raise UnprefixedRuleSlug(
+        if not slug.startswith(domain.MCP_PREFIX):
+            raise domain.UnprefixedRuleSlug(
                 f"The slug {slug!r} does not start with the MCP-managed"
-                f" prefix {MCP_PREFIX!r}."
+                f" prefix {domain.MCP_PREFIX!r}."
             )
-        rule_dto = await self._enapter_api.create_rule(
+        return await self._enapter_api.create_rule(
             auth,
             site_id,
             slug,
-            script_code,
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
+            domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code=script_code,
+            ),
             disabled=True,
         )
-        return rule_dto.to_domain()
 
     async def edit_rule(
         self,
@@ -171,47 +163,47 @@ class ApplicationServer:
         await self._assert_gateway_online(auth, site_id)
 
         if old_string == "":
-            raise EmptyRuleOldString(
+            raise domain.EmptyRuleOldString(
                 "An empty old_string is not allowed. Provide the exact"
                 " snippet of the current script you wish to replace."
             )
         if old_string == new_string:
-            raise NoOpRuleEdit(
+            raise domain.NoOpRuleEdit(
                 "The old_string and new_string are identical. This"
                 " would not change the rule's script."
             )
 
-        rule_dto = await self._enapter_api.get_rule(auth, site_id, rule_id)
+        rule = await self._enapter_api.get_rule(auth, site_id, rule_id)
 
-        if not rule_dto.disabled:
-            raise RuleNotDisabled(
+        if not rule.disabled:
+            raise domain.RuleNotDisabled(
                 f"Rule {rule_id!r} is enabled. Please disable it in"
                 f" the Enapter UI before editing it via MCP."
             )
-        if not rule_dto.slug.startswith(MCP_PREFIX):
-            raise RuleNotMcpManaged(
-                f"Rule {rule_id!r} has slug {rule_dto.slug!r}, which"
+        if not rule.is_mcp_managed:
+            raise domain.RuleNotMcpManaged(
+                f"Rule {rule_id!r} has slug {rule.slug!r}, which"
                 f" does not start with the MCP-managed prefix"
-                f" {MCP_PREFIX!r}."
+                f" {domain.MCP_PREFIX!r}."
             )
-        if rule_dto.script_runtime_version != domain.RuleRuntimeVersion.V3:
-            raise RuleNotV3(
+        if rule.script.runtime_version != domain.RuleRuntimeVersion.V3:
+            raise domain.RuleNotV3(
                 f"Rule {rule_id!r} uses runtime version"
-                f" {rule_dto.script_runtime_version.value!r}, but"
+                f" {rule.script.runtime_version.value!r}, but"
                 f" edit_rule only supports v3 rules."
             )
 
-        code = rule_dto.script_code
+        code = rule.script.code
         count = code.count(old_string)
         if count == 0:
-            raise RuleOldStringNotFound(
+            raise domain.RuleOldStringNotFound(
                 f"The old_string was not found anywhere in the"
                 f" current script of rule {rule_id!r}. The script may"
                 f" have been changed; use read_rule to get the latest"
                 f" content."
             )
         if count > 1:
-            raise AmbiguousRuleOldString(
+            raise domain.AmbiguousRuleOldString(
                 f"The old_string appears {count} times in the"
                 f" current script of rule {rule_id!r}. Include more"
                 f" surrounding context to make the match unique."
@@ -224,15 +216,16 @@ class ApplicationServer:
         # call a concurrent change (enable, rename) is possible. This race
         # window is accepted in v1. When the platform adds ETags the gap
         # can be closed deliberately.
-        rule_dto = await self._enapter_api.update_rule_script(
+        return await self._enapter_api.update_rule_script(
             auth,
             rule_id,
             site_id,
-            new_code,
-            script_runtime_version=rule_dto.script_runtime_version,
-            script_exec_interval=rule_dto.script_exec_interval,
+            domain.RuleScript(
+                runtime_version=rule.script.runtime_version,
+                exec_interval=rule.script.exec_interval,
+                code=new_code,
+            ),
         )
-        return rule_dto.to_domain()
 
     async def delete_rule(
         self,
@@ -241,18 +234,18 @@ class ApplicationServer:
         rule_id: str,
     ) -> None:
         await self._assert_gateway_online(auth, site_id)
-        rule_dto = await self._enapter_api.get_rule(auth, site_id, rule_id)
+        rule = await self._enapter_api.get_rule(auth, site_id, rule_id)
 
-        if not rule_dto.disabled:
-            raise RuleNotDisabled(
+        if not rule.disabled:
+            raise domain.RuleNotDisabled(
                 f"Rule {rule_id!r} is enabled. Please disable it in"
                 f" the Enapter UI before deleting it via MCP."
             )
-        if not rule_dto.slug.startswith(MCP_PREFIX):
-            raise RuleNotMcpManaged(
-                f"Rule {rule_id!r} has slug {rule_dto.slug!r}, which"
+        if not rule.is_mcp_managed:
+            raise domain.RuleNotMcpManaged(
+                f"Rule {rule_id!r} has slug {rule.slug!r}, which"
                 f" does not start with the MCP-managed prefix"
-                f" {MCP_PREFIX!r}."
+                f" {domain.MCP_PREFIX!r}."
             )
 
         # The upstream API has no conditional-update primitive (no ETags).

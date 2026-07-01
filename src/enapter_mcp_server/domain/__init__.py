@@ -16,12 +16,23 @@ from .device import Device
 from .device_manifest import DeviceManifest
 from .device_type import DeviceType
 from .device_view import DeviceView, DeviceViewBasic, DeviceViewFull, DeviceViewType
+from .errors import (
+    AmbiguousRuleOldString,
+    EmptyRuleOldString,
+    NoOpRuleEdit,
+    RuleNotDisabled,
+    RuleNotMcpManaged,
+    RuleNotV3,
+    RuleOldStringNotFound,
+    UnprefixedRuleSlug,
+)
 from .historical_telemetry import HistoricalTelemetry
 from .property_declaration import PropertyDeclaration
-from .rule import Rule
+from .rule import MCP_PREFIX, Rule
 from .rule_engine import RuleEngine
 from .rule_engine_state import RuleEngineState
 from .rule_runtime_version import RuleRuntimeVersion
+from .rule_script import RuleScript
 from .rule_script_summary import RuleScriptSummary
 from .rule_state import RuleState
 from .site import Site
@@ -33,6 +44,7 @@ __all__ = [
     "AlertDeclaration",
     "AlertSeverity",
     "AccessRole",
+    "AmbiguousRuleOldString",
     "BlueprintSection",
     "BlueprintSummary",
     "CommandArgumentDeclaration",
@@ -50,15 +62,24 @@ __all__ = [
     "DeviceViewBasic",
     "DeviceViewFull",
     "DeviceViewType",
+    "EmptyRuleOldString",
     "HistoricalTelemetry",
+    "MCP_PREFIX",
+    "NoOpRuleEdit",
     "PropertyDeclaration",
     "Rule",
     "RuleEngine",
     "RuleEngineState",
+    "RuleNotDisabled",
+    "RuleNotMcpManaged",
+    "RuleNotV3",
+    "RuleOldStringNotFound",
     "RuleRuntimeVersion",
+    "RuleScript",
     "RuleScriptSummary",
     "RuleState",
     "Site",
     "SiteStatus",
     "TelemetryAttributeDeclaration",
+    "UnprefixedRuleSlug",
 ]

@@ -51,12 +51,12 @@ class MockEnapterAPI:
         latest_telemetry_unavailable: bool = False,
         command_executions: dict[str, list[domain.CommandExecution]] | None = None,
         rule_engine_states: dict[str, domain.RuleEngine] | None = None,
-        rules: dict[str, list[core.RuleDTO]] | None = None,
+        rules: dict[str, list[domain.Rule]] | None = None,
         execute_command_result: domain.CommandExecution | None = None,
         execute_command_raises: BaseException | None = None,
-        create_rule_result: core.RuleDTO | None = None,
+        create_rule_result: domain.Rule | None = None,
         create_rule_raises: BaseException | None = None,
-        update_rule_script_result: core.RuleDTO | None = None,
+        update_rule_script_result: domain.Rule | None = None,
         update_rule_script_raises: BaseException | None = None,
         delete_rule_raises: BaseException | None = None,
     ):
@@ -99,13 +99,13 @@ class MockEnapterAPI:
     @enapter.async_.generator
     async def list_rules(
         self, auth: core.AuthConfig, site_id: str
-    ) -> AsyncGenerator[core.RuleDTO, None]:
+    ) -> AsyncGenerator[domain.Rule, None]:
         for rule in self._rules.get(site_id, []):
             yield rule
 
     async def get_rule(
         self, auth: core.AuthConfig, site_id: str, rule_id: str
-    ) -> core.RuleDTO:
+    ) -> domain.Rule:
         for rule in self._rules.get(site_id, []):
             if rule.id == rule_id:
                 return rule
@@ -230,16 +230,14 @@ class MockEnapterAPI:
         auth: core.AuthConfig,
         site_id: str,
         slug: str,
-        script_code: str,
-        script_runtime_version: domain.RuleRuntimeVersion,
+        script: domain.RuleScript,
         disabled: bool,
-    ) -> core.RuleDTO:
+    ) -> domain.Rule:
         self.create_rule_calls.append(
             {
                 "site_id": site_id,
                 "slug": slug,
-                "script_code": script_code,
-                "script_runtime_version": script_runtime_version,
+                "script": script,
                 "disabled": disabled,
             }
         )
@@ -254,17 +252,13 @@ class MockEnapterAPI:
         auth: core.AuthConfig,
         rule_id: str,
         site_id: str,
-        script_code: str,
-        script_runtime_version: domain.RuleRuntimeVersion,
-        script_exec_interval: str | None,
-    ) -> core.RuleDTO:
+        script: domain.RuleScript,
+    ) -> domain.Rule:
         self.update_rule_script_calls.append(
             {
                 "rule_id": rule_id,
                 "site_id": site_id,
-                "script_code": script_code,
-                "script_runtime_version": script_runtime_version,
-                "script_exec_interval": script_exec_interval,
+                "script": script,
             }
         )
         if self._update_rule_script_raises is not None:
@@ -544,23 +538,27 @@ class TestApplicationServer:
             connectivity=domain.ConnectivityStatus.ONLINE,
         )
         rules = [
-            core.RuleDTO(
+            domain.Rule(
                 id="rule-1",
                 slug="alpha",
                 disabled=False,
                 state=domain.RuleState.STARTED,
-                script_runtime_version=domain.RuleRuntimeVersion.V3,
-                script_exec_interval="1m",
-                script_code="line 1\nline 2",
+                script=domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V3,
+                    exec_interval="1m",
+                    code="line 1\nline 2",
+                ),
             ),
-            core.RuleDTO(
+            domain.Rule(
                 id="rule-2",
                 slug="beta",
                 disabled=True,
                 state=domain.RuleState.STOPPED,
-                script_runtime_version=domain.RuleRuntimeVersion.V1,
-                script_exec_interval=None,
-                script_code="line 1",
+                script=domain.RuleScript(
+                    runtime_version=domain.RuleRuntimeVersion.V1,
+                    exec_interval=None,
+                    code="line 1",
+                ),
             ),
         ]
         api = MockEnapterAPI(devices=[gateway], rules={"site-1": rules})
@@ -577,10 +575,10 @@ class TestApplicationServer:
         assert len(result) == 2
         assert result[0].id == "rule-1"
         assert result[0].enabled is True
-        assert result[0].script_summary.lines_count == 2
+        assert result[0].script.summary.lines_count == 2
         assert result[1].id == "rule-2"
         assert result[1].enabled is False
-        assert result[1].script_summary.lines_count == 1
+        assert result[1].script.summary.lines_count == 1
 
         # Test slug filtering
         result = await app.search_rules(
@@ -602,14 +600,16 @@ class TestApplicationServer:
             authorized_role=domain.AccessRole.OWNER,
             connectivity=domain.ConnectivityStatus.ONLINE,
         )
-        rule = core.RuleDTO(
+        rule = domain.Rule(
             id="rule-1",
             slug="test",
             disabled=False,
             state=domain.RuleState.STARTED,
-            script_runtime_version=domain.RuleRuntimeVersion.V3,
-            script_exec_interval=None,
-            script_code="line 1\nline 2\nline 3\nline 4",
+            script=domain.RuleScript(
+                runtime_version=domain.RuleRuntimeVersion.V3,
+                exec_interval=None,
+                code="line 1\nline 2\nline 3\nline 4",
+            ),
         )
         api = MockEnapterAPI(devices=[gateway], rules={"site-1": [rule]})
         app = core.ApplicationServer(api)
@@ -1783,15 +1783,17 @@ class TestApplicationServer:
         runtime_version: domain.RuleRuntimeVersion = domain.RuleRuntimeVersion.V3,
         exec_interval: str | None = None,
         script_code: str = "local x = 1\nreturn x",
-    ) -> core.RuleDTO:
-        return core.RuleDTO(
+    ) -> domain.Rule:
+        return domain.Rule(
             id=rule_id,
             slug=slug,
             disabled=disabled,
             state=domain.RuleState.STOPPED,
-            script_runtime_version=runtime_version,
-            script_exec_interval=exec_interval,
-            script_code=script_code,
+            script=domain.RuleScript(
+                runtime_version=runtime_version,
+                exec_interval=exec_interval,
+                code=script_code,
+            ),
         )
 
     async def test_create_rule_rejects_unprefixed_slug(self) -> None:
@@ -1801,7 +1803,7 @@ class TestApplicationServer:
 
         try:
             await app.create_rule(auth, "site-1", "my-rule", "code")
-        except core.UnprefixedRuleSlug as exc:
+        except domain.UnprefixedRuleSlug as exc:
             assert "my-rule" in str(exc)
             assert "mcp-" in str(exc)
         else:
@@ -1822,10 +1824,10 @@ class TestApplicationServer:
             raise AssertionError("Expected GatewayUnavailable")
 
     async def test_create_rule_creates_disabled_v3(self) -> None:
-        rule_dto = self._make_rule()
+        rule = self._make_rule()
         api = MockEnapterAPI(
             devices=[self._make_gateway()],
-            create_rule_result=rule_dto,
+            create_rule_result=rule,
         )
         app = core.ApplicationServer(api)
         auth = core.AuthConfig(token="test")
@@ -1834,13 +1836,13 @@ class TestApplicationServer:
 
         assert result.id == "rule-1"
         assert result.enabled is False
-        assert result.script_summary.runtime_version == domain.RuleRuntimeVersion.V3
+        assert result.script.summary.runtime_version == domain.RuleRuntimeVersion.V3
         assert len(api.create_rule_calls) == 1
         call = api.create_rule_calls[0]
         assert call["site_id"] == "site-1"
         assert call["slug"] == "mcp-test"
-        assert call["script_code"] == "local x = 1"
-        assert call["script_runtime_version"] == domain.RuleRuntimeVersion.V3
+        assert call["script"].code == "local x = 1"
+        assert call["script"].runtime_version == domain.RuleRuntimeVersion.V3
         assert call["disabled"] is True
 
     async def test_edit_rule_gateway_offline(self) -> None:
@@ -1862,7 +1864,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "", "new")
-        except core.EmptyRuleOldString:
+        except domain.EmptyRuleOldString:
             pass
         else:
             raise AssertionError("Expected EmptyRuleOldString")
@@ -1875,7 +1877,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "same", "same")
-        except core.NoOpRuleEdit:
+        except domain.NoOpRuleEdit:
             pass
         else:
             raise AssertionError("Expected NoOpRuleEdit")
@@ -1892,7 +1894,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "old", "new")
-        except core.RuleNotDisabled as exc:
+        except domain.RuleNotDisabled as exc:
             assert "rule-1" in str(exc)
         else:
             raise AssertionError("Expected RuleNotDisabled")
@@ -1909,7 +1911,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "old", "new")
-        except core.RuleNotMcpManaged:
+        except domain.RuleNotMcpManaged:
             pass
         else:
             raise AssertionError("Expected RuleNotMcpManaged")
@@ -1926,7 +1928,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "old", "new")
-        except core.RuleNotV3:
+        except domain.RuleNotV3:
             pass
         else:
             raise AssertionError("Expected RuleNotV3")
@@ -1943,7 +1945,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "absent_string", "new")
-        except core.RuleOldStringNotFound:
+        except domain.RuleOldStringNotFound:
             pass
         else:
             raise AssertionError("Expected RuleOldStringNotFound")
@@ -1960,7 +1962,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "local x", "local y")
-        except core.AmbiguousRuleOldString as exc:
+        except domain.AmbiguousRuleOldString as exc:
             assert "2" in str(exc)
         else:
             raise AssertionError("Expected AmbiguousRuleOldString")
@@ -1973,7 +1975,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "", "new")
-        except core.EmptyRuleOldString:
+        except domain.EmptyRuleOldString:
             pass
         else:
             raise AssertionError("Expected EmptyRuleOldString before fetch")
@@ -1989,7 +1991,7 @@ class TestApplicationServer:
 
         try:
             await app.edit_rule(auth, "site-1", "rule-1", "local x", "local x")
-        except core.NoOpRuleEdit:
+        except domain.NoOpRuleEdit:
             pass
         else:
             raise AssertionError("Expected NoOpRuleEdit before match check")
@@ -2020,9 +2022,9 @@ class TestApplicationServer:
         call = api.update_rule_script_calls[0]
         assert call["rule_id"] == "rule-1"
         assert call["site_id"] == "site-1"
-        assert call["script_code"] == "local x = 99\nlocal y = 2"
-        assert call["script_runtime_version"] == domain.RuleRuntimeVersion.V3
-        assert call["script_exec_interval"] == "2m"
+        assert call["script"].code == "local x = 99\nlocal y = 2"
+        assert call["script"].runtime_version == domain.RuleRuntimeVersion.V3
+        assert call["script"].exec_interval == "2m"
 
     async def test_delete_rule_gateway_offline(self) -> None:
         api = MockEnapterAPI(devices=[])
@@ -2047,7 +2049,7 @@ class TestApplicationServer:
 
         try:
             await app.delete_rule(auth, "site-1", "rule-1")
-        except core.RuleNotDisabled:
+        except domain.RuleNotDisabled:
             pass
         else:
             raise AssertionError("Expected RuleNotDisabled")
@@ -2065,7 +2067,7 @@ class TestApplicationServer:
 
         try:
             await app.delete_rule(auth, "site-1", "rule-1")
-        except core.RuleNotMcpManaged:
+        except domain.RuleNotMcpManaged:
             pass
         else:
             raise AssertionError("Expected RuleNotMcpManaged")

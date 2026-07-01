@@ -6,7 +6,6 @@ import enapter
 from enapter_mcp_server import domain
 
 from .auth_config import AuthConfig
-from .rule_dto import RuleDTO
 
 
 class EnapterAPI(Protocol):
@@ -21,12 +20,12 @@ class EnapterAPI(Protocol):
     @enapter.async_.generator
     async def list_rules(
         self, auth: AuthConfig, site_id: str
-    ) -> AsyncGenerator[RuleDTO, None]:
+    ) -> AsyncGenerator[domain.Rule, None]:
         yield  # type: ignore
 
     async def get_rule(
         self, auth: AuthConfig, site_id: str, rule_id: str
-    ) -> RuleDTO: ...
+    ) -> domain.Rule: ...
 
     @enapter.async_.generator
     async def list_devices(
@@ -90,20 +89,17 @@ class EnapterAPI(Protocol):
         auth: AuthConfig,
         site_id: str,
         slug: str,
-        script_code: str,
-        script_runtime_version: domain.RuleRuntimeVersion,
+        script: domain.RuleScript,
         disabled: bool,
-    ) -> RuleDTO: ...
+    ) -> domain.Rule: ...
 
     async def update_rule_script(
         self,
         auth: AuthConfig,
         rule_id: str,
         site_id: str,
-        script_code: str,
-        script_runtime_version: domain.RuleRuntimeVersion,
-        script_exec_interval: str | None,
-    ) -> RuleDTO: ...
+        script: domain.RuleScript,
+    ) -> domain.Rule: ...
 
     async def delete_rule(
         self, auth: AuthConfig, rule_id: str, site_id: str
