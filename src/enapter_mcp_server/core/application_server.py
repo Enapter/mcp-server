@@ -24,7 +24,6 @@ from .errors import (
     UnprefixedRuleSlug,
 )
 from .rule_search_query import RuleSearchQuery
-from .site_dto import SiteDTO
 from .site_search_query import SiteSearchQuery
 
 MCP_PREFIX = "mcp-"
@@ -51,32 +50,32 @@ class ApplicationServer:
     ) -> list[domain.Site]:
         semaphore = asyncio.Semaphore(10)
 
-        async def fetch(site_dto: SiteDTO) -> domain.Site:
+        async def enrich(site: domain.Site) -> domain.Site:
             async with semaphore:
-                return await self._fetch_site_context(auth, site_dto)
+                status = await self._compute_site_status(auth, site.id)
+                return site.with_status(status)
 
         tasks = []
         async with asyncio.TaskGroup() as tg:
             async with self._enapter_api.list_sites(auth) as sites_gen:
-                async for site_dto in sites_gen:
-                    if not query.matches(site_dto):
+                async for site in sites_gen:
+                    if not query.matches(site):
                         continue
 
-                    task = tg.create_task(fetch(site_dto))
-                    tasks.append(task)
+                    tasks.append(tg.create_task(enrich(site)))
 
         return [task.result() for task in tasks]
 
-    async def _fetch_site_context(
-        self, auth: AuthConfig, site_dto: SiteDTO
-    ) -> domain.Site:
+    async def _compute_site_status(
+        self, auth: AuthConfig, site_id: str
+    ) -> domain.SiteStatus:
         gateway_id: str | None = None
         gateway_online = False
         devices_online = 0
         device_ids: list[str] = []
 
         async with self._enapter_api.list_devices(
-            auth, site_id=site_dto.id, expand_connectivity=True
+            auth, site_id=site_id, expand_connectivity=True
         ) as devices_gen:
             async for device in devices_gen:
                 device_ids.append(device.id)
@@ -89,14 +88,10 @@ class ApplicationServer:
 
         rule_engine_state: domain.RuleEngineState | None = None
         if gateway_online:
-            engine_dto = await self._enapter_api.get_rule_engine(auth, site_dto.id)
+            engine_dto = await self._enapter_api.get_rule_engine(auth, site_id)
             rule_engine_state = engine_dto.state
 
-        return domain.Site(
-            id=site_dto.id,
-            name=site_dto.name,
-            timezone=site_dto.timezone,
-            authorized_role=site_dto.authorized_role,
+        return domain.SiteStatus(
             gateway_id=gateway_id,
             gateway_online=gateway_online,
             devices_total=len(device_ids),

@@ -278,7 +278,7 @@ class TestEnapterDataMapper:
             values={"temperature": [21.5]},
         )
 
-    def test_to_site_dto(self) -> None:
+    def test_to_site(self) -> None:
         site = enapter.http.api.sites.Site(
             id="site-1",
             name="Site 1",
@@ -287,14 +287,14 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.OWNER,
         )
 
-        dto = http.EnapterDataMapper().to_site_dto(site)
+        result = http.EnapterDataMapper().to_site(site)
 
-        assert dto.id == "site-1"
-        assert dto.name == "Site 1"
-        assert dto.timezone == "UTC"
-        assert dto.authorized_role == domain.AccessRole.OWNER
+        assert result.id == "site-1"
+        assert result.name == "Site 1"
+        assert result.timezone == "UTC"
+        assert result.authorized_role == domain.AccessRole.OWNER
 
-    def test_to_site_dto_authorized_role(self) -> None:
+    def test_to_site_authorized_role(self) -> None:
         site = enapter.http.api.sites.Site(
             id="site-2",
             name="Site 2",
@@ -303,9 +303,9 @@ class TestEnapterDataMapper:
             authorized_role=enapter.http.api.AccessRole.READONLY,
         )
 
-        dto = http.EnapterDataMapper().to_site_dto(site)
+        result = http.EnapterDataMapper().to_site(site)
 
-        assert dto.authorized_role == domain.AccessRole.READONLY
+        assert result.authorized_role == domain.AccessRole.READONLY
 
     def test_to_device_null_alerts_mapped_to_empty_list(self) -> None:
         device = enapter.http.api.devices.Device(

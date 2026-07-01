@@ -24,6 +24,7 @@ from .rule_runtime_version import RuleRuntimeVersion
 from .rule_script_summary import RuleScriptSummary
 from .rule_state import RuleState
 from .site import Site
+from .site_status import SiteStatus
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 __all__ = [
@@ -56,5 +57,6 @@ __all__ = [
     "RuleScriptSummary",
     "RuleState",
     "Site",
+    "SiteStatus",
     "TelemetryAttributeDeclaration",
 ]

@@ -32,18 +32,19 @@ class Site(pydantic.BaseModel):
 
     @classmethod
     def from_domain(cls, site: domain.Site) -> Self:
+        assert site.status is not None
         rule_engine_state: RuleEngineState | None = None
-        if site.rule_engine_state is not None:
-            rule_engine_state = site.rule_engine_state.value
+        if site.status.rule_engine_state is not None:
+            rule_engine_state = site.status.rule_engine_state.value
 
         return cls(
             id=site.id,
             name=site.name,
             timezone=site.timezone,
             authorized_role=site.authorized_role.value,
-            gateway_id=site.gateway_id,
-            gateway_online=site.gateway_online,
-            devices_total=site.devices_total,
-            devices_online=site.devices_online,
+            gateway_id=site.status.gateway_id,
+            gateway_online=site.status.gateway_online,
+            devices_total=site.status.devices_total,
+            devices_online=site.status.devices_online,
             rule_engine_state=rule_engine_state,
         )

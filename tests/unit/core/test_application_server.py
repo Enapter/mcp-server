@@ -44,7 +44,7 @@ def make_device(
 class MockEnapterAPI:
     def __init__(
         self,
-        sites: list[core.SiteDTO] | None = None,
+        sites: list[domain.Site] | None = None,
         devices: list[domain.Device] | None = None,
         telemetry: dict[str, dict[str, Any]] | None = None,
         historical_telemetry: domain.HistoricalTelemetry | None = None,
@@ -114,7 +114,7 @@ class MockEnapterAPI:
     @enapter.async_.generator
     async def list_sites(
         self, auth: core.AuthConfig
-    ) -> AsyncGenerator[core.SiteDTO, None]:
+    ) -> AsyncGenerator[domain.Site, None]:
         for site in self._sites:
             yield site
 
@@ -329,19 +329,19 @@ class TestApplicationServer:
             ),
         ]
         sites = [
-            core.SiteDTO(
+            domain.Site(
                 id="1",
                 name="Alpha",
                 timezone="Europe/Berlin",
                 authorized_role=domain.AccessRole.OWNER,
             ),
-            core.SiteDTO(
+            domain.Site(
                 id="2",
                 name="Beta",
                 timezone="Europe/London",
                 authorized_role=domain.AccessRole.USER,
             ),
-            core.SiteDTO(
+            domain.Site(
                 id="3",
                 name="Gamma",
                 timezone="Europe/Berlin",
@@ -379,11 +379,12 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].name == "Alpha"
         assert result[0].authorized_role == domain.AccessRole.OWNER
-        assert result[0].gateway_id == "dev-1"
-        assert result[0].gateway_online is True
-        assert result[0].devices_total == 2
-        assert result[0].devices_online == 1
-        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
+        assert result[0].status is not None
+        assert result[0].status.gateway_id == "dev-1"
+        assert result[0].status.gateway_online is True
+        assert result[0].status.devices_total == 2
+        assert result[0].status.devices_online == 1
+        assert result[0].status.rule_engine_state == domain.RuleEngineState.ACTIVE
 
         # Test site ID filtering
         result = await app.search_sites(
@@ -397,7 +398,8 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].id == "2"
         assert result[0].authorized_role == domain.AccessRole.USER
-        assert result[0].rule_engine_state is None
+        assert result[0].status is not None
+        assert result[0].status.rule_engine_state is None
 
         # Test timezone filtering
         result = await app.search_sites(
@@ -408,9 +410,11 @@ class TestApplicationServer:
         )
         assert len(result) == 2
         assert result[0].name == "Alpha"
-        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
+        assert result[0].status is not None
+        assert result[0].status.rule_engine_state == domain.RuleEngineState.ACTIVE
         assert result[1].name == "Gamma"
-        assert result[1].rule_engine_state is None
+        assert result[1].status is not None
+        assert result[1].status.rule_engine_state is None
 
         # Test sorting and pagination
         result = await app.search_sites(
@@ -421,10 +425,11 @@ class TestApplicationServer:
         )
         assert len(result) == 1
         assert result[0].id == "1"
-        assert result[0].devices_total == 2
+        assert result[0].status is not None
+        assert result[0].status.devices_total == 2
 
     async def test_search_sites(self) -> None:
-        site = core.SiteDTO(
+        site = domain.Site(
             id="site-1",
             name="Site 1",
             timezone="UTC",
@@ -476,15 +481,16 @@ class TestApplicationServer:
         assert len(result) == 1
         assert result[0].id == "site-1"
         assert result[0].authorized_role == domain.AccessRole.OWNER
-        assert result[0].gateway_id == "dev-1"
-        assert result[0].gateway_online is True
-        assert result[0].devices_total == 2
-        assert result[0].devices_online == 1
-        assert result[0].rule_engine_state == domain.RuleEngineState.ACTIVE
+        assert result[0].status is not None
+        assert result[0].status.gateway_id == "dev-1"
+        assert result[0].status.gateway_online is True
+        assert result[0].status.devices_total == 2
+        assert result[0].status.devices_online == 1
+        assert result[0].status.rule_engine_state == domain.RuleEngineState.ACTIVE
         assert api.get_rule_engine_calls == 1
 
     async def test_search_sites_no_gateway_skips_rule_engine(self) -> None:
-        site = core.SiteDTO(
+        site = domain.Site(
             id="site-1",
             name="Site 1",
             timezone="UTC",
@@ -522,8 +528,9 @@ class TestApplicationServer:
 
         assert len(result) == 1
         assert result[0].id == "site-1"
-        assert result[0].gateway_id is None
-        assert result[0].rule_engine_state is None
+        assert result[0].status is not None
+        assert result[0].status.gateway_id is None
+        assert result[0].status.rule_engine_state is None
         assert api.get_rule_engine_calls == 0
 
     async def test_search_rules(self) -> None:

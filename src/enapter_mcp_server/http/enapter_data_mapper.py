@@ -6,8 +6,8 @@ from enapter_mcp_server import core, domain
 
 
 class EnapterDataMapper:
-    def to_site_dto(self, site: enapter.http.api.sites.Site) -> core.SiteDTO:
-        return core.SiteDTO(
+    def to_site(self, site: enapter.http.api.sites.Site) -> domain.Site:
+        return domain.Site(
             id=site.id,
             name=site.name,
             timezone=site.timezone,
