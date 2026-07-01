@@ -34,14 +34,10 @@ class EnapterAPI:
 
     async def get_rule_engine(
         self, auth: core.AuthConfig, site_id: str
-    ) -> core.RuleEngineDTO:
+    ) -> domain.RuleEngine:
         async with self._new_client(auth) as client:
             engine = await client.rule_engine.get(site_id)
-            return core.RuleEngineDTO(
-                id=engine.id,
-                state=domain.RuleEngineState(engine.state.value.lower()),
-                timezone=engine.timezone,
-            )
+            return self._data_mapper.to_rule_engine(engine)
 
     @enapter.async_.generator
     async def list_rules(

@@ -88,8 +88,8 @@ class ApplicationServer:
 
         rule_engine_state: domain.RuleEngineState | None = None
         if gateway_online:
-            engine_dto = await self._enapter_api.get_rule_engine(auth, site_id)
-            rule_engine_state = engine_dto.state
+            engine = await self._enapter_api.get_rule_engine(auth, site_id)
+            rule_engine_state = engine.state
 
         return domain.SiteStatus(
             gateway_id=gateway_id,
