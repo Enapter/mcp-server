@@ -116,7 +116,7 @@ class TestDevice:
         assert device.authorized_role == "owner"
         assert device.connectivity_status == "online"
         assert device.active_alerts_total == 2
-        assert device.properties == {"mode": "auto"}
+        assert device.properties == {"p1": None, "p2": None}
         assert device.active_alerts == ["a1", "a2"]
         assert device.blueprint_summary is not None
         assert device.blueprint_summary.alerts_total == 4

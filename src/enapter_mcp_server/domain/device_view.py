@@ -71,7 +71,11 @@ class DeviceViewFull(DeviceView):
     @property
     def properties(self) -> dict[str, Any]:
         assert self._device.properties is not None
-        return self._device.properties
+        assert self._device.manifest is not None
+        return {
+            name: self._device.properties.get(name)
+            for name in self._device.manifest.properties
+        }
 
     @property
     def active_alerts(self) -> list[str]:
