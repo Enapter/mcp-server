@@ -7,6 +7,7 @@ import sentry_sdk.integrations.mcp
 import enapter_mcp_server
 
 from .call_tool_command import CallToolCommand
+from .list_resources_command import ListResourcesCommand
 from .list_tools_command import ListToolsCommand
 from .ping_command import PingCommand
 from .serve_command import ServeCommand
@@ -61,6 +62,7 @@ class App:
             PingCommand,
             ServeCommand,
             ListToolsCommand,
+            ListResourcesCommand,
             CallToolCommand,
             VersionCommand,
         ]:
@@ -90,6 +92,8 @@ class App:
                 await ServeCommand.run(args)
             case "list_tools":
                 await ListToolsCommand.run(args)
+            case "list_resources":
+                await ListResourcesCommand.run(args)
             case "call_tool":
                 await CallToolCommand.run(args)
             case "version":

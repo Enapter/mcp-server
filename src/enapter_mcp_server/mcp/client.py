@@ -37,6 +37,9 @@ class Client:
     async def list_tools(self) -> Any:
         return await self._client.list_tools()
 
+    async def list_resources(self) -> Any:
+        return await self._client.list_resources()
+
     async def call_tool(
         self, name: str, arguments: dict[str, Any] | None = None
     ) -> Any:
