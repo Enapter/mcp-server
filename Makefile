@@ -21,15 +21,15 @@ lint: lint-black lint-isort lint-pyflakes lint-mypy
 
 .PHONY: lint-black
 lint-black:
-	pipenv run black --check .
+	pipenv run black --check --extend-exclude vendor .
 
 .PHONY: lint-isort
 lint-isort:
-	pipenv run isort --check .
+	pipenv run isort --check --skip-glob 'vendor/*' .
 
 .PHONY: lint-pyflakes
 lint-pyflakes:
-	pipenv run pyflakes .
+	pipenv run pyflakes src tests setup.py
 
 .PHONY: lint-mypy
 lint-mypy:
@@ -70,4 +70,5 @@ DOCKER_IMAGE_TAG ?= enapter/mcp-server:dev
 
 .PHONY: docker-image
 docker-image:
+	git submodule update --init --recursive
 	docker build -t $(DOCKER_IMAGE_TAG) .

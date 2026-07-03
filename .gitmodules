@@ -1,0 +1,3 @@
+[submodule "vendor/enapter-skills"]
+	path = vendor/enapter-skills
+	url = https://github.com/Enapter/skills.git
