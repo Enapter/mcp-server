@@ -19,23 +19,23 @@ check: lint test
 .PHONY: lint
 lint: lint-black lint-isort lint-pyflakes lint-mypy
 
+LINTED_PATHS = src/enapter_mcp_server tests setup.py
+
 .PHONY: lint-black
 lint-black:
-	pipenv run black --check --extend-exclude vendor .
+	pipenv run black --check $(LINTED_PATHS)
 
 .PHONY: lint-isort
 lint-isort:
-	pipenv run isort --check --skip-glob 'vendor/*' .
+	pipenv run isort --check $(LINTED_PATHS)
 
 .PHONY: lint-pyflakes
 lint-pyflakes:
-	pipenv run pyflakes src tests setup.py
+	pipenv run pyflakes $(LINTED_PATHS)
 
 .PHONY: lint-mypy
 lint-mypy:
-	pipenv run mypy setup.py
-	pipenv run mypy tests
-	pipenv run mypy src/enapter_mcp_server
+	pipenv run mypy $(LINTED_PATHS)
 
 .PHONY: test
 test: test-unit test-integration
