@@ -1,4 +1,5 @@
 import dataclasses
+import pathlib
 
 from .oauth_proxy_config import OAuthProxyConfig
 
@@ -14,6 +15,11 @@ class ServerConfig:
     cors_allow_origins: list[str] | None = None
     command_execution_enabled: bool = False
     rule_editing_enabled: bool = False
+    rule_creator_skill_path: pathlib.Path = dataclasses.field(
+        default_factory=lambda: pathlib.Path(
+            "vendor/enapter-skills/plugins/enapter/skills/rule-creator"
+        )
+    )
 
     @property
     def address(self) -> str:

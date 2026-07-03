@@ -51,6 +51,7 @@ class Server(enapter.async_.Routine):
             auth=auth_provider,
         )
         self._register_tools(fastmcp_server)
+        self._register_skills(fastmcp_server)
         await fastmcp_server.run_async(
             transport="streamable-http",
             show_banner=False,
@@ -144,6 +145,24 @@ class Server(enapter.async_.Routine):
             tools.append((self.delete_rule, "Delete Rule"))
 
         return tools
+
+    def _register_skills(self, fastmcp_server: fastmcp.FastMCP) -> None:
+        if not self._config.rule_editing_enabled:
+            return
+        path = self._config.rule_creator_skill_path
+        if not path.is_dir():
+            raise FileNotFoundError(
+                f"Rule creator skill path does not exist: {path}. "
+                "Did you run `git submodule update --init --recursive`?"
+            )
+        fastmcp_server.add_provider(
+            fastmcp.server.providers.SkillProvider(
+                str(path),
+                # NOTE: Using `resources` instead of `template` because
+                # resource templates are poorly supported by clients.
+                supporting_files="resources",
+            )
+        )
 
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
@@ -460,6 +479,12 @@ class Server(enapter.async_.Routine):
         - `read_rule`: Read the full script of the newly created rule.
         - `edit_rule`: Modify the rule's script via content-match editing.
         - `delete_rule`: Remove the rule.
+
+        Required skills:
+        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
+
+        Tips:
+        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
         """
         auth = await self._get_auth_config()
         rule = await self._app.create_rule(
@@ -498,6 +523,12 @@ class Server(enapter.async_.Routine):
         - `read_rule`: Inspect the current script before crafting an edit.
         - `create_rule`: Create a new MCP-managed rule.
         - `delete_rule`: Remove the rule.
+
+        Required skills:
+        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
+
+        Tips:
+        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
         """
         auth = await self._get_auth_config()
         rule = await self._app.edit_rule(

@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import os
+import pathlib
 
 from enapter_mcp_server import core, http, mcp
 
@@ -40,6 +41,10 @@ ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING
 ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
 ENAPTER_COMMAND_EXECUTION_ENABLED = os.getenv("ENAPTER_COMMAND_EXECUTION_ENABLED", "0")
 ENAPTER_RULE_EDITING_ENABLED = os.getenv("ENAPTER_RULE_EDITING_ENABLED", "0")
+ENAPTER_RULE_CREATOR_SKILL_PATH = os.getenv(
+    "ENAPTER_RULE_CREATOR_SKILL_PATH",
+    "vendor/enapter-skills/plugins/enapter/skills/rule-creator",
+)
 
 
 class ServeCommand(Command):
@@ -142,6 +147,11 @@ class ServeCommand(Command):
             " delete_rule). When disabled (the default), these tools are not"
             " registered at all",
         )
+        parser.add_argument(
+            "--rule-creator-skill-path",
+            default=ENAPTER_RULE_CREATOR_SKILL_PATH,
+            help="Path to the rule-creator skill directory (contains SKILL.md)",
+        )
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
@@ -184,6 +194,7 @@ class ServeCommand(Command):
             cors_allow_origins=cors_allow_origins,
             command_execution_enabled=args.command_execution_enabled == "1",
             rule_editing_enabled=args.rule_editing_enabled == "1",
+            rule_creator_skill_path=pathlib.Path(args.rule_creator_skill_path),
         )
         async with asyncio.TaskGroup() as task_group:
             async with http.EnapterAPI(

@@ -1,8 +1,68 @@
+import pathlib
 import unittest.mock
 
+import fastmcp
 import pytest
 
 from enapter_mcp_server import core, domain, mcp
+
+
+class TestRegisterSkills:
+    async def test_rule_editing_disabled_no_provider_added(self) -> None:
+        app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+        config = mcp.ServerConfig(
+            host="127.0.0.1",
+            port=12345,
+            enapter_http_api_url="",
+            rule_editing_enabled=False,
+            rule_creator_skill_path=pathlib.Path("/nonexistent/path"),
+        )
+        server = mcp.Server(app=app, config=config)
+        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
+
+        server._register_skills(fastmcp_server)
+
+        fastmcp_server.add_provider.assert_not_called()
+
+    async def test_rule_editing_enabled_and_path_exists(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        (tmp_path / "SKILL.md").write_text("# Test Skill")
+        app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+        config = mcp.ServerConfig(
+            host="127.0.0.1",
+            port=12345,
+            enapter_http_api_url="",
+            rule_editing_enabled=True,
+            rule_creator_skill_path=tmp_path,
+        )
+        server = mcp.Server(app=app, config=config)
+        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
+
+        server._register_skills(fastmcp_server)
+
+        fastmcp_server.add_provider.assert_called_once()
+        provider = fastmcp_server.add_provider.call_args.args[0]
+        assert provider._supporting_files == "resources"
+
+    async def test_rule_editing_enabled_and_path_missing(self) -> None:
+        app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+        config = mcp.ServerConfig(
+            host="127.0.0.1",
+            port=12345,
+            enapter_http_api_url="",
+            rule_editing_enabled=True,
+            rule_creator_skill_path=pathlib.Path("/nonexistent/path"),
+        )
+        server = mcp.Server(app=app, config=config)
+        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
+
+        with pytest.raises(
+            FileNotFoundError, match="Rule creator skill path does not exist"
+        ):
+            server._register_skills(fastmcp_server)
+
+        fastmcp_server.add_provider.assert_not_called()
 
 
 @pytest.mark.asyncio
