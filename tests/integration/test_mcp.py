@@ -7,6 +7,17 @@ import pytest
 
 from enapter_mcp_server import core, http, mcp
 
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+RULE_CREATOR_SKILL_PATH = (
+    REPO_ROOT
+    / "vendor"
+    / "enapter-skills"
+    / "plugins"
+    / "enapter"
+    / "skills"
+    / "rule-creator"
+)
+
 
 def _assert_schema(name: str, actual: dict[str, Any]) -> None:
     schema_dir: pathlib.Path = pathlib.Path(__file__).parent / "schemas"
@@ -180,6 +191,7 @@ class TestServerWithRuleEditing:
             enapter_http_api_url="",
             command_execution_enabled=True,
             rule_editing_enabled=True,
+            rule_creator_skill_path=RULE_CREATOR_SKILL_PATH,
         )
         async with http.EnapterAPI(base_url=config.enapter_http_api_url) as enapter_api:
             app: core.ApplicationServer = core.ApplicationServer(

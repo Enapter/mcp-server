@@ -41,10 +41,7 @@ ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING
 ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
 ENAPTER_COMMAND_EXECUTION_ENABLED = os.getenv("ENAPTER_COMMAND_EXECUTION_ENABLED", "0")
 ENAPTER_RULE_EDITING_ENABLED = os.getenv("ENAPTER_RULE_EDITING_ENABLED", "0")
-ENAPTER_RULE_CREATOR_SKILL_PATH = os.getenv(
-    "ENAPTER_RULE_CREATOR_SKILL_PATH",
-    "vendor/enapter-skills/plugins/enapter/skills/rule-creator",
-)
+ENAPTER_RULE_CREATOR_SKILL_PATH = os.getenv("ENAPTER_RULE_CREATOR_SKILL_PATH")
 
 
 class ServeCommand(Command):
@@ -150,14 +147,17 @@ class ServeCommand(Command):
         parser.add_argument(
             "--rule-creator-skill-path",
             default=ENAPTER_RULE_CREATOR_SKILL_PATH,
-            help="Path to the rule-creator skill directory (contains SKILL.md)",
+            help="Path to the rule-creator skill directory (contains SKILL.md)."
+            " Required when rule editing is enabled",
         )
 
     @staticmethod
     async def run(args: argparse.Namespace) -> None:
         if args.verbose:
             mcp.configure_logging(level="DEBUG")
+
         host, port_string = args.address.split(":")
+
         oauth_proxy_config: mcp.OAuthProxyConfig | None = None
         if args.oauth_proxy_enabled == "1":
             required_scopes = [
@@ -178,6 +178,7 @@ class ServeCommand(Command):
                 jwt_store_url=args.oauth_proxy_jwt_store_url,
                 jwt_signing_key=args.oauth_proxy_jwt_signing_key,
             )
+
         cors_allow_origins = None
         if args.cors_allow_origins is not None:
             cors_allow_origins = [
@@ -185,6 +186,22 @@ class ServeCommand(Command):
                 for origin in args.cors_allow_origins.split(",")
                 if origin.strip()
             ]
+
+        rule_editing_enabled = args.rule_editing_enabled == "1"
+        rule_creator_skill_path = (
+            pathlib.Path(args.rule_creator_skill_path)
+            if args.rule_creator_skill_path
+            else None
+        )
+        if rule_editing_enabled and (
+            rule_creator_skill_path is None or not rule_creator_skill_path.is_dir()
+        ):
+            raise FileNotFoundError(
+                "rule-creator skill not available at "
+                f"{rule_creator_skill_path or '<not set>'}. Set it via"
+                " --rule-creator-skill-path or ENAPTER_RULE_CREATOR_SKILL_PATH."
+            )
+
         config = mcp.ServerConfig(
             host=host,
             port=int(port_string),
@@ -193,9 +210,10 @@ class ServeCommand(Command):
             logo_url=args.logo_url,
             cors_allow_origins=cors_allow_origins,
             command_execution_enabled=args.command_execution_enabled == "1",
-            rule_editing_enabled=args.rule_editing_enabled == "1",
-            rule_creator_skill_path=pathlib.Path(args.rule_creator_skill_path),
+            rule_editing_enabled=rule_editing_enabled,
+            rule_creator_skill_path=rule_creator_skill_path,
         )
+
         async with asyncio.TaskGroup() as task_group:
             async with http.EnapterAPI(
                 base_url=args.enapter_http_api_url

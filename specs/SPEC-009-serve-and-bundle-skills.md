@@ -70,44 +70,48 @@ this repo by hand (no manual sync). A submodule pins an exact version to a
 server release for reproducibility while keeping the content read-only and
 externally maintained.
 
-### 4. Make each skill path configurable
+### 4. Make each skill path configurable; required when served
 
-Each served skill has a `ServerConfig.<skill>_skill_path: pathlib.Path` field,
-sourced from `ENAPTER_<SKILL>_SKILL_PATH` / `--<skill>-skill-path`, mirroring
-the existing config pattern in `cli/serve_command.py`. Paths point directly at
-the skill directory, so no assumption about a surrounding collection layout is
-baked in.
+Each served skill has a `ServerConfig.<skill>_skill_path: pathlib.Path | None`
+field, sourced from `ENAPTER_<SKILL>_SKILL_PATH` / `--<skill>-skill-path`,
+mirroring the existing config pattern in `cli/serve_command.py`. Paths point
+directly at the skill directory (the one containing `SKILL.md`).
 
-For `rule-creator`:
+There is **no implicit default path**. The field defaults to `None`. When a
+skill is configured to be served (for `rule-creator`, when `rule_editing_enabled`
+is on) the path MUST be supplied and resolve on disk; otherwise startup fails
+(decision 5). A read-only deployment (rule editing off) never needs to set it.
 
-- Field: `rule_creator_skill_path`
-- Flag: `--rule-creator-skill-path`
-- Env: `ENAPTER_RULE_CREATOR_SKILL_PATH`
-- Default (CWD-relative): `vendor/enapter-skills/plugins/enapter/skills/rule-creator`
+The path is supplied explicitly where the server actually starts, as an absolute
+path:
 
-The default resolves correctly in both runtime contexts:
+- **Docker**: the Dockerfile sets
+  `ENV ENAPTER_RULE_CREATOR_SKILL_PATH=/app/vendor/enapter-skills/plugins/enapter/skills/rule-creator`,
+  so enabling rule editing in the image "just works".
+- **Local dev** (`make serve`): the Makefile defaults
+  `ENAPTER_RULE_CREATOR_SKILL_PATH ?= $(CURDIR)/vendor/enapter-skills/plugins/enapter/skills/rule-creator`
+  (overridable via the environment).
 
-- **Docker**: `WORKDIR /app`, and the Dockerfile copies the subtree to
-  `/app/vendor/enapter-skills/plugins/enapter/skills/rule-creator`.
-- **Local dev**: launched from the repo root after `git submodule update --init`.
+### 5. Fail fast when a served skill's path is missing or unset
 
-The override exists for developers who want to point at a live sibling checkout
-or a skill from another source.
+Validation runs in two places so a misconfiguration surfaces cleanly and the
+`Server` stays self-protecting regardless of entrypoint:
 
-### 5. Fail fast when a configured skill is missing
+- **Eagerly, in `cli/serve_command.run()` before the `TaskGroup` is entered.**
+  When rule editing is enabled and the path is `None` or not a directory, it
+  raises `FileNotFoundError` naming `--rule-creator-skill-path` and
+  `ENAPTER_RULE_CREATOR_SKILL_PATH`. Validating before the `TaskGroup` avoids an
+  `ExceptionGroup` wrapped with `CancelledError` from the async runtime.
+- **Defensively, in `Server._register_skills`**: when rule editing is enabled
+  and the path is `None`, it raises `ValueError`. This is a backstop for a
+  non-CLI starter; the on-disk existence check is owned by the CLI, so the
+  `Server` trusts a provided path and hands it to `SkillProvider`.
 
-For each skill the server is configured to serve, `_register_skills` resolves
-the path and raises if that directory does not exist, refusing to start.
-
-Rationale: a configured-but-missing skill is a configuration error (forgot
-`git submodule update --init`, wrong path), and the tool docstrings promise the
-resource to agents. Silently dropping it would break that promise and yield
-rules written without the Rule Engine knowledge the skill provides. Surfacing
-the error at startup forces the operator to fix it immediately.
-
-This check applies only when a skill is actually configured to be served.
-`rule-creator` is served only when `rule_editing_enabled` is on, so a
-read-only deployment (rule editing off) boots fine without the submodule.
+Rationale: a served-but-missing/unset skill is a configuration error, and the
+tool docstrings promise the resource to agents. Surfacing it at startup forces
+the operator to fix it immediately. This only applies when a skill is actually
+served: `rule-creator` is served only when `rule_editing_enabled` is on, so a
+read-only deployment boots fine without the path or the submodule.
 
 ### 6. Ship each served skill's subtree in Docker
 
@@ -155,33 +159,39 @@ it).
   repo remains the single source of truth.
 - Do not change which tools `rule_editing_enabled` gates.
 - When a skill is configured to be served (e.g. `rule-creator` with rule
-  editing enabled), the server MUST fail to start if its path is missing.
+  editing enabled), the server MUST fail to start if its path is unset or
+  missing.
 
 ## Acceptance Criteria
 
 1. `Enapter/skills` is added as a git submodule at `vendor/enapter-skills`,
    pinned to a specific commit, fetchable over HTTPS. `.gitmodules` is committed.
 
-2. `ServerConfig` has a `rule_creator_skill_path: pathlib.Path` field defaulting
-   to `pathlib.Path("vendor/enapter-skills/plugins/enapter/skills/rule-creator")`.
+2. `ServerConfig` has a `rule_creator_skill_path: pathlib.Path | None` field
+   defaulting to `None`.
 
-3. `cli/serve_command.py` exposes `--rule-creator-skill-path` with `argparse`
-   `ArgumentDefaultsHelpFormatter`-visible default sourced from
-   `ENAPTER_RULE_CREATOR_SKILL_PATH`, and passes it into `ServerConfig`.
+3. `cli/serve_command.py` exposes `--rule-creator-skill-path` (default sourced
+   from `ENAPTER_RULE_CREATOR_SKILL_PATH`, itself defaulting to unset), passes
+   it into `ServerConfig`, and — when rule editing is enabled — eagerly validates
+   it before the `TaskGroup`, raising `FileNotFoundError` that names the flag/env
+   if the path is unset or not a directory.
 
-4. `mcp.Server._register_skills`, gated behind `rule_editing_enabled`, resolves
-   `rule_creator_skill_path` and registers a `SkillProvider` with
-   `supporting_files="resources"`; if the directory does not exist, it raises so
-   the server does not start. No directory auto-discovery.
+4. `mcp.Server._register_skills`, gated behind `rule_editing_enabled`, raises
+   `ValueError` if `rule_creator_skill_path` is `None`, otherwise registers a
+   `SkillProvider` with `supporting_files="resources"`. No directory
+   auto-discovery.
 
 5. The `create_rule` and `edit_rule` docstrings state that the server exposes
    the `rule-creator` skill as an MCP resource "in case you don't have it
    installed" and that the assistant should list MCP resources to find it.
 
-6. The `Dockerfile` copies the `rule-creator` subtree to its CWD-relative
-   default path.
+6. The `Dockerfile` copies the `rule-creator` subtree to
+   `/app/vendor/enapter-skills/plugins/enapter/skills/rule-creator` and sets
+   `ENV ENAPTER_RULE_CREATOR_SKILL_PATH` to that path.
 
-7. The `Makefile` `docker-image` target initializes submodules before building.
+7. The `Makefile` `serve` target provides an absolute default for
+   `ENAPTER_RULE_CREATOR_SKILL_PATH` (via `$(CURDIR)/...`, exported), and the
+   `docker-image` target initializes submodules before building.
 
 8. `.github/workflows/ci.yml` initializes submodules for every checkout that
    feeds a Docker build.

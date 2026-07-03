@@ -1,6 +1,7 @@
 FROM python:3.14
 
 ENV ENAPTER_MCP_SERVER_ADDRESS=0.0.0.0:8000
+ENV ENAPTER_RULE_CREATOR_SKILL_PATH=/app/vendor/enapter-skills/plugins/enapter/skills/rule-creator
 
 WORKDIR /app
 

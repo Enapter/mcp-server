@@ -147,22 +147,19 @@ class Server(enapter.async_.Routine):
         return tools
 
     def _register_skills(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        if not self._config.rule_editing_enabled:
-            return
-        path = self._config.rule_creator_skill_path
-        if not path.is_dir():
-            raise FileNotFoundError(
-                f"Rule creator skill path does not exist: {path}. "
-                "Did you run `git submodule update --init --recursive`?"
+        if self._config.rule_editing_enabled:
+            if self._config.rule_creator_skill_path is None:
+                raise ValueError(
+                    "rule editing enabled but no rule creator skill path provided"
+                )
+            fastmcp_server.add_provider(
+                fastmcp.server.providers.SkillProvider(
+                    self._config.rule_creator_skill_path,
+                    # NOTE: Using `resources` instead of `template` because
+                    # resource templates are poorly supported by clients.
+                    supporting_files="resources",
+                )
             )
-        fastmcp_server.add_provider(
-            fastmcp.server.providers.SkillProvider(
-                str(path),
-                # NOTE: Using `resources` instead of `template` because
-                # resource templates are poorly supported by clients.
-                supporting_files="resources",
-            )
-        )
 
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
