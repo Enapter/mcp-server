@@ -7,6 +7,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir pipenv
 
 COPY Pipfile Pipfile.lock setup.py ./
+COPY vendor/enapter-skills/plugins/enapter/skills/rule-creator ./vendor/enapter-skills/plugins/enapter/skills/rule-creator
 COPY src ./src
 
 RUN pipenv install --system --deploy
