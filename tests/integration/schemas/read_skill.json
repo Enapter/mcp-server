@@ -1,0 +1,48 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Read Skill"
+  },
+  "description": "Read the contents of a skill file served by this MCP server.\n\nThis tool exposes skill documentation (references, examples, decision trees) that the model should consult before performing related tasks.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "file": {
+        "default": "SKILL.md",
+        "type": "string"
+      },
+      "name": {
+        "const": "enapter:rule-creator",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "read_skill",
+  "outputSchema": {
+    "properties": {
+      "result": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Read Skill"
+}

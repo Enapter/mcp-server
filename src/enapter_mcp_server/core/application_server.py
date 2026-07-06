@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import pathlib
 import re
 from typing import Any
 
@@ -17,15 +18,27 @@ from .errors import (
 )
 from .rule_search_query import RuleSearchQuery
 from .site_search_query import SiteSearchQuery
+from .skill_provider import SkillProvider
 
 
 class ApplicationServer:
 
-    def __init__(self, enapter_api: EnapterAPI) -> None:
+    def __init__(
+        self,
+        enapter_api: EnapterAPI,
+        skill_provider: SkillProvider | None = None,
+    ) -> None:
         self._enapter_api = enapter_api
+        self._skill_provider = skill_provider
         self._rule_policy: domain.RuleManagementPolicy = (
             domain.MCPRuleManagementPolicy()
         )
+
+    async def read_skill(self, name: str, file: pathlib.PurePosixPath) -> str:
+        if self._skill_provider is None:
+            raise RuntimeError("Skill provider is not configured")
+        skill = self._skill_provider.load_skill(name)
+        return skill.read(file)
 
     async def search_sites(
         self,

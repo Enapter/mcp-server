@@ -12,6 +12,7 @@ from .errors import (
 )
 from .rule_search_query import RuleSearchQuery
 from .site_search_query import SiteSearchQuery
+from .skill_provider import SkillProvider
 
 __all__ = [
     "ApplicationServer",
@@ -26,4 +27,5 @@ __all__ = [
     "RuleSearchQuery",
     "SearchQueryTooBroad",
     "SiteSearchQuery",
+    "SkillProvider",
 ]

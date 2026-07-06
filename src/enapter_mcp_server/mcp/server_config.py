@@ -1,5 +1,4 @@
 import dataclasses
-import pathlib
 
 from .oauth_proxy_config import OAuthProxyConfig
 
@@ -15,7 +14,7 @@ class ServerConfig:
     cors_allow_origins: list[str] | None = None
     command_execution_enabled: bool = False
     rule_editing_enabled: bool = False
-    rule_creator_skill_path: pathlib.Path | None = None
+    skills_enabled: bool = False
 
     @property
     def address(self) -> str:

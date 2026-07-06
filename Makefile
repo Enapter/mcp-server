@@ -1,11 +1,9 @@
 .PHONY: default
 default:
 
-export ENAPTER_RULE_CREATOR_SKILL_PATH ?= $(CURDIR)/vendor/enapter-skills/plugins/enapter/skills/rule-creator
-
 .PHONY: serve
-serve:
-	pipenv run python -m enapter_mcp_server -v serve
+serve: docker-image
+	docker run --rm -p 8000:8000 $(DOCKER_IMAGE_TAG)
 
 .PHONY: install-deps
 install-deps:

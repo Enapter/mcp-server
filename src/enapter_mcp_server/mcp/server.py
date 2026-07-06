@@ -1,7 +1,8 @@
 import asyncio
 import datetime
+import pathlib
 import urllib.parse
-from typing import Any
+from typing import Any, Literal
 
 import enapter
 import fastmcp
@@ -51,7 +52,6 @@ class Server(enapter.async_.Routine):
             auth=auth_provider,
         )
         self._register_tools(fastmcp_server)
-        self._register_skills(fastmcp_server)
         await fastmcp_server.run_async(
             transport="streamable-http",
             show_banner=False,
@@ -122,7 +122,7 @@ class Server(enapter.async_.Routine):
 
     @property
     def _read_only_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
-        return [
+        tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
             (self.search_devices, "Search Devices"),
             (self.search_command_executions, "Search Command Executions"),
@@ -131,6 +131,11 @@ class Server(enapter.async_.Routine):
             (self.search_rules, "Search Rules"),
             (self.read_rule, "Read Rule"),
         ]
+
+        if self._config.skills_enabled:
+            tools.append((self.read_skill, "Read Skill"))
+
+        return tools
 
     @property
     def _read_write_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
@@ -145,21 +150,6 @@ class Server(enapter.async_.Routine):
             tools.append((self.delete_rule, "Delete Rule"))
 
         return tools
-
-    def _register_skills(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        if self._config.rule_editing_enabled:
-            if self._config.rule_creator_skill_path is None:
-                raise ValueError(
-                    "rule editing enabled but no rule creator skill path provided"
-                )
-            fastmcp_server.add_provider(
-                fastmcp.server.providers.SkillProvider(
-                    self._config.rule_creator_skill_path,
-                    # NOTE: Using `resources` instead of `template` because
-                    # resource templates are poorly supported by clients.
-                    supporting_files="resources",
-                )
-            )
 
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
@@ -471,17 +461,14 @@ class Server(enapter.async_.Routine):
         The slug must start with the MCP-managed prefix `mcp-`. The creator does not
         enable the rule; a human must review and enable it in the Enapter UI.
 
+        Required skills:
+        - `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
+
         Related tools:
         - `search_rules`: List rules on the site including the newly created one.
         - `read_rule`: Read the full script of the newly created rule.
         - `edit_rule`: Modify the rule's script via content-match editing.
         - `delete_rule`: Remove the rule.
-
-        Required skills:
-        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
-
-        Tips:
-        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
         """
         auth = await self._get_auth_config()
         rule = await self._app.create_rule(
@@ -516,16 +503,13 @@ class Server(enapter.async_.Routine):
         The updated `Rule` object is returned. Use `read_rule` if you need to
         inspect the resulting source code.
 
+        Required skills:
+        - `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
+
         Related tools:
         - `read_rule`: Inspect the current script before crafting an edit.
         - `create_rule`: Create a new MCP-managed rule.
         - `delete_rule`: Remove the rule.
-
-        Required skills:
-        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
-
-        Tips:
-        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
         """
         auth = await self._get_auth_config()
         rule = await self._app.edit_rule(
@@ -590,6 +574,17 @@ class Server(enapter.async_.Routine):
             aggregation=domain.AggregationFunction(aggregation),
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
+
+    async def read_skill(
+        self,
+        name: Literal["enapter:rule-creator"],
+        file: str = "SKILL.md",
+    ) -> str:
+        """Read the contents of a skill file served by this MCP server.
+
+        This tool exposes skill documentation (references, examples, decision trees) that the model should consult before performing related tasks.
+        """
+        return await self._app.read_skill(name, pathlib.PurePosixPath(file))
 
     async def _get_auth_config(self) -> core.AuthConfig:
         if self._config.oauth_proxy is None:

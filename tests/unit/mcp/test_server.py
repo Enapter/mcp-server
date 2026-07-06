@@ -1,66 +1,75 @@
 import pathlib
 import unittest.mock
 
-import fastmcp
 import pytest
 
 from enapter_mcp_server import core, domain, mcp
 
 
-class TestRegisterSkills:
-    async def test_rule_editing_disabled_does_not_register(self) -> None:
+class TestReadSkillTool:
+    async def test_read_skill_delegates_to_app(self) -> None:
         app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+        app.read_skill.return_value = "# Skill Content"
+
         config = mcp.ServerConfig(
             host="127.0.0.1",
             port=12345,
             enapter_http_api_url="",
-            rule_editing_enabled=False,
-            rule_creator_skill_path=None,
+            skills_enabled=True,
         )
         server = mcp.Server(app=app, config=config)
-        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
 
-        server._register_skills(fastmcp_server)
+        result = await server.read_skill("enapter:rule-creator")
 
-        fastmcp_server.add_provider.assert_not_called()
+        assert result == "# Skill Content"
+        app.read_skill.assert_awaited_once_with(
+            "enapter:rule-creator", pathlib.PurePosixPath("SKILL.md")
+        )
 
-    async def test_rule_editing_enabled_and_path_exists_registers(
-        self, tmp_path: pathlib.Path
-    ) -> None:
-        (tmp_path / "SKILL.md").write_text("# Test Skill")
+    async def test_read_skill_with_explicit_file(self) -> None:
         app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+        app.read_skill.return_value = "api content"
+
         config = mcp.ServerConfig(
             host="127.0.0.1",
             port=12345,
             enapter_http_api_url="",
-            rule_editing_enabled=True,
-            rule_creator_skill_path=tmp_path,
+            skills_enabled=True,
         )
         server = mcp.Server(app=app, config=config)
-        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
 
-        server._register_skills(fastmcp_server)
+        result = await server.read_skill("enapter:rule-creator", "references/v3/api.md")
 
-        fastmcp_server.add_provider.assert_called_once()
-        provider = fastmcp_server.add_provider.call_args.args[0]
-        assert provider._supporting_files == "resources"
+        assert result == "api content"
+        app.read_skill.assert_awaited_once_with(
+            "enapter:rule-creator",
+            pathlib.PurePosixPath("references/v3/api.md"),
+        )
 
-    async def test_rule_editing_enabled_and_path_none_raises(self) -> None:
+    async def test_read_skill_not_in_tools_when_skills_disabled(self) -> None:
         app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+
+        config = mcp.ServerConfig(host="127.0.0.1", port=12345, enapter_http_api_url="")
+        server = mcp.Server(app=app, config=config)
+
+        tools = server._read_only_tools
+        tool_names = [t[0].__name__ for t in tools]
+        assert "read_skill" not in tool_names
+
+    async def test_read_skill_in_tools_when_skills_enabled(self) -> None:
+        app = unittest.mock.AsyncMock(spec=core.ApplicationServer)
+
         config = mcp.ServerConfig(
             host="127.0.0.1",
             port=12345,
             enapter_http_api_url="",
-            rule_editing_enabled=True,
-            rule_creator_skill_path=None,
+            skills_enabled=True,
         )
         server = mcp.Server(app=app, config=config)
-        fastmcp_server = unittest.mock.MagicMock(spec=fastmcp.FastMCP)
 
-        with pytest.raises(ValueError, match="no rule creator skill path"):
-            server._register_skills(fastmcp_server)
-
-        fastmcp_server.add_provider.assert_not_called()
+        tools = server._read_only_tools
+        tool_names = [t[0].__name__ for t in tools]
+        assert "read_skill" in tool_names
 
 
 @pytest.mark.asyncio
