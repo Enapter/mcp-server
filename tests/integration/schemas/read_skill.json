@@ -6,7 +6,7 @@
     "readOnlyHint": true,
     "title": "Read Skill"
   },
-  "description": "Read the contents of a skill file served by this MCP server.\n\nCall with the default `file` to load `SKILL.md` \u2014 the skill's index\npage with a decision tree and citations to supporting files. Pass any\ncited path as `file` to read it.",
+  "description": "Read the contents of a skill file served by this MCP server.\n\nCall with the default `file` to load `SKILL.md` \u2014 the skill's index page with a decision tree and citations to supporting files. Pass any cited path as `file` to read it.",
   "execution": null,
   "icons": null,
   "inputSchema": {
