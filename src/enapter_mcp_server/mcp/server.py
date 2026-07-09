@@ -469,6 +469,7 @@ class Server(enapter.async_.Routine):
         - `read_rule`: Read the full script of the newly created rule.
         - `edit_rule`: Modify the rule's script via content-match editing.
         - `delete_rule`: Remove the rule.
+        - `read_skill`: Load the `enapter:rule-creator` skill documentation.
         """
         auth = await self._get_auth_config()
         rule = await self._app.create_rule(
@@ -510,6 +511,7 @@ class Server(enapter.async_.Routine):
         - `read_rule`: Inspect the current script before crafting an edit.
         - `create_rule`: Create a new MCP-managed rule.
         - `delete_rule`: Remove the rule.
+        - `read_skill`: Load the `enapter:rule-creator` skill documentation.
         """
         auth = await self._get_auth_config()
         rule = await self._app.edit_rule(
@@ -582,7 +584,9 @@ class Server(enapter.async_.Routine):
     ) -> str:
         """Read the contents of a skill file served by this MCP server.
 
-        This tool exposes skill documentation (references, examples, decision trees) that the model should consult before performing related tasks.
+        Call with the default `file` to load `SKILL.md` — the skill's index
+        page with a decision tree and citations to supporting files. Pass any
+        cited path as `file` to read it.
         """
         return await self._app.read_skill(name, pathlib.PurePosixPath(file))
 

@@ -1,4 +1,5 @@
 import pathlib
+import warnings
 
 from enapter_mcp_server import domain
 
@@ -19,6 +20,12 @@ class SkillProvider:
             if not plugin_dir.is_dir():
                 continue
             skills.extend(cls._load_plugin(plugin_dir))
+        if not skills:
+            warnings.warn(
+                f"No skills discovered in {path}"
+                f" (expected <namespace>/skills/<skill>/SKILL.md)",
+                stacklevel=2,
+            )
         return cls(skills=skills)
 
     @classmethod
