@@ -1,23 +1,49 @@
-## [1.8.0] - 2026-06-25
-
-### 🚀 Features
-
-- Add opt-in execute_command tool (SPEC-007)
-## [1.7.0] - 2026-06-22
+## [1.9.0] - 2026-07-09
 
 ### 🚀 Features
 
 - Expose blueprint_id on devices (SPEC-004)
 - Expose profile mappings on declarations (SPEC-005)
 - Expose device profile membership (SPEC-006)
+- Add opt-in execute_command tool (SPEC-007)
+- Add opt-in rule-editing tools (SPEC-008)
+- *(cli)* Add list_resources command
+- *(mcp)* Serve rule-creator skill as MCP resources (SPEC-009)
+
+### 🐛 Bug Fixes
+
+- Gateway_online coercion and properties manifest filtering
+- *(mcp)* Make rule-creator skill path explicit and required when served (SPEC-009)
+
+### 💼 Other
+
+- Bundle rule-creator skill in Docker image (SPEC-009)
 
 ### 🚜 Refactor
 
 - Use list[str] consistently for per-declaration implements
+- Fold DeviceDTO into domain.Device with view wrappers
+- Fold SiteDTO into domain.Site with SiteStatus
+- Fold RuleEngineDTO into domain.RuleEngine
+- Fold RuleDTO into domain.Rule, add RuleScript, move errors
+- Extract McpRuleManagementPolicy from ApplicationServer
+- *(mcp)* Split read-only and read-write tools registration
+
+### 📚 Documentation
+
+- *(specs)* Add SPEC-009 serve and bundle skills
 
 ### ⚙️ Miscellaneous Tasks
 
 - *(release)* Bump version to 1.7.0
+- *(release)* Bump version to 1.8.0
+- Add AGENTS.md
+- Symlink AGENTS.md to CONTRIBUTING.md
+- Make AGENTS.md explicitly reference other docs
+- Use caps for mcp
+- Vendor enapter-skills submodule (SPEC-009)
+- *(Makefile)* Unify exclude patterns for linting
+- *(Makefile)* Default rule-creator skill path for make serve
 ## [1.6.0] - 2026-06-17
 
 ### 🚀 Features
