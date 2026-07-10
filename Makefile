@@ -3,7 +3,7 @@ default:
 
 .PHONY: serve
 serve: docker-image
-	docker run --rm -p 8000:8000 $(DOCKER_IMAGE_TAG)
+	docker run --rm -p 8000:8000 $(DOCKER_IMAGE_TAG) -v serve
 
 .PHONY: install-deps
 install-deps:
