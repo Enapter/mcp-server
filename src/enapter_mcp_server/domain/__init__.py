@@ -1,3 +1,5 @@
+from enapter_mcp_server.core.errors import RuleSlugConflict
+
 from .access_role import AccessRole
 from .aggregation_function import AggregationFunction
 from .alert_declaration import AlertDeclaration
@@ -85,6 +87,7 @@ __all__ = [
     "RuleRuntimeVersion",
     "RuleScript",
     "RuleScriptSummary",
+    "RuleSlugConflict",
     "RuleState",
     "Site",
     "SiteStatus",
