@@ -944,3 +944,21 @@ class TestAsyncContextManager:
         async with filesystem.EnapterAPI(state_dir) as api:
             assert isinstance(api, filesystem.EnapterAPI)
             assert api._state_dir == state_dir
+
+
+class TestFromUrl:
+    def test_absolute_path(self) -> None:
+        api = filesystem.EnapterAPI.from_url("filetree:///tmp/state")
+        assert api._state_dir == pathlib.Path("/tmp/state")
+
+    def test_no_path_raises(self) -> None:
+        with pytest.raises(ValueError, match="absolute path"):
+            filesystem.EnapterAPI.from_url("filetree://")
+
+    def test_relative_path_raises(self) -> None:
+        with pytest.raises(ValueError, match="absolute path"):
+            filesystem.EnapterAPI.from_url("filetree:relative/state")
+
+    def test_with_host_raises(self) -> None:
+        with pytest.raises(ValueError, match="must not have a host"):
+            filesystem.EnapterAPI.from_url("filetree://localhost/state")

@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import pathlib
+import urllib.parse
 
 from enapter_mcp_server import core, filesystem, http, mcp
 
@@ -209,11 +210,18 @@ class ServeCommand(Command):
         )
 
         async with asyncio.TaskGroup() as task_group:
-            async with http.EnapterAPI(
-                base_url=args.enapter_http_api_url
-            ) as enapter_api:
+            async with _make_enapter_api(args.enapter_http_api_url) as enapter_api:
                 app = core.ApplicationServer(
                     enapter_api=enapter_api, skill_provider=skill_provider
                 )
                 async with mcp.Server(app=app, config=config, task_group=task_group):
                     await asyncio.Event().wait()
+
+
+def _make_enapter_api(url: str) -> http.EnapterAPI | filesystem.EnapterAPI:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme == "filetree":
+        return filesystem.EnapterAPI.from_url(url)
+    if parsed.scheme in ("http", "https"):
+        return http.EnapterAPI(base_url=url)
+    raise ValueError(f"Unsupported URL scheme: {parsed.scheme!r}")

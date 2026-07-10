@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import tempfile
+import urllib.parse
 import uuid
 from typing import Any, AsyncGenerator, Self
 
@@ -21,6 +22,15 @@ class EnapterAPI:
 
     def __init__(self, state_dir: pathlib.Path) -> None:
         self._state_dir = state_dir
+
+    @classmethod
+    def from_url(cls, url: str) -> Self:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.netloc:
+            raise ValueError(f"filetree URL must not have a host: {url!r}")
+        if not parsed.path or not parsed.path.startswith("/"):
+            raise ValueError(f"filetree URL requires an absolute path: {url!r}")
+        return cls(state_dir=pathlib.Path(parsed.path))
 
     async def __aenter__(self) -> Self:
         return self
