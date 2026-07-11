@@ -1,0 +1,30 @@
+site:
+  id: 08611af5-eabc-4fe5-9fa1-1ece17df36ed
+  name: Arrakis
+  timezone: UTC
+  authorized_role: owner
+devices:
+- id: dbc53e17-e481-476b-826e-a1d3b65df9be
+  blueprint_id: a5f81d38-2b6d-4c7b-8e0e-f48c6934992f
+  name: Solar Inverter
+  site_id: 08611af5-eabc-4fe5-9fa1-1ece17df36ed
+  type: lua
+  authorized_role: owner
+  slug: solar-inverter
+  connectivity: online
+- id: 32b09089-4334-4d6e-bb5e-904aaa2dd3c1
+  blueprint_id: 82f82d8d-f644-425b-80bf-8f782354e1fd
+  name: Battery Bank
+  site_id: 08611af5-eabc-4fe5-9fa1-1ece17df36ed
+  type: lua
+  authorized_role: owner
+  slug: battery-bank
+  connectivity: offline
+- id: 136a8d2c-1c9a-445e-802c-4ad65ef24e93
+  blueprint_id: ecf5087c-e352-48a3-b266-7d3d673e4899
+  name: Weather Station
+  site_id: 08611af5-eabc-4fe5-9fa1-1ece17df36ed
+  type: gateway
+  authorized_role: owner
+  slug: weather-station
+  connectivity: online
