@@ -26,6 +26,8 @@ class EnapterAPI:
     @classmethod
     def from_url(cls, url: str) -> Self:
         parsed = urllib.parse.urlparse(url)
+        if parsed.scheme != "filetree":
+            raise ValueError(f"expected filetree scheme: {url!r}")
         if parsed.netloc:
             raise ValueError(f"filetree URL must not have a host: {url!r}")
         if not parsed.path or not parsed.path.startswith("/"):
