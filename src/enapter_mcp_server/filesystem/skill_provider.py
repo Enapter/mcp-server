@@ -1,5 +1,6 @@
 import pathlib
 import warnings
+from typing import Self
 
 from enapter_mcp_server import domain
 
@@ -10,7 +11,7 @@ class SkillProvider:
         self._skills: dict[str, domain.Skill] = {s.name: s for s in (skills or [])}
 
     @classmethod
-    def from_directory(cls, path: pathlib.Path) -> SkillProvider:
+    def from_directory(cls, path: pathlib.Path) -> Self:
         if not path.exists():
             raise FileNotFoundError(f"Skill plugins directory not found: {path}")
         if not path.is_dir():
