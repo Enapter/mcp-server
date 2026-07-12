@@ -1,3 +1,8 @@
+---
+state: tests.agent.states.arrakis
+policy: tests.agent.policies.create_rule
+---
+
 # Create Rule Loads Skill First
 
 ## User Persona

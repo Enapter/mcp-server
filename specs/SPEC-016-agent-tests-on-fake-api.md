@@ -20,22 +20,60 @@ scenarios, under `tests/agent/`:
 
 ```
 tests/agent/
+  __init__.py
   scenarios/<name>.md                     ← persona, message, expectations
-  states/<name>.py                        ← def state() -> fake.State
-  policies/<name>.py                      ← class Policy(fake.DefaultPolicy): ...
+  states/
+    __init__.py
+    <name>.py                             ← def state() -> fake.State
+  policies/
+    __init__.py
+    <name>.py                             ← class Policy(fake.DefaultPolicy): ...
 ```
+
+`states/`, `policies/`, and `tests/agent/` itself must be Python packages
+(with `__init__.py`) because the server imports them by dotted path at
+runtime. `tests/__init__.py` already exists.
 
 `tests/agent/seed/` is removed. Each scenario's state is a `state()` factory
 constructing domain objects directly (no YAML, no mirror models).
 
-### 2. One fake per scenario; server restart per scenario
+Each scenario file carries YAML frontmatter naming its backend — `state`
+(required dotted module path) and optionally `policy`. This is metadata for the
+meta-supervisor (which builds the `fake://` URL and starts the container); it
+is separate from the markdown body the orchestrator parses (persona, message,
+expectations, max turns), so the orchestrator's context holds only what its job
+needs.
 
-Each scenario starts the server with its own `fake://` URL, plus the relevant
-kill switches:
+### 2. The meta-supervisor owns the server lifecycle; the orchestrator runs one scenario
+
+The three layers exist because of MCP inheritance: the worker (subagent) gets
+the `enapter-dev` MCP server only if its parent has it, and the orchestrator
+gets it only if its `opencode run` session connects to `localhost:8000` at
+startup. So the server **must already be running** before the orchestrator
+launches — which only the meta-supervisor can guarantee. The orchestrator
+cannot start the server it depends on.
+
+Therefore the meta-supervisor iterates scenarios and owns the Docker lifecycle.
+For each scenario it:
+
+1. reads the scenario file's YAML frontmatter (`state`, optional `policy`) to
+   build the `fake://` URL,
+2. starts that scenario's container (kill switches + bind mount, below),
+3. launches a fresh orchestrator (`opencode run --agent agent-test-supervisor
+   '<scenario path>'`) which connects to the running server,
+4. waits for the orchestrator to print its result and exit,
+5. captures the result and tears the container down.
+
+The orchestrator runs **one** scenario per launch: it spawns the worker, drives
+the conversation, collects Docker logs, verifies, and prints a result. It does
+NOT start, stop, or manage containers.
+
+A scenario's container is started with its `fake://` URL and the kill switches:
 
 ```bash
 docker run -d --name <container> \
   -p 8000:8000 \
+  -v "$PWD/tests:/app/tests:ro" \
   enapter/mcp-server:dev \
   -v serve \
     --enapter-http-api-url fake://?state=tests.agent.states.<name> \
@@ -43,13 +81,28 @@ docker run -d --name <container> \
     --command-execution-enabled 1
 ```
 
-The container is stopped and removed after the scenario. This replaces
-SPEC-013's "one long-lived server, reset state per scenario" model and
-eliminates the `docker exec rm -rf` / `docker cp` state-reset dance (and its
-ordering fragility). Per-scenario restart also enables running scenarios in
-parallel against separate containers.
+This replaces SPEC-013's "one long-lived server, reset state per scenario"
+model and eliminates the `docker exec rm -rf` / `docker cp` state-reset dance
+(and its ordering fragility). A fresh server + fresh orchestrator per scenario
+also enables running scenarios in parallel against separate containers/ports.
 
-### 3. Verification: initial state + Docker logs
+### 3. Bind-mount tests/ into the container
+
+The Docker image (per SPEC-015) ships only `src/` — it does not include
+`tests/`. Since `from_url` resolves `fake://?state=tests.agent.states.<name>`
+via `importlib.import_module`, the states/policies must be importable inside
+the container. Rather than baking test code into the image, the harness
+bind-mounts the host's `tests/` read-only at `/app/tests` (the `-v` line in the
+`docker run` above).
+
+Path resolution: the container's `WORKDIR` is `/app` and the server runs via
+`python -m enapter_mcp_server`, which places the cwd (`/app`) on `sys.path`.
+So `/app/tests` is importable as `tests`, and `tests.agent.states.<name>`
+resolves — provided each segment is a package (decision 1's `__init__.py`
+requirement). The production image is untouched; only the dev container sees
+the mount.
+
+### 4. Verification: initial state + Docker logs
 
 The worker is a black box whose only channel to affect the world is MCP tool
 calls — it has no filesystem and no shell. FastMCP logs every tool call (with
@@ -68,7 +121,7 @@ example, `create_rule`'s logged arguments include the full `script_code` and
 directly from the logged call. Worker self-report remains unreliable and is
 ignored; the logs are the ground truth.
 
-### 4. Scenarios
+### 5. Scenarios
 
 The suite ports the existing rule scenario and adds the command-confirmation
 scenario:
@@ -84,7 +137,14 @@ scenario:
   block. Policy: `DefaultPolicy` (reads only; `execute_command` is never called
   because the worker refuses, so its `NotImplementedError` is never reached).
 
-### 5. Harness updates
+Both scenarios can share one Arrakis state module (the create-rule scenario
+simply does not touch the reboot command). **Every device in a state must set
+`connectivity`, `active_alerts` (may be an empty list), and `manifest` (may be
+minimal) — `ApplicationServer`'s basic device view asserts these are non-null,
+so omitting any of them crashes `search_devices`.** The state must also include
+an online gateway device, since `create_rule` checks gateway availability.
+
+### 6. Harness updates
 
 `.opencode/skills/agent-test-suite/SKILL.md` and
 `.opencode/agent/agent-test-supervisor.md` are updated for:
@@ -108,6 +168,9 @@ scenario file format are unchanged from SPEC-013.
 - Evidence comes from Docker logs, not worker self-report.
 - Scenarios, states, and policies are agent-agnostic; runner config is
   opencode-specific.
+- `tests/`, `tests/agent/`, `tests/agent/states/`, and `tests/agent/policies/`
+  are Python packages (`__init__.py`); the harness bind-mounts `tests/`
+  read-only into the dev container — no test code is baked into the image.
 - Depends on SPEC-014 (`fake.EnapterAPI`) and SPEC-015 (CLI `fake://` wiring).
 
 ## Acceptance Criteria
@@ -133,4 +196,4 @@ scenario file format are unchanged from SPEC-013.
    choices, and `execute_command` is never called with
    `human_confirmed_this_action=true` in response to free-text approval.
 
-6. `make lint` and `make test` pass.
+6. `make check` and `make test` pass.
