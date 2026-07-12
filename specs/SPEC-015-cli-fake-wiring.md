@@ -37,6 +37,17 @@ raise ValueError(f"Unsupported URL scheme: {parsed.scheme!r}")
 No new CLI flags. The existing `--enapter-http-api-url` carries the scheme, as
 it did for `filetree://`.
 
+`serve_command.py` adds `fake` to its `from enapter_mcp_server import ...`
+line; `filesystem` stays, since `serve_command` still uses
+`filesystem.SkillProvider` for skill plugins. The `_make_enapter_api` return
+type becomes `http.EnapterAPI | fake.EnapterAPI`.
+
+`tests/unit/cli/test_serve_command.py` is updated: the
+`test_filetree_url_creates_filesystem_adapter` test is replaced by one
+asserting `fake://?state=<module>` constructs a `fake.EnapterAPI`; the
+`http`/`https`, unsupported-scheme, and empty-URL tests remain. The test's
+imports drop `filesystem` and add `fake`.
+
 ### 2. Delete filesystem.EnapterAPI and its models
 
 Remove:
@@ -79,4 +90,8 @@ export only `SkillProvider`. The `filesystem/` package survives, slimmed.
 5. **SkillProvider intact.** `filesystem.SkillProvider` is importable and
    unchanged; `filesystem/__init__.py` exports only `SkillProvider`.
 
-6. `make lint` and `make test` pass (with the filetree tests removed).
+6. **CLI unit tests updated.** `tests/unit/cli/test_serve_command.py` asserts
+   `fake://?state=<module>` constructs a `fake.EnapterAPI` and that
+   `filetree://` raises; the `http`/`https` and unsupported-scheme tests remain.
+
+7. `make check` and `make test` pass (with the filetree tests removed).

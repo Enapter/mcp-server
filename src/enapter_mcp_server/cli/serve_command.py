@@ -4,7 +4,7 @@ import os
 import pathlib
 import urllib.parse
 
-from enapter_mcp_server import core, filesystem, http, mcp
+from enapter_mcp_server import core, fake, filesystem, http, mcp
 
 from .command import Command
 from .subparsers import Subparsers
@@ -218,10 +218,10 @@ class ServeCommand(Command):
                     await asyncio.Event().wait()
 
 
-def _make_enapter_api(url: str) -> http.EnapterAPI | filesystem.EnapterAPI:
+def _make_enapter_api(url: str) -> http.EnapterAPI | fake.EnapterAPI:
     parsed = urllib.parse.urlparse(url)
-    if parsed.scheme == "filetree":
-        return filesystem.EnapterAPI.from_url(url)
+    if parsed.scheme == "fake":
+        return fake.EnapterAPI.from_url(url)
     if parsed.scheme in ("http", "https"):
         return http.EnapterAPI(base_url=url)
     raise ValueError(f"Unsupported URL scheme: {parsed.scheme!r}")
