@@ -5,18 +5,10 @@ from typing import Any, AsyncGenerator
 
 import pytest
 
-from enapter_mcp_server import core, http, mcp
+from enapter_mcp_server import core, filesystem, http, mcp
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
-RULE_CREATOR_SKILL_PATH = (
-    REPO_ROOT
-    / "vendor"
-    / "enapter-skills"
-    / "plugins"
-    / "enapter"
-    / "skills"
-    / "rule-creator"
-)
+SKILL_PLUGINS_PATH = REPO_ROOT / "vendor" / "enapter-skills" / "plugins"
 
 
 def _assert_schema(name: str, actual: dict[str, Any]) -> None:
@@ -191,24 +183,27 @@ class TestServerWithRuleEditing:
             enapter_http_api_url="",
             command_execution_enabled=True,
             rule_editing_enabled=True,
-            rule_creator_skill_path=RULE_CREATOR_SKILL_PATH,
+            skills_enabled=True,
         )
+        skill_provider = filesystem.SkillProvider.from_directory(SKILL_PLUGINS_PATH)
         async with http.EnapterAPI(base_url=config.enapter_http_api_url) as enapter_api:
             app: core.ApplicationServer = core.ApplicationServer(
-                enapter_api=enapter_api
+                enapter_api=enapter_api,
+                skill_provider=skill_provider,
             )
             async with mcp.Server(app=app, config=config):
                 async with mcp.Client(url=f"http://{config.address}/mcp") as client:
                     yield client
 
-    async def test_registers_eleven_tools(self, mcp_client: mcp.Client) -> None:
+    async def test_registers_twelve_tools(self, mcp_client: mcp.Client) -> None:
         tools_result: list[Any] = await mcp_client.list_tools()
 
-        assert len(tools_result) == 11
+        assert len(tools_result) == 12
         assert any(t.name == "execute_command" for t in tools_result)
         assert any(t.name == "create_rule" for t in tools_result)
         assert any(t.name == "edit_rule" for t in tools_result)
         assert any(t.name == "delete_rule" for t in tools_result)
+        assert any(t.name == "read_skill" for t in tools_result)
 
         for tool in tools_result:
             if tool.name in (
@@ -219,6 +214,32 @@ class TestServerWithRuleEditing:
             ):
                 continue
             assert tool.annotations.readOnlyHint is True
+
+    async def test_read_skill_annotations(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "read_skill"), None
+        )
+        assert tool is not None
+        assert tool.annotations.readOnlyHint is True
+        assert tool.annotations.destructiveHint is False
+        assert tool.title == "Read Skill"
+
+    async def test_read_skill_schema(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+        tool: Any | None = next(
+            (t for t in tools_result if t.name == "read_skill"), None
+        )
+        assert tool is not None
+
+        actual: dict[str, Any] = json.loads(tool.model_dump_json())
+        assert actual["name"] == "read_skill"
+
+        properties: dict[str, Any] = actual["inputSchema"]["properties"]
+        assert set(properties.keys()) == {"name", "file"}
+        assert set(actual["inputSchema"]["required"]) == {"name"}
+
+        _assert_schema("read_skill", actual)
 
     async def test_create_rule_annotations(self, mcp_client: mcp.Client) -> None:
         tools_result: list[Any] = await mcp_client.list_tools()
@@ -323,3 +344,37 @@ class TestServerWithRuleEditing:
         assert actual["annotations"]["title"] == "Delete Rule"
 
         _assert_schema("delete_rule", actual)
+
+
+@pytest.mark.asyncio(loop_scope="class")
+class TestServerWithRuleEditingOnly:
+    """Rule editing enabled, command execution disabled."""
+
+    @pytest.fixture(scope="class")
+    async def mcp_client(self) -> AsyncGenerator[mcp.Client, None]:
+        config: mcp.ServerConfig = mcp.ServerConfig(
+            host="127.0.0.1",
+            port=12348,
+            enapter_http_api_url="",
+            rule_editing_enabled=True,
+            skills_enabled=True,
+        )
+        skill_provider = filesystem.SkillProvider.from_directory(SKILL_PLUGINS_PATH)
+        async with http.EnapterAPI(base_url=config.enapter_http_api_url) as enapter_api:
+            app: core.ApplicationServer = core.ApplicationServer(
+                enapter_api=enapter_api,
+                skill_provider=skill_provider,
+            )
+            async with mcp.Server(app=app, config=config):
+                async with mcp.Client(url=f"http://{config.address}/mcp") as client:
+                    yield client
+
+    async def test_registers_eleven_tools(self, mcp_client: mcp.Client) -> None:
+        tools_result: list[Any] = await mcp_client.list_tools()
+
+        assert len(tools_result) == 11
+        assert any(t.name == "create_rule" for t in tools_result)
+        assert any(t.name == "edit_rule" for t in tools_result)
+        assert any(t.name == "delete_rule" for t in tools_result)
+        assert any(t.name == "read_skill" for t in tools_result)
+        assert not any(t.name == "execute_command" for t in tools_result)

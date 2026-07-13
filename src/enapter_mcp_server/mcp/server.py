@@ -1,7 +1,8 @@
 import asyncio
 import datetime
+import pathlib
 import urllib.parse
-from typing import Any
+from typing import Any, Literal
 
 import enapter
 import fastmcp
@@ -51,7 +52,6 @@ class Server(enapter.async_.Routine):
             auth=auth_provider,
         )
         self._register_tools(fastmcp_server)
-        self._register_skills(fastmcp_server)
         await fastmcp_server.run_async(
             transport="streamable-http",
             show_banner=False,
@@ -122,7 +122,7 @@ class Server(enapter.async_.Routine):
 
     @property
     def _read_only_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
-        return [
+        tools: list[tuple[mcp.types.AnyFunction, str]] = [
             (self.search_sites, "Search Sites"),
             (self.search_devices, "Search Devices"),
             (self.search_command_executions, "Search Command Executions"),
@@ -131,6 +131,11 @@ class Server(enapter.async_.Routine):
             (self.search_rules, "Search Rules"),
             (self.read_rule, "Read Rule"),
         ]
+
+        if self._config.skills_enabled:
+            tools.append((self.read_skill, "Read Skill"))
+
+        return tools
 
     @property
     def _read_write_tools(self) -> list[tuple[mcp.types.AnyFunction, str]]:
@@ -145,21 +150,6 @@ class Server(enapter.async_.Routine):
             tools.append((self.delete_rule, "Delete Rule"))
 
         return tools
-
-    def _register_skills(self, fastmcp_server: fastmcp.FastMCP) -> None:
-        if self._config.rule_editing_enabled:
-            if self._config.rule_creator_skill_path is None:
-                raise ValueError(
-                    "rule editing enabled but no rule creator skill path provided"
-                )
-            fastmcp_server.add_provider(
-                fastmcp.server.providers.SkillProvider(
-                    self._config.rule_creator_skill_path,
-                    # NOTE: Using `resources` instead of `template` because
-                    # resource templates are poorly supported by clients.
-                    supporting_files="resources",
-                )
-            )
 
     def _new_middleware(self) -> list[starlette.middleware.Middleware]:
         middleware = []
@@ -188,7 +178,8 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Site]:
-        """Search among energy system sites accessible to the authenticated user.
+        """
+        Search among energy system sites accessible to the authenticated user.
 
         This tool is typically the first step to discover a `site_id`, which is often required by other tools to scope queries to a specific location.
 
@@ -222,7 +213,8 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Rule]:
-        """Search for automation rules running on a specific site.
+        """
+        Search for automation rules running on a specific site.
 
         This tool allows you to list and filter the Rule Engine rules configured on a site.
 
@@ -253,7 +245,8 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 2000,
     ) -> list[str]:
-        """Read the Lua script code for a specific automation rule.
+        """
+        Read the Lua script code for a specific automation rule.
 
         This tool returns the source code of a rule running on the Enapter Rule Engine, returned as a list of strings (lines of code).
 
@@ -281,7 +274,8 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.Device]:
-        """Search for energy system devices.
+        """
+        Search for energy system devices.
 
         This tool is the primary entry point for discovering devices, checking their connectivity, and finding active alerts during diagnostic troubleshooting.
 
@@ -333,7 +327,8 @@ class Server(enapter.async_.Routine):
         | models.AlertDeclaration
         | models.CommandDeclaration
     ]:
-        """Read the blueprint for a specific device.
+        """
+        Read the blueprint for a specific device.
 
         This tool retrieves the schema defining the capabilities of a device, divided into sections: 'telemetry', 'alerts', 'commands', 'properties', and 'implements'.
 
@@ -397,7 +392,8 @@ class Server(enapter.async_.Routine):
         offset: int = 0,
         limit: int = 20,
     ) -> list[models.CommandExecution]:
-        """Search the history of commands executed on devices.
+        """
+        Search the history of commands executed on devices.
 
         This tool helps audit recent actions taken on a device, whether to verify successful execution, check for failures (`state="error"`), or see if a command was misused.
 
@@ -437,7 +433,8 @@ class Server(enapter.async_.Routine):
         arguments: dict[str, Any] | None = None,
         human_confirmed_this_action: bool = False,
     ) -> models.CommandExecution:
-        """Execute a command on a specific device and return its outcome.
+        """
+        Execute a command on a specific device and return its outcome.
 
         This tool performs a real-world action on physical energy hardware. It is destructive: use it only when acting is intended.
 
@@ -465,23 +462,20 @@ class Server(enapter.async_.Routine):
         slug: str,
         script_code: str,
     ) -> models.Rule:
-        """Create a disabled MCP-managed automation rule on a site.
+        """
+        Create a disabled MCP-managed automation rule on a site.
 
-        This tool creates a new rule that is always disabled and uses runtime version v3.
-        The slug must start with the MCP-managed prefix `mcp-`. The creator does not
-        enable the rule; a human must review and enable it in the Enapter UI.
+        This tool creates a new rule that is always disabled and uses runtime version v3. The slug must start with the MCP-managed prefix `mcp-`. The creator does not enable the rule; a human must review and enable it in the Enapter UI.
+
+        Required skills:
+        - `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
 
         Related tools:
         - `search_rules`: List rules on the site including the newly created one.
         - `read_rule`: Read the full script of the newly created rule.
         - `edit_rule`: Modify the rule's script via content-match editing.
         - `delete_rule`: Remove the rule.
-
-        Required skills:
-        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
-
-        Tips:
-        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
+        - `read_skill`: Load the `enapter:rule-creator` skill documentation.
         """
         auth = await self._get_auth_config()
         rule = await self._app.create_rule(
@@ -504,28 +498,23 @@ class Server(enapter.async_.Routine):
         old_string: str,
         new_string: str,
     ) -> models.Rule:
-        """Apply a content-match edit to a disabled MCP-managed rule's script.
+        """
+        Apply a content-match edit to a disabled MCP-managed rule's script.
 
-        This tool replaces exactly one occurrence of `old_string` with `new_string`
-        in the rule's current Lua script. The rule must be disabled, its slug must
-        start with `mcp-`, and it must use runtime version v3.
+        This tool replaces exactly one occurrence of `old_string` with `new_string` in the rule's current Lua script. The rule must be disabled, its slug must start with `mcp-`, and it must use runtime version v3.
 
-        `old_string` must be non-empty, must appear exactly once in the current
-        script, and must differ from `new_string`.
+        `old_string` must be non-empty, must appear exactly once in the current script, and must differ from `new_string`.
 
-        The updated `Rule` object is returned. Use `read_rule` if you need to
-        inspect the resulting source code.
+        The updated `Rule` object is returned. Use `read_rule` if you need to inspect the resulting source code.
+
+        Required skills:
+        - `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
 
         Related tools:
         - `read_rule`: Inspect the current script before crafting an edit.
         - `create_rule`: Create a new MCP-managed rule.
         - `delete_rule`: Remove the rule.
-
-        Required skills:
-        - `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
-
-        Tips:
-        - This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.
+        - `read_skill`: Load the `enapter:rule-creator` skill documentation.
         """
         auth = await self._get_auth_config()
         rule = await self._app.edit_rule(
@@ -542,10 +531,10 @@ class Server(enapter.async_.Routine):
         site_id: str,
         rule_id: str,
     ) -> None:
-        """Delete a disabled MCP-managed automation rule.
+        """
+        Delete a disabled MCP-managed automation rule.
 
-        The rule must be disabled and its slug must start with `mcp-`. The tool
-        returns no result; confirm deletion via `search_rules`.
+        The rule must be disabled and its slug must start with `mcp-`. The tool returns no result; confirm deletion via `search_rules`.
 
         Related tools:
         - `search_rules`: Verify the rule no longer exists after deletion.
@@ -567,7 +556,8 @@ class Server(enapter.async_.Routine):
         aggregation: models.AggregationFunction,
         granularity: int = 60 * 60,
     ) -> models.HistoricalTelemetry:
-        """Retrieve aggregated historical time-series telemetry for a specific device.
+        """
+        Retrieve aggregated historical time-series telemetry for a specific device.
 
         This tool is useful for performance analysis, yield calculation, and historical trending.
 
@@ -590,6 +580,18 @@ class Server(enapter.async_.Routine):
             aggregation=domain.AggregationFunction(aggregation),
         )
         return models.HistoricalTelemetry.from_domain(telemetry)
+
+    async def read_skill(
+        self,
+        name: Literal["enapter:rule-creator"],
+        file: str = "SKILL.md",
+    ) -> str:
+        """
+        Read the contents of a skill file served by this MCP server.
+
+        Call with the default `file` to load `SKILL.md` — the skill's index page with a decision tree and citations to supporting files. Pass any cited path as `file` to read it.
+        """
+        return await self._app.read_skill(name, pathlib.PurePosixPath(file))
 
     async def _get_auth_config(self) -> core.AuthConfig:
         if self._config.oauth_proxy is None:

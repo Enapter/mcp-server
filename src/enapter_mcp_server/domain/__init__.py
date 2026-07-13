@@ -25,6 +25,8 @@ from .errors import (
     RuleNotMCPManaged,
     RuleNotV3,
     RuleOldStringNotFound,
+    SkillFileNotFound,
+    SkillNotFound,
     UnprefixedRuleSlug,
 )
 from .historical_telemetry import HistoricalTelemetry
@@ -40,6 +42,7 @@ from .rule_script_summary import RuleScriptSummary
 from .rule_state import RuleState
 from .site import Site
 from .site_status import SiteStatus
+from .skill import Skill
 from .telemetry_attribute_declaration import TelemetryAttributeDeclaration
 
 __all__ = [
@@ -85,6 +88,9 @@ __all__ = [
     "RuleState",
     "Site",
     "SiteStatus",
+    "Skill",
+    "SkillFileNotFound",
+    "SkillNotFound",
     "TelemetryAttributeDeclaration",
     "UnprefixedRuleSlug",
 ]

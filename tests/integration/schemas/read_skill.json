@@ -1,0 +1,48 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": null,
+    "openWorldHint": null,
+    "readOnlyHint": true,
+    "title": "Read Skill"
+  },
+  "description": "Read the contents of a skill file served by this MCP server.\n\nCall with the default `file` to load `SKILL.md` \u2014 the skill's index page with a decision tree and citations to supporting files. Pass any cited path as `file` to read it.",
+  "execution": null,
+  "icons": null,
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "file": {
+        "default": "SKILL.md",
+        "type": "string"
+      },
+      "name": {
+        "const": "enapter:rule-creator",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "type": "object"
+  },
+  "meta": {
+    "fastmcp": {
+      "tags": []
+    }
+  },
+  "name": "read_skill",
+  "outputSchema": {
+    "properties": {
+      "result": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "result"
+    ],
+    "type": "object",
+    "x-fastmcp-wrap-result": true
+  },
+  "title": "Read Skill"
+}

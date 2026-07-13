@@ -2,8 +2,9 @@ import argparse
 import asyncio
 import os
 import pathlib
+import urllib.parse
 
-from enapter_mcp_server import core, http, mcp
+from enapter_mcp_server import core, fake, filesystem, http, mcp
 
 from .command import Command
 from .subparsers import Subparsers
@@ -41,7 +42,7 @@ ENAPTER_OAUTH_PROXY_JWT_SIGNING_KEY = os.getenv("ENAPTER_OAUTH_PROXY_JWT_SIGNING
 ENAPTER_CORS_ALLOW_ORIGINS = os.getenv("ENAPTER_CORS_ALLOW_ORIGINS")
 ENAPTER_COMMAND_EXECUTION_ENABLED = os.getenv("ENAPTER_COMMAND_EXECUTION_ENABLED", "0")
 ENAPTER_RULE_EDITING_ENABLED = os.getenv("ENAPTER_RULE_EDITING_ENABLED", "0")
-ENAPTER_RULE_CREATOR_SKILL_PATH = os.getenv("ENAPTER_RULE_CREATOR_SKILL_PATH")
+ENAPTER_SKILL_PLUGINS = os.getenv("ENAPTER_SKILL_PLUGINS")
 
 
 class ServeCommand(Command):
@@ -145,10 +146,10 @@ class ServeCommand(Command):
             " registered at all",
         )
         parser.add_argument(
-            "--rule-creator-skill-path",
-            default=ENAPTER_RULE_CREATOR_SKILL_PATH,
-            help="Path to the rule-creator skill directory (contains SKILL.md)."
-            " Required when rule editing is enabled",
+            "--skill-plugins",
+            default=ENAPTER_SKILL_PLUGINS,
+            help="Path to the skill plugins directory (each subdirectory is a"
+            " namespace containing a skills/ tree)",
         )
 
     @staticmethod
@@ -187,20 +188,14 @@ class ServeCommand(Command):
                 if origin.strip()
             ]
 
-        rule_editing_enabled = args.rule_editing_enabled == "1"
-        rule_creator_skill_path = (
-            pathlib.Path(args.rule_creator_skill_path)
-            if args.rule_creator_skill_path
+        skill_plugins_path = (
+            pathlib.Path(args.skill_plugins) if args.skill_plugins else None
+        )
+        skill_provider = (
+            filesystem.SkillProvider.from_directory(skill_plugins_path)
+            if skill_plugins_path is not None
             else None
         )
-        if rule_editing_enabled and (
-            rule_creator_skill_path is None or not rule_creator_skill_path.is_dir()
-        ):
-            raise FileNotFoundError(
-                "rule-creator skill not available at "
-                f"{rule_creator_skill_path or '<not set>'}. Set it via"
-                " --rule-creator-skill-path or ENAPTER_RULE_CREATOR_SKILL_PATH."
-            )
 
         config = mcp.ServerConfig(
             host=host,
@@ -210,14 +205,23 @@ class ServeCommand(Command):
             logo_url=args.logo_url,
             cors_allow_origins=cors_allow_origins,
             command_execution_enabled=args.command_execution_enabled == "1",
-            rule_editing_enabled=rule_editing_enabled,
-            rule_creator_skill_path=rule_creator_skill_path,
+            rule_editing_enabled=args.rule_editing_enabled == "1",
+            skills_enabled=skill_provider is not None,
         )
 
         async with asyncio.TaskGroup() as task_group:
-            async with http.EnapterAPI(
-                base_url=args.enapter_http_api_url
-            ) as enapter_api:
-                app = core.ApplicationServer(enapter_api=enapter_api)
+            async with _make_enapter_api(args.enapter_http_api_url) as enapter_api:
+                app = core.ApplicationServer(
+                    enapter_api=enapter_api, skill_provider=skill_provider
+                )
                 async with mcp.Server(app=app, config=config, task_group=task_group):
                     await asyncio.Event().wait()
+
+
+def _make_enapter_api(url: str) -> http.EnapterAPI | fake.EnapterAPI:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme == "fake":
+        return fake.EnapterAPI.from_url(url)
+    if parsed.scheme in ("http", "https"):
+        return http.EnapterAPI(base_url=url)
+    raise ValueError(f"Unsupported URL scheme: {parsed.scheme!r}")

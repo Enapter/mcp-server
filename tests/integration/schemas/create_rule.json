@@ -6,7 +6,7 @@
     "readOnlyHint": false,
     "title": "Create Rule"
   },
-  "description": "Create a disabled MCP-managed automation rule on a site.\n\nThis tool creates a new rule that is always disabled and uses runtime version v3.\nThe slug must start with the MCP-managed prefix `mcp-`. The creator does not\nenable the rule; a human must review and enable it in the Enapter UI.\n\nRelated tools:\n- `search_rules`: List rules on the site including the newly created one.\n- `read_rule`: Read the full script of the newly created rule.\n- `edit_rule`: Modify the rule's script via content-match editing.\n- `delete_rule`: Remove the rule.\n\nRequired skills:\n- `rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.\n\nTips:\n- This server exposes the `rule-creator` skill as an MCP resource in case you don't have it installed. List MCP resources to find it.",
+  "description": "Create a disabled MCP-managed automation rule on a site.\n\nThis tool creates a new rule that is always disabled and uses runtime version v3. The slug must start with the MCP-managed prefix `mcp-`. The creator does not enable the rule; a human must review and enable it in the Enapter UI.\n\nRequired skills:\n- `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.\n\nRelated tools:\n- `search_rules`: List rules on the site including the newly created one.\n- `read_rule`: Read the full script of the newly created rule.\n- `edit_rule`: Modify the rule's script via content-match editing.\n- `delete_rule`: Remove the rule.\n- `read_skill`: Load the `enapter:rule-creator` skill documentation.",
   "execution": null,
   "icons": null,
   "inputSchema": {
