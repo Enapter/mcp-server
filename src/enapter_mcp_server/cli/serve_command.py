@@ -206,7 +206,7 @@ class ServeCommand(Command):
             cors_allow_origins=cors_allow_origins,
             command_execution_enabled=args.command_execution_enabled == "1",
             rule_editing_enabled=args.rule_editing_enabled == "1",
-            skills_enabled=skill_plugins_path is not None,
+            skills_enabled=skill_provider is not None,
         )
 
         async with asyncio.TaskGroup() as task_group:

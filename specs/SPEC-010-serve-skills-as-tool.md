@@ -271,7 +271,7 @@ skill_provider = (
 
 config = mcp.ServerConfig(
     ...,
-    skills_enabled=skill_plugins_path is not None,
+    skills_enabled=skill_provider is not None,
 )
 
 async with asyncio.TaskGroup() as task_group:
@@ -297,7 +297,7 @@ the skill plugins root directory, not a single skill directory.
 ### 10. `ServerConfig` gains `skills_enabled`
 
 `ServerConfig` gains `skills_enabled: bool = False`. This is a presentation-layer
-flag: the CLI sets it based on whether `--skill-plugins` was provided. The MCP
+flag: the CLI sets it based on whether a skill provider was constructed. The MCP
 layer reads it to decide tool registration (decision 7). It is **not** a
 capability query on the app — the app always accepts an optional
 `SkillProvider | None` and guards at runtime (decision 4).
@@ -359,7 +359,7 @@ run via pipenv and point at the vendor submodule directly.
   `SkillNotFound`); migrating the existing `core/errors.py` errors to `domain/`
   is out of scope for this spec.
 - `read_skill` is registered iff `ServerConfig.skills_enabled` is `True`. The CLI
-  sets this flag based on whether `--skill-plugins` was provided. Skills are
+  sets this flag based on whether a skill provider was constructed. Skills are
   independent of rule editing — they can be enabled without rule editing and
   vice versa.
 - The adapter must eager-load before the `TaskGroup` is entered, so load/parse
@@ -421,7 +421,7 @@ run via pipenv and point at the vendor submodule directly.
    constructs `filesystem.SkillProvider.from_directory(path)` **before** entering
    the `async with TaskGroup()` when the path is provided, passes it (or `None`)
    into `ApplicationServer(..., skill_provider=...)` inside the `TaskGroup`, and
-   sets `skills_enabled=skill_plugins_path is not None` in `ServerConfig`. No
+   sets `skills_enabled=skill_provider is not None` in `ServerConfig`. No
    error is raised when the path is not provided. `ServerConfig` has no
    `pathlib` reference and no `rule_creator_skill_path`.
 
