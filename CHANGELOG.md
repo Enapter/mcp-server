@@ -1,3 +1,36 @@
+## [1.10.0] - 2026-07-14
+
+### 🚀 Features
+
+- *(mcp)* [**breaking**] Serve skills via read_skill tool (SPEC-010)
+- *(filesystem)* File-backed EnapterAPI adapter (SPEC-011)
+- *(cli)* Filetree:// URL scheme for filesystem.EnapterAPI (SPEC-012)
+- *(fake)* Programmable EnapterAPI fake (SPEC-014)
+- Make agent-test suite portable and fix inverted architecture
+
+### 🐛 Bug Fixes
+
+- *(mcp)* Read_skill docstrings, warn on empty plugins dir
+- *(filesystem)* Validate filetree scheme in EnapterAPI.from_url
+
+### 🚜 Refactor
+
+- Remove domain re-export of core.RuleSlugConflict, use Self annotation
+- *(cli)* Wire fake:// scheme, remove filesystem.EnapterAPI (SPEC-015)
+- *(cli)* Derive skills_enabled from skill_provider construction
+
+### 🎨 Styling
+
+- *(mcp)* Unwrap docstrings, start text after opening quotes
+
+### 🧪 Testing
+
+- Three-layer agent acceptance test suite (SPEC-013)
+- Agent acceptance tests on fake.EnapterAPI (SPEC-016)
+
+### ⚙️ Miscellaneous Tasks
+
+- Use `--verbose` in `make serve`
 ## [1.9.0] - 2026-07-09
 
 ### 🚀 Features
@@ -44,6 +77,7 @@
 - Vendor enapter-skills submodule (SPEC-009)
 - *(Makefile)* Unify exclude patterns for linting
 - *(Makefile)* Default rule-creator skill path for make serve
+- *(release)* Bump version to 1.9.0
 ## [1.6.0] - 2026-06-17
 
 ### 🚀 Features
