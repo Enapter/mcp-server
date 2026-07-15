@@ -21,7 +21,6 @@ from .server_config import ServerConfig
 
 
 class Server(enapter.async_.Routine):
-
     def __init__(
         self,
         app: core.ApplicationServer,
@@ -507,11 +506,13 @@ class Server(enapter.async_.Routine):
 
         The updated `Rule` object is returned. Use `read_rule` if you need to inspect the resulting source code.
 
+        Before proposing an edit, check the rule's status via `read_rule` — if it is enabled, tell the user to disable it in the Enapter UI first rather than attempting the edit.
+
         Required skills:
         - `enapter:rule-creator`: Explains how to create rules in detail. You MUST have it loaded before touching any rule code.
 
         Related tools:
-        - `read_rule`: Inspect the current script before crafting an edit.
+        - `read_rule`: Inspect the current script and status before crafting an edit.
         - `create_rule`: Create a new MCP-managed rule.
         - `delete_rule`: Remove the rule.
         - `read_skill`: Load the `enapter:rule-creator` skill documentation.
@@ -536,7 +537,10 @@ class Server(enapter.async_.Routine):
 
         The rule must be disabled and its slug must start with `mcp-`. The tool returns no result; confirm deletion via `search_rules`.
 
+        Before proposing a deletion, check the rule's status via `read_rule` — if it is enabled, tell the user to disable it in the Enapter UI first rather than attempting the deletion.
+
         Related tools:
+        - `read_rule`: Inspect the rule's status before deleting.
         - `search_rules`: Verify the rule no longer exists after deletion.
         - `create_rule`: Re-create the rule if needed.
         """
