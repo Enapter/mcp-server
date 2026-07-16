@@ -6,7 +6,7 @@
     "readOnlyHint": false,
     "title": "Delete Rule"
   },
-  "description": "Delete a disabled MCP-managed automation rule.\n\nThe rule must be disabled and its slug must start with `mcp-`. The tool returns no result; confirm deletion via `search_rules`.\n\nRelated tools:\n- `search_rules`: Verify the rule no longer exists after deletion.\n- `create_rule`: Re-create the rule if needed.",
+  "description": "Delete a disabled MCP-managed automation rule.\n\nThe rule must be disabled and its slug must start with `mcp-`. The tool returns no result; confirm deletion via `search_rules`.\n\nBefore proposing a deletion, check the rule's status via `read_rule` — if it is enabled, tell the user to disable it in the Enapter UI first rather than attempting the deletion.\n\nRelated tools:\n- `read_rule`: Inspect the rule's status before deleting.\n- `search_rules`: Verify the rule no longer exists after deletion.\n- `create_rule`: Re-create the rule if needed.",
   "execution": null,
   "icons": null,
   "inputSchema": {
